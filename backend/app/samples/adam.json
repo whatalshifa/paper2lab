@@ -1,0 +1,384 @@
+{
+  "id": "00000000-0000-4000-8000-000000001412",
+  "arxiv_id": "1412.6980v9",
+  "page_count": 15,
+  "reading": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": [
+      "Diederik P. Kingma",
+      "Jimmy Lei Ba"
+    ],
+    "year": 2015,
+    "field": "Machine learning",
+    "summary": {
+      "beginner": "Training an AI model means nudging millions of numbers, over and over, in the direction that makes its mistakes smaller. This paper introduces **Adam**, a smart way to decide how big each nudge should be, separately for every number. It is simple, needs little memory, works well without much fiddling, and became the most popular way to train neural networks.",
+      "student": "The paper proposes **Adam** (adaptive moment estimation), a gradient-based optimizer that keeps running averages of each parameter's gradient and squared gradient and uses them to give every parameter its own step size. It corrects these averages for their start-up bias, comes with a convergence guarantee for convex problems, and matches or beats other optimizers on logistic regression, neural networks and convolutional networks.",
+      "expert": "A first-order stochastic optimizer using bias-corrected exponential moving averages of the gradient and its elementwise square to produce per-parameter adaptive steps, combining AdaGrad's strength on sparse gradients with RMSProp's on non-stationary objectives. Steps are invariant to diagonal gradient rescaling and approximately bounded by the stepsize $\\alpha$. The paper proves an $O(\\sqrt{T})$ regret bound in the online convex setting and introduces the $L^\\infty$ variant AdaMax."
+    },
+    "contributions": [
+      "Adam, an optimizer that gives every parameter its own step size from running averages of its gradients.",
+      "A bias correction that fixes the averages being too small at the start of training.",
+      "A proof that Adam converges on convex problems, with a regret bound as good as the best known.",
+      "AdaMax, a simpler variant based on the largest past gradient instead of an average."
+    ],
+    "prerequisites": [
+      "Derivatives and gradients",
+      "Gradient descent",
+      "Moving averages",
+      "Basic neural network training"
+    ],
+    "sections": [
+      {
+        "id": "s1",
+        "title": "The problem: choosing step sizes",
+        "page": 1,
+        "explanation": {
+          "beginner": "Imagine walking down a foggy hill to reach the lowest point. You can only feel the slope under your feet. Take steps that are too big and you overshoot; too small and you never arrive. Training a neural network is the same walk, but in millions of directions at once, and the ground keeps shifting because you only look at a small batch of data each time.\n\nAdam is a rule for choosing a good step in every direction separately, using what the slopes have been doing recently.",
+          "student": "Many machine learning problems minimize a noisy objective: each step sees the gradient on a random mini-batch, not the full dataset, so plain **stochastic gradient descent** (SGD) must pick one learning rate that suits every parameter.\n\nThe authors want a method that is cheap (only first-order gradients), memory-light, robust to noisy and sparse gradients, and easy to tune. Adam combines two earlier ideas: **AdaGrad**, which handles sparse gradients well, and **RMSProp**, which handles objectives that change over time.",
+          "expert": "The target setting is high-dimensional stochastic objectives where higher-order methods are impractical. Adam computes individual adaptive learning rates from estimates of the first and second moments of the gradient, inheriting AdaGrad's suitability for sparse gradients and RMSProp's for non-stationary and online settings. Claimed advantages: update magnitudes invariant to gradient rescaling, stepsizes approximately bounded by the hyperparameter, no stationarity requirement, and natural step annealing."
+        },
+        "quotes": [
+          {
+            "page": 1,
+            "text": "The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients",
+            "verified": false
+          },
+          {
+            "page": 1,
+            "text": "The name Adam is derived from adaptive moment estimation.",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "The Adam algorithm",
+        "page": 2,
+        "explanation": {
+          "beginner": "At every step Adam keeps two short memories for each number it is tuning. The first is the **average direction** of recent slopes [e1], which smooths out the noise like a rolling ball that has momentum. The second is the **average size** of recent slopes, squared [e2], which tells how bumpy that direction is.\n\nThen it steps in the average direction, but divides by the bumpiness [e3]. Calm, steady directions get confident steps; wild, jumpy ones get careful steps.",
+          "student": "For each parameter Adam keeps $m_t$, an exponential moving average of the gradient [e1], and $v_t$, an exponential moving average of the squared gradient [e2]. $\\beta_1$ and $\\beta_2$ set how fast these averages forget the past.\n\nThe update moves each parameter by $\\alpha \\cdot \\hat m_t / (\\sqrt{\\hat v_t} + \\epsilon)$ [e3], where the hats mean bias-corrected averages (next section). The suggested defaults, $\\alpha = 0.001$, $\\beta_1 = 0.9$, $\\beta_2 = 0.999$ and $\\epsilon = 10^{-8}$, became the standard settings used almost everywhere.",
+          "expert": "Algorithm 1 maintains biased first and (uncentered) second raw moment estimates $m_t$ [e1] and $v_t$ [e2] with decay rates $\\beta_1, \\beta_2 \\in [0, 1)$, applies bias correction, and updates $\\theta_t = \\theta_{t-1} - \\alpha\\,\\hat m_t/(\\sqrt{\\hat v_t}+\\epsilon)$ [e3]. The authors note efficiency can be improved by folding the bias corrections into $\\alpha_t$. Defaults: $\\alpha=0.001$, $\\beta_1=0.9$, $\\beta_2=0.999$, $\\epsilon=10^{-8}$; all operations are elementwise."
+        },
+        "quotes": [
+          {
+            "page": 2,
+            "text": "The algorithm updates exponential moving averages of the gradient",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "Why the step size behaves well",
+        "page": 3,
+        "explanation": {
+          "beginner": "A nice side effect of dividing by the bumpiness: Adam's steps can never get wildly large. Roughly, no step is bigger than the step size you chose. So you can think of that setting as \"how far am I willing to move at once\".\n\nIt also means that if you multiply all the slopes by 100, Adam takes exactly the same steps, because the direction and the bumpiness both grow by 100 and cancel out.",
+          "student": "Because the update divides an average gradient by the square root of an average squared gradient, its size is roughly bounded by $\\alpha$: about $|\\Delta_t| \\lesssim \\alpha$ in common cases. This sets a **trust region** around the current parameters, so $\\alpha$ has a clear meaning.\n\nThe ratio $\\hat m_t/\\sqrt{\\hat v_t}$ acts like a signal-to-noise ratio: when gradients disagree from step to step it is small and steps shrink, a form of automatic annealing near an optimum. Scaling all gradients by a constant leaves the update unchanged.",
+          "expert": "The effective step $\\Delta_t = \\alpha\\,\\hat m_t/\\sqrt{\\hat v_t}$ satisfies $|\\Delta_t| \\le \\alpha(1-\\beta_1)/\\sqrt{1-\\beta_2}$ when $(1-\\beta_1) > \\sqrt{1-\\beta_2}$, and $|\\Delta_t| \\le \\alpha$ otherwise; the tighter case is typical since $|\\mathbb{E}[g]/\\sqrt{\\mathbb{E}[g^2]}| \\le 1$. The SNR interpretation explains automatic annealing, and invariance to gradient scale follows from $c\\hat m_t / \\sqrt{c^2 \\hat v_t} = \\hat m_t/\\sqrt{\\hat v_t}$."
+        },
+        "quotes": [
+          {
+            "page": 3,
+            "text": "An important property of Adam's update rule is its careful choice of stepsizes.",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "title": "Fixing the slow start: bias correction",
+        "page": 3,
+        "explanation": {
+          "beginner": "Adam's memories start at zero. So in the first few steps they are too small, like a new thermometer that hasn't warmed up yet and reads low. If nothing were done, the very first steps would be wrong.\n\nAdam fixes this with a simple correction [e4]: it divides each memory by a number that is small at first and grows towards 1, which exactly cancels the warm-up effect.",
+          "student": "Since $m_0 = v_0 = 0$, the moving averages are biased towards zero early in training, especially when $\\beta_1$ and $\\beta_2$ are close to 1 (long memories). The paper shows the expected value of $v_t$ is the true squared gradient times $(1 - \\beta_2^t)$, plus a small error.\n\nDividing by $(1 - \\beta_1^t)$ and $(1 - \\beta_2^t)$ [e4] removes this bias. Without it, the first steps can be much too large, which the experiments show can make training unstable. RMSProp with momentum lacks this correction.",
+          "expert": "With zero initialization, $\\mathbb{E}[v_t] = \\mathbb{E}[g_t^2](1-\\beta_2^t) + \\zeta$, where $\\zeta = 0$ for a stationary second moment and small otherwise because $\\beta_1$ (and $\\beta_2$) can be chosen to give small weight to the distant past. Dividing by $1-\\beta_2^t$ [e4] corrects the bias; it matters most for sparse gradients, which require $\\beta_2 \\to 1$, where uncorrected steps would be very large initially. Section 6.4 shows divergence without the correction in VAE training at $\\beta_2$ near 1."
+        },
+        "quotes": [
+          {
+            "page": 3,
+            "text": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "title": "A guarantee that it works",
+        "page": 4,
+        "explanation": {
+          "beginner": "The authors also prove, with maths, that Adam ends up doing well, at least for the simpler kind of problems called \"convex\" ones (a single valley, no traps).\n\nThey measure **regret**: how much worse Adam did, over all its steps, than if it had known the best answer from the start [e5]. They show the regret grows more slowly than the number of steps, so on average Adam's mistakes shrink towards zero.",
+          "student": "Section 4 analyzes Adam in the **online convex optimization** framework: at each step an unknown convex cost arrives, and the optimizer is judged by its regret, the total extra cost compared with the best fixed parameter in hindsight [e5].\n\nUnder bounded gradients and a decaying step size, Adam's regret is $O(\\sqrt{T})$ after $T$ steps, the best known rate for this setting. So the average regret $R(T)/T$ goes to zero. The bound improves when gradients are sparse, which is where adaptive methods shine.",
+          "expert": "Theorem 4.1: with bounded gradients $\\|\\nabla f_t\\|_2 \\le G$, bounded distances between iterates, $\\alpha_t = \\alpha/\\sqrt{t}$, $\\beta_1^2/\\sqrt{\\beta_2} < 1$ and $\\beta_{1,t} = \\beta_1\\lambda^{t-1}$, Adam attains a data-dependent regret bound of $O(\\sqrt{T})$, with the summation terms much smaller than the worst case under sparse gradients, comparable to AdaGrad's. Corollary 4.2 gives $R(T)/T = O(1/\\sqrt{T})$. (Later work by Reddi et al., 2018, found a flaw in this proof and proposed AMSGrad; that is outside this paper.)"
+        },
+        "quotes": [
+          {
+            "page": 4,
+            "text": "We analyze the convergence of Adam using the online learning framework proposed in",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s6",
+        "title": "Experiments",
+        "page": 5,
+        "explanation": {
+          "beginner": "The authors tested Adam on several kinds of models: a simple model that sorts handwritten digits, a model reading movie reviews, deeper neural networks, and image-recognition networks. They compared it with the popular methods of the time.\n\nAdam was as fast as or faster than all of them in almost every test, without special tuning. That reliability is why it spread so quickly.",
+          "student": "Experiments cover logistic regression on MNIST digits and IMDB movie reviews (sparse bag-of-words features), multilayer neural networks on MNIST, convolutional networks on CIFAR-10, and a variational autoencoder for the bias-correction test.\n\nAcross these, Adam converges as fast as or faster than SGD with Nesterov momentum, AdaGrad, RMSProp and AdaDelta. On the sparse IMDB features it matches AdaGrad, and on convolutional networks it beats AdaGrad clearly, while needing little hyperparameter tuning.",
+          "expert": "Logistic regression (MNIST; IMDB with 10,000-dim BoW and 50% dropout noise): Adam matches SGD-Nesterov with $1/\\sqrt{t}$ decay and AdaGrad on sparse features. MLPs (2 × 1000 ReLU, MNIST): Adam beats competitors including SFO in wall-clock, with and without dropout. CNNs (CIFAR-10, c64-c64-c128-1000): Adam and SGD outpace AdaGrad, whose second-moment estimate vanishes early; Adam marginally beats SGD. VAE runs confirm bias correction prevents instability at $\\beta_2 \\to 1$."
+        },
+        "quotes": [
+          {
+            "page": 5,
+            "text": "Using large models and datasets, we demonstrate Adam can efficiently solve practical deep learning problems.",
+            "verified": false
+          }
+        ]
+      },
+      {
+        "id": "s7",
+        "title": "AdaMax and conclusion",
+        "page": 8,
+        "explanation": {
+          "beginner": "Finally, the paper describes a cousin of Adam called **AdaMax**. Instead of remembering the average bumpiness, it remembers the **biggest** recent slope [e6]. This turns out to be simpler and very stable.\n\nThe authors end by saying Adam is simple, fast, and robust, a good fit for the large and noisy problems of modern machine learning.",
+          "student": "Adam scales updates by an $L^2$ norm of past gradients. Generalizing to an $L^p$ norm and letting $p \\to \\infty$ gives **AdaMax**, where $u_t$ is simply the maximum of the decayed previous value and the current absolute gradient [e6]. This needs no bias correction for $u_t$ and gives the simple bound $|\\Delta_t| \\le \\alpha$.\n\nThe conclusion: Adam is easy to implement, needs little memory, and performs well on large datasets and high-dimensional parameter spaces with noisy or sparse gradients.",
+          "expert": "Section 7.1 generalizes the second-moment term to an $L^p$ norm; the $p \\to \\infty$ limit yields $u_t = \\max(\\beta_2 u_{t-1}, |g_t|)$ [e6], update $\\theta_t = \\theta_{t-1} - (\\alpha/(1-\\beta_1^t))\\,m_t/u_t$, with $|\\Delta_t| \\le \\alpha$ and no bias correction needed for $u_t$ (defaults $\\alpha=0.002$). Section 7.2 suggests temporal averaging of parameters with bias correction. The conclusion restates suitability for non-convex, high-dimensional, noisy settings."
+        },
+        "quotes": [
+          {
+            "page": 9,
+            "text": "We have introduced a simple and computationally efficient algorithm for gradient-based optimization of stochastic objective functions.",
+            "verified": false
+          }
+        ]
+      }
+    ],
+    "equations": [
+      {
+        "id": "e1",
+        "number": null,
+        "name": "First moment: average gradient",
+        "latex": "m_t = \\beta_1 \\cdot m_{t-1} + (1 - \\beta_1) \\cdot g_t",
+        "in_words": {
+          "beginner": "Keep 90% of the old average direction and mix in 10% of the newest slope.",
+          "student": "An exponential moving average of the gradient: momentum that smooths out mini-batch noise.",
+          "expert": "Biased first raw moment estimate with decay $\\beta_1$, initialized at $m_0 = 0$."
+        },
+        "symbols": [
+          {
+            "latex": "m_t",
+            "meaning": "average direction of the slope at step t"
+          },
+          {
+            "latex": "g_t",
+            "meaning": "the slope (gradient) measured at step t"
+          },
+          {
+            "latex": "\\beta_1",
+            "meaning": "how much of the old average to keep (0.9)"
+          },
+          {
+            "latex": "t",
+            "meaning": "the step number"
+          }
+        ],
+        "section_id": "s2",
+        "page": 2
+      },
+      {
+        "id": "e2",
+        "number": null,
+        "name": "Second moment: average squared gradient",
+        "latex": "v_t = \\beta_2 \\cdot v_{t-1} + (1 - \\beta_2) \\cdot g_t^2",
+        "in_words": {
+          "beginner": "Keep a slow-moving average of how big the slopes have been, which says how bumpy this direction is.",
+          "student": "An exponential moving average of the squared gradient, measuring each parameter's typical gradient size.",
+          "expert": "Biased uncentered second raw moment estimate, elementwise square, decay $\\beta_2$."
+        },
+        "symbols": [
+          {
+            "latex": "v_t",
+            "meaning": "average squared slope at step t"
+          },
+          {
+            "latex": "g_t^2",
+            "meaning": "the slope multiplied by itself"
+          },
+          {
+            "latex": "\\beta_2",
+            "meaning": "how much of the old average to keep (0.999)"
+          }
+        ],
+        "section_id": "s2",
+        "page": 2
+      },
+      {
+        "id": "e3",
+        "number": null,
+        "name": "Adam update",
+        "latex": "\\theta_t = \\theta_{t-1} - \\alpha \\cdot \\frac{\\hat{m}_t}{\\sqrt{\\hat{v}_t} + \\epsilon}",
+        "in_words": {
+          "beginner": "Move each number a little in the average downhill direction, taking smaller steps where the ground is bumpy.",
+          "student": "Each parameter moves by the corrected average gradient divided by the square root of the corrected average squared gradient, times the step size.",
+          "expert": "Per-coordinate preconditioned step with diagonal $\\sqrt{\\hat v_t}$, approximately bounded by $\\alpha$; $\\epsilon$ prevents division by zero."
+        },
+        "symbols": [
+          {
+            "latex": "\\theta_t",
+            "meaning": "the model's numbers (parameters) after step t"
+          },
+          {
+            "latex": "\\alpha",
+            "meaning": "step size (0.001)"
+          },
+          {
+            "latex": "\\hat{m}_t",
+            "meaning": "average direction, corrected for its slow start"
+          },
+          {
+            "latex": "\\hat{v}_t",
+            "meaning": "average squared slope, corrected for its slow start"
+          },
+          {
+            "latex": "\\epsilon",
+            "meaning": "a tiny number so we never divide by zero"
+          }
+        ],
+        "section_id": "s2",
+        "page": 2
+      },
+      {
+        "id": "e4",
+        "number": null,
+        "name": "Bias correction",
+        "latex": "\\hat{m}_t = \\frac{m_t}{1 - \\beta_1^t}, \\qquad \\hat{v}_t = \\frac{v_t}{1 - \\beta_2^t}",
+        "in_words": {
+          "beginner": "Scale the averages up at the start, when they are too small because they began at zero.",
+          "student": "Dividing by $1 - \\beta^t$ undoes the pull towards zero from starting the averages at 0; the correction fades as t grows.",
+          "expert": "Unbiased estimates under stationarity, since $\\mathbb{E}[v_t] = \\mathbb{E}[g_t^2](1-\\beta_2^t) + \\zeta$."
+        },
+        "symbols": [
+          {
+            "latex": "\\beta_1^t",
+            "meaning": "beta-1 multiplied by itself t times; shrinks towards 0"
+          },
+          {
+            "latex": "\\hat{m}_t, \\hat{v}_t",
+            "meaning": "the corrected averages"
+          }
+        ],
+        "section_id": "s4",
+        "page": 2
+      },
+      {
+        "id": "e5",
+        "number": null,
+        "name": "Regret",
+        "latex": "R(T) = \\sum_{t=1}^{T} \\left[ f_t(\\theta_t) - f_t(\\theta^*) \\right]",
+        "in_words": {
+          "beginner": "Add up, over every step, how much worse Adam's guess was than the best possible answer.",
+          "student": "Total extra cost of Adam's sequence of parameters compared with the single best parameter chosen in hindsight.",
+          "expert": "Online regret against $\\theta^* = \\arg\\min_{\\theta \\in \\mathcal{X}} \\sum_t f_t(\\theta)$; Adam achieves $R(T) = O(\\sqrt{T})$."
+        },
+        "symbols": [
+          {
+            "latex": "R(T)",
+            "meaning": "total regret after T steps"
+          },
+          {
+            "latex": "f_t",
+            "meaning": "the cost function seen at step t"
+          },
+          {
+            "latex": "\\theta^*",
+            "meaning": "the best fixed parameters in hindsight"
+          },
+          {
+            "latex": "\\sum_{t=1}^{T}",
+            "meaning": "add up over steps 1 to T"
+          }
+        ],
+        "section_id": "s5",
+        "page": 4
+      },
+      {
+        "id": "e6",
+        "number": null,
+        "name": "AdaMax",
+        "latex": "u_t = \\max\\left(\\beta_2 \\cdot u_{t-1},\\, |g_t|\\right), \\qquad \\theta_t = \\theta_{t-1} - \\frac{\\alpha}{1 - \\beta_1^t} \\cdot \\frac{m_t}{u_t}",
+        "in_words": {
+          "beginner": "Remember the biggest recent slope (slowly forgetting old ones) and divide the step by it.",
+          "student": "Replaces the average squared gradient with a decaying maximum of absolute gradients, the $p \\to \\infty$ limit of an $L^p$ norm.",
+          "expert": "Infinity-norm variant: $u_t$ needs no bias correction and $|\\Delta_t| \\le \\alpha$."
+        },
+        "symbols": [
+          {
+            "latex": "u_t",
+            "meaning": "the largest recent slope size, slowly forgetting"
+          },
+          {
+            "latex": "|g_t|",
+            "meaning": "size of the slope, ignoring its sign"
+          },
+          {
+            "latex": "\\max",
+            "meaning": "the larger of the two"
+          }
+        ],
+        "section_id": "s7",
+        "page": 9
+      }
+    ],
+    "concepts": [
+      {
+        "term": "stochastic",
+        "meaning": "Random; here, each step uses a random sample of the data, so measurements are noisy."
+      },
+      {
+        "term": "gradient",
+        "meaning": "The slope of the error: which way, and how steeply, each parameter should change."
+      },
+      {
+        "term": "SGD",
+        "meaning": "Stochastic gradient descent: step against the gradient measured on a small random batch."
+      },
+      {
+        "term": "objective function",
+        "meaning": "The number training tries to make as small as possible, usually the model's error."
+      },
+      {
+        "term": "moment",
+        "meaning": "A summary of a distribution; the first moment is the average, the second the average square."
+      },
+      {
+        "term": "exponential moving average",
+        "meaning": "An average where recent values count more and old ones fade away."
+      },
+      {
+        "term": "AdaGrad",
+        "meaning": "An earlier optimizer that shrinks each parameter's step by its total past gradient size."
+      },
+      {
+        "term": "RMSProp",
+        "meaning": "An earlier optimizer that divides by a moving average of squared gradients."
+      },
+      {
+        "term": "sparse gradients",
+        "meaning": "Gradients that are zero for most parameters at most steps, common with rare words or features."
+      },
+      {
+        "term": "regret",
+        "meaning": "How much worse an online method did in total than the best fixed choice in hindsight."
+      },
+      {
+        "term": "convex",
+        "meaning": "Bowl-shaped: any local lowest point is the global lowest point."
+      },
+      {
+        "term": "hyperparameters",
+        "meaning": "Settings chosen by people before training, like the step size, not learned by the model."
+      }
+    ],
+    "has_text_layer": true
+  }
+}

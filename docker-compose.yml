@@ -1,0 +1,46 @@
+# Runs the whole app on your laptop: database, API and website.
+#   1. Copy backend/.env.example to backend/.env (add your Anthropic key to explain new papers)
+#   2. docker compose up --build
+#   3. Open http://localhost:3000
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: paper2lab
+      POSTGRES_PASSWORD: paper2lab
+      POSTGRES_DB: paper2lab
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paper2lab"]
+      interval: 2s
+      retries: 15
+
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      P2L_DATABASE_URL: postgresql+psycopg://paper2lab:paper2lab@db:5432/paper2lab
+      P2L_UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # The website forwards /api/* to the API, so the browser only ever talks to one address.
+        API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  uploads:
