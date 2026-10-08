@@ -81,3 +81,29 @@ test("asking a sample paper shows a prepared answer with its source page", async
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 });
+
+test("the prerequisite map opens a primer for each idea", async ({ page }) => {
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  const map = page.locator("#before-you-read");
+  await expect(map.getByRole("heading", { name: "Before you read" })).toBeVisible();
+  await expect(map.getByRole("list", { name: "Step 1" })).toContainText("Vectors and matrices");
+  await map.getByRole("button", { name: "Dot product: a quick primer" }).click();
+  const primer = page.getByRole("dialog", { name: "Dot product: a quick primer" });
+  await expect(primer).toContainText("In this paper: Attention scores how well a query matches each key");
+  await expect(primer).toContainText("Builds on Vectors and matrices.");
+});
+
+test("a figure is explained at the chosen level", async ({ page }) => {
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  const figure = page.locator("#fig-f1");
+  await figure.scrollIntoViewIfNeeded();
+  await expect(figure).toContainText("The Transformer - model architecture.");
+  await expect(figure).toContainText("How to read it");
+  await expect(figure).toContainText("The whole model is built from attention");
+  await expect(figure).toContainText("stack of N = 6 identical layers");
+
+  const slider = page.getByRole("slider", { name: "Reading level" });
+  await slider.focus();
+  await page.keyboard.press("Home");
+  await expect(figure).toContainText("A map of the whole model.");
+});

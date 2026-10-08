@@ -4,7 +4,9 @@ The schema guarantees the shape, not that the parts agree with each other. Here,
 Python: every quote is checked against the PDF (quotes.py), equation ids are made unique,
 equations pointing at a section that doesn't exist are moved to the right one, and
 "[e7]" references to equations that don't exist are dropped from the text, so the web
-page never shows a broken link.
+page never shows a broken link. Figure captions are checked like quotes, figure positions are
+kept on the page, and the prerequisite map is made into a proper map: an idea can only build
+on ideas listed before it, so it never goes round in a circle.
 """
 
 import re
@@ -13,6 +15,7 @@ from app.services.quotes import find_page
 from app.services.reader import Leveled, PaperReading
 
 _EQ_REF = re.compile(r"\[(e\d+)\]")
+_SAFE_ID = re.compile(r"[a-z][a-z0-9]{0,7}")  # figure ids end up in URLs and file names
 
 
 def _drop_bad_refs(text: str, known: set[str]) -> str:
@@ -21,6 +24,39 @@ def _drop_bad_refs(text: str, known: set[str]) -> str:
 
 def _leveled(value: Leveled, known: set[str]) -> dict[str, str]:
     return {level: _drop_bad_refs(text, known) for level, text in value.model_dump().items()}
+
+
+MIN_HEIGHT = 0.08  # a figure region thinner than this is a bad guess, so the whole page is shown
+
+
+def _region(top: float, bottom: float) -> tuple[float, float]:
+    top, bottom = sorted((min(max(top, 0.0), 1.0), min(max(bottom, 0.0), 1.0)))
+    if bottom - top < MIN_HEIGHT:
+        return 0.0, 1.0
+    return round(top, 3), round(bottom, 3)
+
+
+def _prerequisites(reading: PaperReading) -> list[dict]:
+    result = []
+    seen: dict[str, int] = {}
+    for index, item in enumerate(reading.prerequisites, start=1):
+        topic = item.topic.strip()
+        if not topic:
+            continue
+        item_id = item.id if item.id not in seen else f"p{index}"
+        # Only ideas already listed count, which rules out loops and unknown ids.
+        builds_on = list(dict.fromkeys(d for d in item.builds_on if d in seen))
+        seen[item_id] = index
+        result.append(
+            {
+                "id": item_id,
+                "topic": topic,
+                "primer": item.primer.strip(),
+                "why": item.why.strip(),
+                "builds_on": builds_on,
+            }
+        )
+    return result
 
 
 def finish(reading: PaperReading, pages: list[str]) -> dict:
@@ -45,6 +81,14 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
         equations.append((equation_id, equation))
     known = {equation_id for equation_id, _ in equations}
 
+    figures = []
+    seen_figures: set[str] = set()
+    for index, figure in enumerate(reading.figures, start=1):
+        safe = figure.id not in seen_figures and _SAFE_ID.fullmatch(figure.id)
+        figure_id = figure.id if safe else f"f{index}"
+        seen_figures.add(figure_id)
+        figures.append((figure_id, figure))
+
     def section_for(equation_page: int, wanted: str) -> str | None:
         if wanted in seen_sections:
             return wanted
@@ -65,6 +109,25 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
             "verified": found is not None,
         }
 
+    def figure_dict(figure_id: str, figure) -> dict:
+        caption = figure.caption.strip()
+        found = find_page(caption, pages, figure.page) if has_text and caption else None
+        top, bottom = _region(figure.top, figure.bottom)
+        return {
+            "id": figure_id,
+            "label": figure.label.strip() or f"Figure {figure_id[1:]}",
+            "kind": figure.kind,
+            "page": found or clamp(figure.page),
+            "caption": caption,
+            "caption_verified": found is not None,
+            "top": top,
+            "bottom": bottom,
+            "explanation": _leveled(figure.explanation, known),
+            "how_to_read": figure.how_to_read.strip(),
+            "takeaway": figure.takeaway.strip(),
+            "section_id": section_for(found or clamp(figure.page), figure.section_id),
+        }
+
     return {
         "title": reading.title.strip(),
         "authors": [name.strip() for name in reading.authors if name.strip()],
@@ -72,7 +135,7 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
         "field": reading.field.strip(),
         "summary": _leveled(reading.summary, known),
         "contributions": reading.contributions,
-        "prerequisites": reading.prerequisites,
+        "prerequisites": _prerequisites(reading),
         "sections": [
             {
                 "id": section_id,
@@ -96,6 +159,7 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
             }
             for equation_id, equation in equations
         ],
+        "figures": [figure_dict(figure_id, figure) for figure_id, figure in figures],
         "concepts": [concept.model_dump() for concept in reading.concepts],
         "suggested_questions": [q.strip() for q in reading.suggested_questions if q.strip()][:4],
         "has_text_layer": has_text,

@@ -39,6 +39,29 @@ export interface Concept {
   meaning: string;
 }
 
+export interface Figure {
+  id: string;
+  label: string;
+  kind: "figure" | "table";
+  page: number;
+  caption: string;
+  caption_verified: boolean;
+  top: number;
+  bottom: number;
+  explanation: Leveled;
+  how_to_read: string;
+  takeaway: string;
+  section_id: string | null;
+}
+
+export interface Prerequisite {
+  id: string;
+  topic: string;
+  primer: string;
+  why: string;
+  builds_on: string[];
+}
+
 export interface Citation {
   quote: string;
   start_page: number;
@@ -74,9 +97,11 @@ export interface Reading {
   field: string;
   summary: Leveled;
   contributions: string[];
-  prerequisites: string[];
+  /** Plain strings in papers read before the prerequisite map existed. */
+  prerequisites: (string | Prerequisite)[];
   sections: Section[];
   equations: Equation[];
+  figures?: Figure[];
   concepts: Concept[];
   has_text_layer: boolean;
   suggested_questions?: string[];
@@ -166,5 +191,7 @@ export const api = {
       body: JSON.stringify({ text, level }),
     }),
   question: (id: string) => call<Question>(`/api/questions/${encodeURIComponent(id)}`),
+  figureUrl: (paperId: string, figureId: string) =>
+    `/api/papers/${encodeURIComponent(paperId)}/figures/${encodeURIComponent(figureId)}.png`,
   remove: (id: string) => call<void>(`/api/papers/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

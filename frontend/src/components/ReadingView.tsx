@@ -8,7 +8,9 @@ import { useLevel } from "@/lib/level";
 
 import { AskPanel } from "./AskPanel";
 import { EquationCard } from "./Equations";
+import { FigureCard } from "./FigureCard";
 import { LevelSlider } from "./LevelSlider";
+import { asPrerequisites, PrerequisiteMap } from "./PrerequisiteMap";
 import { ReadingContext, RichText } from "./RichText";
 
 function pageLink(pdfUrl: string | null, page: number) {
@@ -62,6 +64,7 @@ function SectionBlock({
   const equations = reading.equations
     .map((equation, index) => ({ equation, index }))
     .filter(({ equation }) => equation.section_id === section.id);
+  const figures = (reading.figures ?? []).filter((figure) => figure.section_id === section.id);
   return (
     <section id={section.id} className="scroll-mt-32 border-t border-line pt-8" aria-labelledby={`${section.id}-title`}>
       <div className="flex items-baseline justify-between gap-4">
@@ -78,6 +81,13 @@ function SectionBlock({
         <div className="mt-6 space-y-3">
           {equations.map(({ equation, index }) => (
             <EquationCard key={equation.id} equation={equation} index={index} level={level} />
+          ))}
+        </div>
+      )}
+      {figures.length > 0 && (
+        <div className="mt-6 space-y-4">
+          {figures.map((figure) => (
+            <FigureCard key={figure.id} figure={figure} paperId={paper.id} pdfUrl={paper.pdf_url} level={level} />
           ))}
         </div>
       )}
@@ -148,6 +158,7 @@ export function ReadingView({
   const authors = reading.authors.length > 4 ? `${reading.authors.slice(0, 3).join(", ")} and others` : reading.authors.join(", ");
   const verified = reading.sections.flatMap((s) => s.quotes).filter((q) => q.verified).length;
   const quotes = reading.sections.flatMap((s) => s.quotes).length;
+  const hasMap = asPrerequisites(reading.prerequisites).some((p) => p.primer);
 
   return (
     <ReadingContext.Provider value={context}>
@@ -204,6 +215,13 @@ export function ReadingView({
             <div className="sticky top-28">
               <p className="eyebrow">Contents</p>
               <ol className="mt-3 space-y-1 text-sm">
+                {hasMap && (
+                  <li>
+                    <a href="#before-you-read" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
+                      Before you read
+                    </a>
+                  </li>
+                )}
                 {reading.sections.map((section, i) => (
                   <li key={section.id}>
                     <a
@@ -243,37 +261,23 @@ export function ReadingView({
               </div>
             </section>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {reading.contributions.length > 0 && (
-                <section className="card p-5" aria-labelledby="new">
-                  <h2 id="new" className="text-sm font-semibold">
-                    What&apos;s new in this paper
-                  </h2>
-                  <ul className="mt-3 space-y-2 text-sm leading-relaxed">
-                    {reading.contributions.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {reading.prerequisites.length > 0 && (
-                <section className="card p-5" aria-labelledby="helps">
-                  <h2 id="helps" className="text-sm font-semibold">
-                    Helps to know
-                  </h2>
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {reading.prerequisites.map((item) => (
-                      <li key={item} className="badge bg-sunken py-1 font-medium text-foreground">
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-            </div>
+            {reading.contributions.length > 0 && (
+              <section className="card p-5 sm:p-6" aria-labelledby="new">
+                <h2 id="new" className="text-sm font-semibold">
+                  What&apos;s new in this paper
+                </h2>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed">
+                  {reading.contributions.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {reading.prerequisites.length > 0 && <PrerequisiteMap items={reading.prerequisites} />}
 
             {reading.sections.map((section, i) => (
               <SectionBlock key={section.id} section={section} number={i + 1} paper={paper} reading={reading} />

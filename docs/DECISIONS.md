@@ -26,3 +26,11 @@ our explanations and short quotes, and links to the PDFs on arXiv.
 
 **The same stack as ReportSaathi** (Next.js, FastAPI, Postgres, an S3-style bucket; Vercel, Render,
 Neon), so the deployment steps are already familiar and everything runs on free plans.
+
+**Figures are cut from the PDF on the server, and placed by the PDF's own text.** Asking Claude for
+exact coordinates would be guesswork; asking only for a rough position and then finding the caption
+and the drawings with pdfplumber gives a cut we can trust. Pictures are made on first view and kept,
+so a paper nobody looks at costs nothing.
+
+**The prerequisite map is steps, not a free-form graph.** Seven ideas drawn as nodes and arrows are
+hard to read on a phone. Steps ("learn these, then these") show the same order and fit any screen.

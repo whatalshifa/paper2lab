@@ -7,8 +7,14 @@ def _escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
-def make_pdf(*pages: list[Line], size: tuple[int, int] = (595, 842), rotate: int = 0) -> bytes:
-    """A PDF with one page per list of lines, in 10-point Helvetica (A4 by default)."""
+def make_pdf(
+    *pages: list[Line],
+    size: tuple[int, int] = (595, 842),
+    rotate: int = 0,
+    drawings: dict[int, str] | None = None,
+) -> bytes:
+    """A PDF with one page per list of lines, in 10-point Helvetica (A4 by default). drawings adds
+    raw PDF drawing commands to a page (by index), e.g. "50 400 200 150 re S" for a box."""
     count = len(pages)
     kids = " ".join(f"{3 + 2 * i} 0 R" for i in range(count))
     font = 3 + 2 * count
@@ -18,6 +24,8 @@ def make_pdf(*pages: list[Line], size: tuple[int, int] = (595, 842), rotate: int
     ]
     for i, lines in enumerate(pages):
         stream = "\n".join(f"BT /F1 10 Tf {x} {y} Td ({_escape(text)}) Tj ET" for x, y, text in lines)
+        if drawings and i in drawings:
+            stream += "\n" + drawings[i]
         objects.append(
             f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {size[0]} {size[1]}] /Rotate {rotate} "
             f"/Resources << /Font << /F1 {font} 0 R >> >> /Contents {4 + 2 * i} 0 R >>"

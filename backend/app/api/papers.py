@@ -22,9 +22,10 @@ from app.config import Settings, get_settings
 from app.db import get_session, get_session_factory
 from app.models import Paper
 from app.schemas import ArxivRequest, PaperDetail, PaperLists, PaperSummary, SiteConfig
-from app.services.arxiv import parse_arxiv_id
-from app.services.claude import AI_OFF
-from app.services.jobs import new_file_key, process_paper
+from app.services.arxiv import ArxivError, parse_arxiv_id
+from app.services.claude import AI_OFF, AIError
+from app.services.figures import FigureError, figure_key, render_figure
+from app.services.jobs import new_file_key, paper_pdf, process_paper
 from app.services.library import current_library, get_or_create_library
 from app.services.pdf_text import BadPDF, page_texts
 from app.services.ratelimit import RateLimiter, client_ip
@@ -123,6 +124,37 @@ def get_pdf(paper_id: str, request: Request, session: SessionDep, storage: Stora
         headers={
             "Content-Disposition": "inline",
             "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.get("/papers/{paper_id}/figures/{figure_id}.png")
+def get_figure(
+    paper_id: str, figure_id: str, request: Request, session: SessionDep, storage: StorageDep
+) -> Response:
+    """A figure cut out of its page. Drawn the first time it is asked for, then kept."""
+    paper = _visible_paper(paper_id, request, session)
+    figures = (paper.reading or {}).get("figures", [])
+    figure = next((f for f in figures if f.get("id") == figure_id), None)
+    if figure is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Figure not found")
+    key = figure_key(paper.id, figure)
+    try:
+        image = storage.read(key)
+    except Exception:  # not drawn yet (a missing file looks different locally and on S3)
+        try:
+            image = render_figure(paper_pdf(paper, storage), figure)
+        except (ArxivError, AIError, FigureError) as exc:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE, "This figure can't be shown right now."
+            ) from exc
+        storage.save(key, image)
+    return Response(
+        image,
+        media_type="image/png",
+        headers={
+            "Cache-Control": "public, max-age=86400" if paper.is_sample else "private, max-age=86400",
             "X-Content-Type-Options": "nosniff",
         },
     )
@@ -270,5 +302,7 @@ def delete_paper(paper_id: str, request: Request, session: SessionDep, storage: 
     paper = _own_paper(paper_id, request, session)
     if paper.file_key:
         storage.delete(paper.file_key)
+    for figure in (paper.reading or {}).get("figures", []):
+        storage.delete(figure_key(paper.id, figure))
     session.delete(paper)
     session.commit()

@@ -131,6 +131,26 @@ and question come after it, so a second question about the same paper reuses the
 Questions belong to the browser that asked them: someone else's question returns 404, like papers.
 In demo mode the samples carry `prepared_answers` in the same shape, shown straight from the page.
 
+## 6. Figures and the prerequisite map
+
+Claude's reading also lists the paper's key **figures and tables**: label, page, the first sentence
+of the caption, a rough top and bottom on the page, and the explanation. `finishing.py` checks the
+caption against the PDF text like a quote (fixing the page), keeps the position on the page, and
+replaces any id that isn't safe in a URL.
+
+The picture is cut by `services/figures.py` the first time someone opens it
+(`GET /api/papers/{id}/figures/{figure}.png`), then kept in storage. pdfplumber finds the caption's
+words on the page; a figure's cut ends at its caption and a table's starts at it, and if Claude's guess
+is far from the caption, the caption wins. Any drawing or image the cut slices through is taken in
+whole, so a rough guess doesn't chop the top off a chart. The stored file's name includes a hash of the
+figure's position, so reading the paper again never shows an old picture. Sample figures are cut from
+the arXiv PDF, downloaded once.
+
+The **prerequisite map** is a list of ideas, each naming the earlier ones it builds on. The server
+drops any link to a later idea (or itself), so the map can never loop; the page groups ideas into
+steps by how deep they sit (`PrerequisiteMap.tsx`). Papers read before the map existed still show
+their prerequisites as plain tags.
+
 ## The database
 
 Three tables (`backend/app/models.py`, created by the Alembic migrations in `backend/alembic/versions`):
@@ -145,12 +165,13 @@ Sample papers are rows with no library and `is_sample = true`, loaded at startup
 
 ## Tests
 
-- `backend/tests` (pytest, 64 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
+- `backend/tests` (pytest, 73 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
   written by hand (`tests/pdfs.py`). They cover uploading, quote checking, arXiv parsing and download
   (including redirects away from arXiv), privacy between browsers, spending limits, demo mode,
-  failures and retries, asking questions and their limits, and that the hand-written samples hang together.
-- `frontend/e2e` (Playwright, 14 tests): the real website and API in Chromium, on a desktop and a
+  failures and retries, asking questions and their limits, figure cutting and the prerequisite map, and that the hand-written samples hang together.
+- `frontend/e2e` (Playwright, 18 tests): the real website and API in Chromium, on a desktop and a
   phone screen. They check the slider rewrites the text, equations explain themselves, quotes link to
-  the right page, a sample's prepared answer shows its source, and nothing scrolls sideways.
+  the right page, a sample's prepared answer shows its source,
+  the prerequisite map opens primers, figures follow the slider, and nothing scrolls sideways.
 - CI (`.github/workflows/ci.yml`) runs all of it on every push, applies the migrations to a real
   Postgres, and checks the sample quotes against the real PDFs on arXiv.

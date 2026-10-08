@@ -22,10 +22,48 @@
       "AdaMax, a simpler variant based on the largest past gradient instead of an average."
     ],
     "prerequisites": [
-      "Derivatives and gradients",
-      "Gradient descent",
-      "Moving averages",
-      "Basic neural network training"
+      {
+        "id": "p1",
+        "topic": "Derivatives and gradients",
+        "primer": "A derivative says how fast a quantity changes when you nudge its input. The gradient collects these for many inputs at once and points uphill.",
+        "why": "Adam is driven entirely by the gradient of the loss.",
+        "builds_on": []
+      },
+      {
+        "id": "p2",
+        "topic": "Gradient descent",
+        "primer": "Gradient descent improves a model by repeatedly taking a small step downhill, against the gradient. The size of the step is the learning rate.",
+        "why": "Adam is a smarter way to choose the size of each step.",
+        "builds_on": [
+          "p1"
+        ]
+      },
+      {
+        "id": "p3",
+        "topic": "Stochastic gradients",
+        "primer": "Computing the exact gradient over all the data is slow, so training uses a small random batch each step. The result is fast but noisy.",
+        "why": "Adam is designed for these noisy, mini-batch gradients.",
+        "builds_on": [
+          "p2"
+        ]
+      },
+      {
+        "id": "p4",
+        "topic": "Moving averages",
+        "primer": "An exponential moving average keeps a running average where recent values count more and old ones fade away.",
+        "why": "Adam keeps two moving averages per parameter: of the gradient and of its square.",
+        "builds_on": []
+      },
+      {
+        "id": "p5",
+        "topic": "Momentum, AdaGrad and RMSProp",
+        "primer": "Momentum smooths steps by remembering past gradients. AdaGrad and RMSProp give each parameter its own step size based on how large its gradients have been.",
+        "why": "Adam combines the ideas of momentum and RMSProp, and the paper compares against both.",
+        "builds_on": [
+          "p3",
+          "p4"
+        ]
+      }
     ],
     "sections": [
       {
@@ -327,6 +365,62 @@
         ],
         "section_id": "s7",
         "page": 9
+      }
+    ],
+    "figures": [
+      {
+        "id": "f1",
+        "label": "Figure 1",
+        "kind": "figure",
+        "page": 6,
+        "caption": "Logistic regression training negative log likelihood on MNIST images and IMDB movie reviews with 10,000 bag-of-words (BoW) feature vectors.",
+        "caption_verified": false,
+        "top": 0.07,
+        "bottom": 0.4,
+        "explanation": {
+          "beginner": "Two charts of a model getting better with practice. The lines go down as mistakes shrink, and the line that drops fastest belongs to the best method.",
+          "student": "Training loss (lower is better) against passes over the data, for logistic regression on MNIST (left) and IMDB reviews (right). Adam keeps pace with SGD with Nesterov momentum on MNIST and matches AdaGrad on the sparse IMDB features.",
+          "expert": "Negative log-likelihood vs. iterations over the training set. On MNIST, Adam converges like SGD+Nesterov; on sparse BoW features with dropout noise, Adam matches AdaGrad and clearly beats SGD+Nesterov, consistent with its handling of sparse gradients."
+        },
+        "how_to_read": "Each coloured line is one optimizer. The horizontal axis is how long it has trained; the vertical axis is the training loss, so lower and earlier is better.",
+        "takeaway": "Adam is at least as fast as the best older method on both problems, including the sparse one.",
+        "section_id": "s6"
+      },
+      {
+        "id": "f2",
+        "label": "Figure 2",
+        "kind": "figure",
+        "page": 7,
+        "caption": "Training of multilayer neural networks on MNIST images.",
+        "caption_verified": false,
+        "top": 0.07,
+        "bottom": 0.38,
+        "explanation": {
+          "beginner": "Charts showing several methods teaching a bigger neural network. Adam's line drops quickest, meaning it learns the task fastest.",
+          "student": "Training cost against passes over the data for a two-layer network on MNIST, with dropout (left) and comparing to the SFO quasi-Newton method (right). Adam converges faster than the other methods in both.",
+          "expert": "Multilayer perceptrons (2×1000 ReLU units) with dropout: Adam outperforms AdaGrad, RMSProp, SGD+Nesterov and AdaDelta, and beats SFO in both iterations and wall-clock time."
+        },
+        "how_to_read": "As in Figure 1, each line is an optimizer, time runs left to right and lower cost is better.",
+        "takeaway": "On a real neural network, Adam trains faster than every method it was compared with.",
+        "section_id": "s6"
+      },
+      {
+        "id": "f3",
+        "label": "Figure 4",
+        "kind": "figure",
+        "page": 8,
+        "caption": "Effect of bias-correction terms (red line) versus no bias correction terms (green line) after 10 epochs (left) and 100 epochs (right) on the loss (y-axes) when learning a Variational Auto-Encoder (VAE) for different settings of stepsize α (x-axes) and hyperparameters β1 and β2.",
+        "caption_verified": false,
+        "top": 0.07,
+        "bottom": 0.5,
+        "explanation": {
+          "beginner": "A grid of small charts testing one small fix in Adam. Where the green line shoots up, training went badly without the fix; the red line, with the fix, stays low.",
+          "student": "Loss against step size for many settings of β1 and β2, with bias correction (red) and without it (green). Without correction, training becomes unstable when β2 is close to 1, which is exactly the setting you want for sparse gradients.",
+          "expert": "Bias correction matters most for β2 near 1 (e.g. 0.9999): without it the early second-moment estimate is biased toward zero, steps blow up, and the loss diverges, especially at larger α."
+        },
+        "how_to_read": "Each small panel is one choice of β1 and β2; inside it, the horizontal axis is the step size and the vertical axis is the loss. Compare the red and green lines within each panel.",
+        "takeaway": "Bias correction keeps Adam stable, especially with the slow-forgetting settings it recommends.",
+        "section_id": "s4"
       }
     ],
     "concepts": [
