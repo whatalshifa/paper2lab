@@ -11,7 +11,7 @@ based on, checked word for word against the PDF, so you can trust it or catch it
 
 ![Hovering an equation](docs/screenshots/equation.png)
 
-## What works today (Phase 1)
+## What works today (Phases 1 and 2)
 
 - **Add a paper** by uploading a PDF (up to 20 MB and 60 pages) or pasting an arXiv link or id.
   The PDF is checked before any AI sees it: is it really a PDF, how many pages, what text is on each.
@@ -31,17 +31,24 @@ based on, checked word for word against the PDF, so you can trust it or catch it
   breaks, hyphenation and ligatures). Found quotes get a green "Found word for word in the PDF" tick
   and their correct page; any that aren't found are marked, so a made-up quote can't pass silently.
   "Page 3 of the paper" opens the PDF at that page.
+- **Ask the paper.** A side panel answers questions from the paper alone, at your reading level.
+  Every sentence is marked with numbered sources: passages the Anthropic API copied out of the PDF
+  itself (its citations feature), each with its page, so an answer can't lean on a quote that isn't
+  there. Each paper suggests a few questions to start with. The PDF is cached on the AI side, so
+  follow-up questions cost much less than the first.
 - **Your library, without an account.** Papers you add belong to your browser (a random key in a
   cookie scripts can't read; only its hash is stored). Nobody else can open, list or delete them.
 - **Demo mode.** Without an Anthropic API key the site still works: two sample papers, *Attention
-  Is All You Need* and *Adam*, explained in advance, show every feature. Adding new papers is paused.
+  Is All You Need* and *Adam*, explained in advance, show every feature, including
+  prepared answers to their suggested questions. Adding new papers and asking new questions is paused.
 - **Spending guards.** Each new paper is one AI call, so there are limits per browser (5 a day), per
-  network (10 an hour) and for the whole site (40 a day). All are settings.
-- **Tested.** 50 backend tests (pytest) and 12 browser tests (Playwright, desktop and phone) run in
+  network (10 an hour) and for the whole site (40 a day). Questions
+  have their own limits: 30 a day per browser, 40 an hour per network, 300 a day for the site. All
+  are settings.
+- **Tested.** 64 backend tests (pytest) and 14 browser tests (Playwright, desktop and phone) run in
   GitHub Actions on every push, plus a check of the sample quotes against the real PDFs on arXiv.
 
-Coming next: a cited "ask the paper" chat (answers that quote the paper), figure explainers, a
-prerequisite map, and accounts.
+Coming next: figure explainers, a prerequisite map, and accounts.
 
 ## How it fits together
 

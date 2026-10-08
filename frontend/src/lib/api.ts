@@ -39,6 +39,34 @@ export interface Concept {
   meaning: string;
 }
 
+export interface Citation {
+  quote: string;
+  start_page: number;
+  end_page: number;
+  verified?: boolean;
+}
+
+export interface AnswerPart {
+  text: string;
+  citations: Citation[];
+}
+
+export interface PreparedAnswer {
+  question: string;
+  parts: AnswerPart[];
+}
+
+export interface Question {
+  id: string;
+  paper_id: string;
+  text: string;
+  level: Level;
+  status: "queued" | "answering" | "ready" | "failed";
+  error: string | null;
+  answer: { parts: AnswerPart[] } | null;
+  created_at: string;
+}
+
 export interface Reading {
   title: string;
   authors: string[];
@@ -51,6 +79,8 @@ export interface Reading {
   equations: Equation[];
   concepts: Concept[];
   has_text_layer: boolean;
+  suggested_questions?: string[];
+  prepared_answers?: PreparedAnswer[];
 }
 
 export type Status = "queued" | "reading" | "ready" | "failed";
@@ -128,5 +158,13 @@ export const api = {
       body: JSON.stringify({ link }),
     }),
   retry: (id: string) => call<PaperSummary>(`/api/papers/${encodeURIComponent(id)}/retry`, { method: "POST" }),
+  questions: (paperId: string) => call<Question[]>(`/api/papers/${encodeURIComponent(paperId)}/questions`),
+  ask: (paperId: string, text: string, level: Level) =>
+    call<Question>(`/api/papers/${encodeURIComponent(paperId)}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, level }),
+    }),
+  question: (id: string) => call<Question>(`/api/questions/${encodeURIComponent(id)}`),
   remove: (id: string) => call<void>(`/api/papers/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

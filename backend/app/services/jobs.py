@@ -16,7 +16,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
-from app.models import Paper
+from app.models import Paper, Question
+from app.services.answerer import Answerer
 from app.services.arxiv import ArxivError, download_pdf
 from app.services.claude import AIError
 from app.services.finishing import finish
@@ -93,6 +94,57 @@ def recover_interrupted(factory: sessionmaker[Session], storage: Storage, reader
         ids = session.scalars(
             select(Paper.id).where(Paper.status.in_(("queued", "reading")), Paper.is_sample.is_(False))
         ).all()
+        # Questions are quick and cheap to ask again, so interrupted ones are simply marked failed.
+        for question in session.scalars(select(Question).where(Question.status.in_(("queued", "answering")))):
+            question.status = "failed"
+            question.error = "The server restarted before this was answered. Please ask again."
+        session.commit()
     for paper_id in ids:
         log.info("Resuming paper %s after a restart", paper_id)
         threading.Thread(target=process_paper, args=(paper_id, factory, storage, reader), daemon=True).start()
+
+
+def sample_pdf(arxiv_id: str, storage: Storage) -> bytes:
+    """Sample papers have no stored PDF (only a link to arXiv). The first question about one
+    downloads it once and keeps a copy, so later questions don't fetch it again."""
+    key = f"arxiv/{arxiv_id.replace('/', '_')}.pdf"
+    try:
+        return storage.read(key)
+    except Exception:  # not there yet (a missing file looks different locally and on S3)
+        pdf = download_pdf(arxiv_id, get_settings().max_upload_mb * 1_000_000)
+        storage.save(key, pdf)
+        return pdf
+
+
+def process_question(
+    question_id: str, factory: sessionmaker[Session], storage: Storage, answerer: Answerer
+) -> None:
+    with factory() as session:
+        question = session.get(Question, question_id)
+        if question is None or question.status not in ("queued", "answering"):
+            return
+        question.status = "answering"
+        session.commit()
+        paper = session.get(Paper, question.paper_id)
+        try:
+            if paper.file_key:
+                pdf = storage.read(paper.file_key)
+            elif paper.arxiv_id:
+                pdf = sample_pdf(paper.arxiv_id, storage)
+            else:
+                raise AIError("This paper has no PDF to answer from.")
+            answer = answerer.answer(pdf, paper.title or "Paper", question.text, question.level)
+            question.answer = answer.model_dump()
+            question.status = "ready"
+            session.commit()
+        except (AIError, ArxivError) as exc:
+            session.rollback()
+            question.status = "failed"
+            question.error = str(exc)
+            session.commit()
+        except Exception:
+            log.exception("Answering question %s failed", question_id)
+            session.rollback()
+            question.status = "failed"
+            question.error = "Something went wrong while answering. Please try again."
+            session.commit()

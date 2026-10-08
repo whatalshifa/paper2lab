@@ -379,6 +379,72 @@
         "meaning": "Settings chosen by people before training, like the step size, not learned by the model."
       }
     ],
-    "has_text_layer": true
+    "has_text_layer": true,
+    "suggested_questions": [
+      "What default settings does Adam recommend?",
+      "Why is bias correction needed?",
+      "How is Adam different from RMSProp?"
+    ],
+    "prepared_answers": [
+      {
+        "question": "What default settings does Adam recommend?",
+        "parts": [
+          {
+            "text": "The paper suggests a step size $\\alpha = 0.001$, decay rates $\\beta_1 = 0.9$ and $\\beta_2 = 0.999$, and $\\epsilon = 10^{-8}$. These worked well on all the problems the authors tested, and they are still the defaults in most machine learning libraries.",
+            "citations": [
+              {
+                "quote": "Good default settings for the tested machine learning problems are",
+                "start_page": 2,
+                "end_page": 2
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "question": "Why is bias correction needed?",
+        "parts": [
+          {
+            "text": "Adam's two running averages start at zero, so for the first steps they are pulled towards zero, especially when $\\beta_1$ and $\\beta_2$ are close to 1.",
+            "citations": [
+              {
+                "quote": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
+                "start_page": 3,
+                "end_page": 3
+              }
+            ]
+          },
+          {
+            "text": " Dividing each average by $1 - \\beta^t$ undoes that pull. Without it, the very first steps can be much too large and training can become unstable.",
+            "citations": []
+          }
+        ]
+      },
+      {
+        "question": "How is Adam different from RMSProp?",
+        "parts": [
+          {
+            "text": "RMSProp with momentum applies momentum to the already rescaled gradient, while Adam keeps separate running averages of the gradient and of its square and combines them.",
+            "citations": [
+              {
+                "quote": "RMSProp with momentum generates its parameter updates using a momentum on the rescaled gradient",
+                "start_page": 5,
+                "end_page": 5
+              }
+            ]
+          },
+          {
+            "text": " RMSProp also has no bias correction, which matters most when $\\beta_2$ is close to 1, as it needs to be for sparse gradients.",
+            "citations": [
+              {
+                "quote": "RMSProp also lacks a bias-correction term",
+                "start_page": 5,
+                "end_page": 5
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,9 +1,9 @@
 """What the API sends back, so the web app always gets the same shape."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SiteConfig(BaseModel):
@@ -42,3 +42,21 @@ class PaperLists(BaseModel):
 
 class ArxivRequest(BaseModel):
     link: str
+
+
+class QuestionRequest(BaseModel):
+    text: str = Field(min_length=3, max_length=500)
+    level: Literal["beginner", "student", "expert"] = "student"
+
+
+class QuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    paper_id: str
+    text: str
+    level: str
+    status: str
+    error: str | None
+    answer: dict[str, Any] | None
+    created_at: datetime

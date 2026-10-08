@@ -383,6 +383,82 @@
         "meaning": "Processing a sequence step by step, each step depending on the one before."
       }
     ],
-    "has_text_layer": true
+    "has_text_layer": true,
+    "suggested_questions": [
+      "Why do they divide by the square root of d_k?",
+      "How long did training take, and on what hardware?",
+      "Does the Transformer work for anything besides translation?"
+    ],
+    "prepared_answers": [
+      {
+        "question": "Why do they divide by the square root of d_k?",
+        "parts": [
+          {
+            "text": "Without the scaling, the dot products between queries and keys get large when the vectors are long. Large scores push softmax into a region where almost all the weight goes to one word, and there its gradients are tiny, so the model learns very slowly.",
+            "citations": [
+              {
+                "quote": "We suspect that for large values of dk, the dot products grow large in magnitude, pushing the softmax function into regions where it has extremely small gradients",
+                "start_page": 4,
+                "end_page": 4
+              }
+            ]
+          },
+          {
+            "text": "\n\nDividing by $\\sqrt{d_k}$ keeps the scores in a moderate range, so softmax stays smooth and training keeps moving.",
+            "citations": []
+          }
+        ]
+      },
+      {
+        "question": "How long did training take, and on what hardware?",
+        "parts": [
+          {
+            "text": "All models were trained on a single machine with 8 NVIDIA P100 GPUs.",
+            "citations": [
+              {
+                "quote": "We trained our models on one machine with 8 NVIDIA P100 GPUs.",
+                "start_page": 7,
+                "end_page": 7
+              }
+            ]
+          },
+          {
+            "text": " The base model trained for 100,000 steps, about 12 hours. The big model trained for 300,000 steps, which took 3.5 days.",
+            "citations": [
+              {
+                "quote": "The big models were trained for 300,000 steps (3.5 days).",
+                "start_page": 7,
+                "end_page": 7
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "question": "Does the Transformer work for anything besides translation?",
+        "parts": [
+          {
+            "text": "Yes. The authors also tried English constituency parsing, which means breaking a sentence into its grammatical parts, and the Transformer did well both with lots of training data and with little.",
+            "citations": [
+              {
+                "quote": "We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.",
+                "start_page": 1,
+                "end_page": 1
+              }
+            ]
+          },
+          {
+            "text": " They end by saying they plan to apply attention-based models to other tasks too.",
+            "citations": [
+              {
+                "quote": "We are excited about the future of attention-based models and plan to apply them to other tasks.",
+                "start_page": 10,
+                "end_page": 10
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

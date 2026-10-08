@@ -71,6 +71,9 @@ class PaperReading(BaseModel):
     sections: list[Section]
     equations: list[Equation]
     concepts: list[Concept]
+    suggested_questions: list[str] = Field(
+        description="3 questions a reader might ask that this paper itself answers, under 12 words each."
+    )
 
 
 SYSTEM = """You explain research papers to people who are not experts in them, without dumbing down \
@@ -106,6 +109,8 @@ can draw it: no equation environments, \\label or \\tag; use \\begin{aligned} fo
 every symbol in it with a short meaning. Skip routine algebra steps.
 
 Concepts: 5 to 15 technical terms a newcomer would trip over, each with one plain sentence.
+
+Suggested questions: 3 short questions a curious reader might ask that the paper itself answers.
 
 If the PDF is not a research paper or scholarly article, set is_research_paper to false and keep every \
 other field as short as possible."""

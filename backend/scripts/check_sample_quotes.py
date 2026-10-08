@@ -39,6 +39,17 @@ def main(write: bool) -> int:
                 else:
                     print(f"  found on page {page} (said {quote['page']}): {quote['text'][:60]}")
                     quote["page"] = page
+        for prepared in data["reading"].get("prepared_answers", []):
+            for part in prepared["parts"]:
+                for cite in part["citations"]:
+                    page = find_page(cite["quote"], pages, cite["start_page"])
+                    cite["verified"] = page is not None
+                    if page is None:
+                        missing += 1
+                        print(f"  NOT FOUND (answer to {prepared['question']!r}): {cite['quote']}")
+                    else:
+                        print(f"  found on page {page} (said {cite['start_page']}): {cite['quote'][:60]}")
+                        cite["start_page"] = cite["end_page"] = page
         if write:
             path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print("All quotes found." if missing == 0 else f"{missing} quote(s) need fixing by hand.")

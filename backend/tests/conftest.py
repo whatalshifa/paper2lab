@@ -9,9 +9,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 
 from app.api.papers import get_ip_limiter
+from app.api.questions import get_question_limiter
 from app.config import Settings, get_settings
 from app.db import Base, get_session_factory, make_engine
 from app.main import app
+from app.services.answerer import Answer, AnswerPart, Citation, get_answerer
 from app.services.ratelimit import RateLimiter
 from app.services.reader import (
     Concept,
@@ -84,6 +86,7 @@ def sample_reading(**overrides) -> PaperReading:
             )
         ],
         concepts=[Concept(term="paper", meaning="A written report of research.")],
+        suggested_questions=["What is new here?", "  "],
     )
     data.update(overrides)
     return PaperReading(**data)
@@ -100,6 +103,32 @@ class FakeReader:
         if isinstance(result, Exception):
             raise result
         return result
+
+
+class FakeAnswerer:
+    def __init__(self, error: Exception | None = None):
+        self.error = error
+        self.asked: list[tuple[str, str, str]] = []
+
+    def answer(self, pdf: bytes, title: str, question: str, level: str) -> Answer:
+        if self.error:
+            raise self.error
+        assert pdf.startswith(b"%PDF-")
+        self.asked.append((title, question, level))
+        return Answer(
+            parts=[
+                AnswerPart(
+                    text="Readers understood twice as often.",
+                    citations=[Citation(quote=PAGE_TWO, start_page=2, end_page=2)],
+                ),
+                AnswerPart(text=" That is the main result.", citations=[]),
+            ]
+        )
+
+
+@pytest.fixture
+def answerer():
+    return FakeAnswerer()
 
 
 @pytest.fixture
@@ -126,13 +155,16 @@ def settings():
 
 
 @pytest.fixture
-def client(session_factory, storage, reader, settings):
+def client(session_factory, storage, reader, answerer, settings):
     app.dependency_overrides[get_session_factory] = lambda: session_factory
     app.dependency_overrides[get_storage] = lambda: storage
     app.dependency_overrides[get_reader] = lambda: reader
     app.dependency_overrides[get_settings] = lambda: settings
     limiter = RateLimiter(settings.papers_per_ip_per_hour, 3600)  # fresh counts for every test
     app.dependency_overrides[get_ip_limiter] = lambda: limiter
+    app.dependency_overrides[get_answerer] = lambda: answerer
+    question_limiter = RateLimiter(settings.questions_per_ip_per_hour, 3600)
+    app.dependency_overrides[get_question_limiter] = lambda: question_limiter
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
