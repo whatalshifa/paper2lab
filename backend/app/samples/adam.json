@@ -79,12 +79,12 @@
           {
             "page": 1,
             "text": "The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients",
-            "verified": false
+            "verified": true
           },
           {
             "page": 1,
             "text": "The name Adam is derived from adaptive moment estimation.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -101,7 +101,7 @@
           {
             "page": 2,
             "text": "The algorithm updates exponential moving averages of the gradient",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -116,9 +116,9 @@
         },
         "quotes": [
           {
-            "page": 3,
+            "page": 2,
             "text": "An important property of Adam's update rule is its careful choice of stepsizes.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -133,9 +133,9 @@
         },
         "quotes": [
           {
-            "page": 3,
+            "page": 2,
             "text": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -152,7 +152,7 @@
           {
             "page": 4,
             "text": "We analyze the convergence of Adam using the online learning framework proposed in",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -169,7 +169,7 @@
           {
             "page": 5,
             "text": "Using large models and datasets, we demonstrate Adam can efficiently solve practical deep learning problems.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -186,7 +186,7 @@
           {
             "page": 9,
             "text": "We have introduced a simple and computationally efficient algorithm for gradient-based optimization of stochastic objective functions.",
-            "verified": false
+            "verified": true
           }
         ]
       }
@@ -489,7 +489,8 @@
               {
                 "quote": "Good default settings for the tested machine learning problems are",
                 "start_page": 2,
-                "end_page": 2
+                "end_page": 2,
+                "verified": true
               }
             ]
           }
@@ -503,8 +504,9 @@
             "citations": [
               {
                 "quote": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
-                "start_page": 3,
-                "end_page": 3
+                "start_page": 2,
+                "end_page": 2,
+                "verified": true
               }
             ]
           },
@@ -523,7 +525,8 @@
               {
                 "quote": "RMSProp with momentum generates its parameter updates using a momentum on the rescaled gradient",
                 "start_page": 5,
-                "end_page": 5
+                "end_page": 5,
+                "verified": true
               }
             ]
           },
@@ -533,7 +536,8 @@
               {
                 "quote": "RMSProp also lacks a bias-correction term",
                 "start_page": 5,
-                "end_page": 5
+                "end_page": 5,
+                "verified": true
               }
             ]
           }

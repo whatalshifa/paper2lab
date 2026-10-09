@@ -89,9 +89,11 @@ function AnswerView({
         </ol>
       )}
       <p className="mt-3 text-xs text-muted">
-        {prepared
-          ? "Prepared in advance for this sample. Its quotes haven't been checked against the PDF yet."
-          : "Every marked passage was copied out of the PDF by the AI service itself."}
+        {!prepared
+          ? "Every marked passage was copied out of the PDF by the AI service itself."
+          : sources.length > 0 && sources.every((s) => s.verified)
+            ? "Prepared in advance for this sample. Every quote was found word for word in the PDF."
+            : "Prepared in advance for this sample. Its quotes haven't all been checked against the PDF yet."}
       </p>
     </div>
   );
