@@ -44,6 +44,16 @@ def test_sample_is_consistent(path):
             assert ref in equation_ids, f"{ref} in {text[:40]}"
         assert text.count("$") % 2 == 0, f"unbalanced $ in {text[:40]}"
 
+    assert 2 <= len(reading["suggested_questions"]) <= 4
+    for prepared in reading["prepared_answers"]:
+        assert prepared["question"] in reading["suggested_questions"]
+        for part in prepared["parts"]:
+            texts.append(part["text"])
+            for cite in part["citations"]:
+                assert 1 <= cite["start_page"] <= cite["end_page"] <= data["page_count"]
+                assert len(cite["quote"].split()) >= 5
+        assert "".join(p["text"] for p in prepared["parts"]).count("$") % 2 == 0
+
     # The AI output schema accepts the same content, so samples can't drift from real readings.
     for section in reading["sections"]:
         section.setdefault("quotes", [])

@@ -97,5 +97,6 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
             for equation_id, equation in equations
         ],
         "concepts": [concept.model_dump() for concept in reading.concepts],
+        "suggested_questions": [q.strip() for q in reading.suggested_questions if q.strip()][:4],
         "has_text_layer": has_text,
     }

@@ -33,3 +33,18 @@ def test_missing_or_too_short_quotes():
     assert find_page("a sentence that is not in the paper at all", PAGES, 1) is None
     assert find_page("the paper", PAGES, 4) is None
     assert find_page("anything at all goes here", [], 1) is None
+
+
+def test_tolerates_missing_and_extra_spaces_from_latex_pdfs():
+    # How pdfplumber reads many arXiv papers: spaces lost between words, or added inside them.
+    pages = ["Mostcompetitiveneuralsequencetransductionmodelshave an encoder-decoder structure [5,2,35]."]
+    assert (
+        find_page(
+            "Most competitive neural sequence transduction models have an encoder-decoder structure.",
+            pages,
+            1,
+        )
+        == 1
+    )
+    pages = ["The name A dam is de rived from adap tive moment estimation."]
+    assert find_page("The name Adam is derived from adaptive moment estimation.", pages, 1) == 1

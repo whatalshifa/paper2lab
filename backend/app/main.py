@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.api import papers
+from app.api import papers, questions
 from app.api.papers import SessionDep
 from app.config import get_settings
 from app.db import get_session_factory
@@ -47,6 +47,7 @@ app.add_middleware(
 )
 
 app.include_router(papers.router)
+app.include_router(questions.router)
 
 
 @app.get("/api/health")

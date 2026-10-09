@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     # Which Claude model reads the papers, and how hard it thinks.
     claude_model: str = "claude-opus-5-5"
     claude_effort: str = "medium"
+    # For "ask the paper" answers, which are short.
+    answer_effort: str = "medium"
 
     # The web app's address, so a browser on another address may call this API.
     # (The web app normally forwards /api/* itself, so this is only for local tools.)
@@ -49,6 +51,10 @@ class Settings(BaseSettings):
     papers_per_library_per_day: int = 5
     papers_per_ip_per_hour: int = 10
     papers_per_day_total: int = 40
+    # Questions are cheaper (the paper is cached by the API after the first one), so allow more.
+    questions_per_library_per_day: int = 30
+    questions_per_ip_per_hour: int = 40
+    questions_per_day_total: int = 300
 
     # Re-run papers a restart interrupted. Off when several API copies run at once.
     recover_jobs_on_start: bool = True

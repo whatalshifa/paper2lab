@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { PaperDetail, Quote, Reading, Section } from "@/lib/api";
 import { useLevel } from "@/lib/level";
 
+import { AskPanel } from "./AskPanel";
 import { EquationCard } from "./Equations";
 import { LevelSlider } from "./LevelSlider";
 import { ReadingContext, RichText } from "./RichText";
@@ -139,6 +140,7 @@ export function ReadingView({
   const level = useLevel();
   const ids = useMemo(() => reading.sections.map((s) => s.id), [reading.sections]);
   const active = useActiveSection(ids);
+  const [asking, setAsking] = useState(false);
   const context = useMemo(
     () => ({ equations: reading.equations, concepts: reading.concepts, level }),
     [reading.equations, reading.concepts, level],
@@ -177,6 +179,9 @@ export function ReadingView({
                 arXiv:{paper.arxiv_id}
               </a>
             )}
+            <button type="button" onClick={() => setAsking(true)} className="btn btn-primary btn-sm">
+              Ask the paper
+            </button>
             {onDelete && (
               <button type="button" onClick={onDelete} className="btn btn-danger-quiet btn-sm">
                 Delete
@@ -292,6 +297,20 @@ export function ReadingView({
           </div>
         </div>
       </article>
+
+      {!asking && (
+        <button
+          type="button"
+          onClick={() => setAsking(true)}
+          className="btn btn-primary fixed right-4 bottom-4 z-30 rounded-full px-5 shadow-lg shadow-indigo-900/20 print:hidden"
+        >
+          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+            <path strokeLinejoin="round" d="M4 4.5h12v8H9l-3.5 3v-3H4Z" />
+          </svg>
+          Ask the paper
+        </button>
+      )}
+      <AskPanel paper={paper} open={asking} onClose={() => setAsking(false)} />
     </ReadingContext.Provider>
   );
 }

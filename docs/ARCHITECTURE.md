@@ -114,11 +114,29 @@ the steps and asks again every 3 seconds. Once `ready`, `ReadingView.tsx` draws 
   elsewhere or press Escape). The card is placed by measuring the trigger, so it never runs off the
   edge of a phone screen.
 
+## 5. Asking the paper
+
+`AskPanel.tsx` is a side panel (a full-screen sheet on phones). A question goes to
+`POST /api/papers/{id}/questions` (`backend/app/api/questions.py`), which checks the limits, saves a
+`queued` question and answers it in the background; the panel asks for it every 2 seconds until it is
+`ready` or `failed`.
+
+`services/answerer.py` sends Claude the PDF with **citations turned on**. The API then splits the
+answer into pieces and attaches, to each piece, the exact passages of the PDF it rests on and their
+pages. Those passages are copied out of the document by the API, not typed by the model, so they
+can't be invented. (Citations can't be combined with the JSON schema used for reading, which is why
+answering is a separate, plain-text request.) The PDF block carries `cache_control`, and the level
+and question come after it, so a second question about the same paper reuses the cached PDF.
+
+Questions belong to the browser that asked them: someone else's question returns 404, like papers.
+In demo mode the samples carry `prepared_answers` in the same shape, shown straight from the page.
+
 ## The database
 
-Two tables (`backend/app/models.py`, created by the Alembic migration in `backend/alembic/versions`):
+Three tables (`backend/app/models.py`, created by the Alembic migrations in `backend/alembic/versions`):
 
 - `libraries`: one row per browser, holding only the hash of its key.
+- `questions`: one row per question, with its level, status and the cited answer as JSON.
 - `papers`: one row per paper. Its status, error, title, authors and year are columns so lists stay
   quick; the whole explanation is one JSON column, because it is always written and read whole.
 
@@ -127,12 +145,12 @@ Sample papers are rows with no library and `is_sample = true`, loaded at startup
 
 ## Tests
 
-- `backend/tests` (pytest, 50 tests): a fake reader stands in for Claude, and small real PDFs are
+- `backend/tests` (pytest, 64 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
   written by hand (`tests/pdfs.py`). They cover uploading, quote checking, arXiv parsing and download
   (including redirects away from arXiv), privacy between browsers, spending limits, demo mode,
-  failures and retries, and that the hand-written samples hang together.
-- `frontend/e2e` (Playwright, 12 tests): the real website and API in Chromium, on a desktop and a
+  failures and retries, asking questions and their limits, and that the hand-written samples hang together.
+- `frontend/e2e` (Playwright, 14 tests): the real website and API in Chromium, on a desktop and a
   phone screen. They check the slider rewrites the text, equations explain themselves, quotes link to
-  the right page, and nothing scrolls sideways.
+  the right page, a sample's prepared answer shows its source, and nothing scrolls sideways.
 - CI (`.github/workflows/ci.yml`) runs all of it on every push, applies the migrations to a real
   Postgres, and checks the sample quotes against the real PDFs on arXiv.

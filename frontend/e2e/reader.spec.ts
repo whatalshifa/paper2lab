@@ -60,3 +60,24 @@ test("a paper that doesn't exist says so", async ({ page }) => {
   await page.goto("/papers/not-a-real-paper");
   await expect(page.getByRole("heading", { name: "Paper not found" })).toBeVisible();
 });
+
+test("asking a sample paper shows a prepared answer with its source page", async ({ page }) => {
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  await page.getByRole("button", { name: "Ask the paper" }).first().click();
+  const panel = page.getByRole("dialog", { name: "Ask the paper" });
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("textbox", { name: "Your question" })).toBeDisabled();
+  await expect(panel).toContainText("only the suggested questions above have answers");
+
+  await panel.getByRole("button", { name: "Why do they divide by the square root of d_k?" }).click();
+  await expect(panel.getByRole("link", { name: "Source 1" })).toBeVisible();
+  await expect(panel.getByRole("link", { name: /Page 4/ })).toHaveAttribute(
+    "href",
+    "https://arxiv.org/pdf/1706.03762v7#page=4",
+  );
+  // A suggestion that was asked is no longer offered.
+  await expect(panel.getByRole("button", { name: "Why do they divide by the square root of d_k?" })).toHaveCount(0);
+
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+});
