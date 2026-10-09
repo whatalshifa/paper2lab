@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 
+from app.api.guard import require_proxy
 from app.api.papers import FactoryDep, SessionDep, SettingsDep, StorageDep, _visible_paper
 from app.models import Question
 from app.schemas import QuestionOut, QuestionRequest
@@ -16,7 +17,7 @@ from app.services.jobs import process_question
 from app.services.library import current_library, get_or_create_library
 from app.services.ratelimit import RateLimiter, client_ip
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(require_proxy)])
 
 AnswererDep = Annotated[Answerer, Depends(get_answerer)]
 

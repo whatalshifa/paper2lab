@@ -28,10 +28,59 @@
       "New state-of-the-art translation scores at a small fraction of the previous training cost."
     ],
     "prerequisites": [
-      "Vectors and matrix multiplication",
-      "The softmax function",
-      "Basic neural networks",
-      "What an RNN is (helpful, not required)"
+      {
+        "id": "p1",
+        "topic": "Vectors and matrices",
+        "primer": "A vector is a list of numbers, and a matrix is a table of them. Multiplying a matrix by a vector mixes the numbers into a new list, and that is how neural networks turn one representation into another.",
+        "why": "Every word becomes a vector, and queries, keys and values are made by matrix multiplication.",
+        "builds_on": []
+      },
+      {
+        "id": "p2",
+        "topic": "Dot product",
+        "primer": "The dot product multiplies two lists number by number and adds the results. It is large when the two lists point the same way, so it works as a similarity score.",
+        "why": "Attention scores how well a query matches each key with a dot product.",
+        "builds_on": [
+          "p1"
+        ]
+      },
+      {
+        "id": "p3",
+        "topic": "Softmax",
+        "primer": "Softmax turns a list of any numbers into positive weights that add up to 1, giving the largest numbers most of the weight.",
+        "why": "The match scores go through a softmax to become attention weights.",
+        "builds_on": [
+          "p1"
+        ]
+      },
+      {
+        "id": "p4",
+        "topic": "Neural network basics",
+        "primer": "A neural network is layers of matrix multiplications with simple bends (like ReLU) between them, tuned by gradient descent to reduce its mistakes.",
+        "why": "The Transformer is built from these layers, plus residual connections and layer normalization.",
+        "builds_on": [
+          "p1"
+        ]
+      },
+      {
+        "id": "p5",
+        "topic": "Word embeddings",
+        "primer": "An embedding gives each word a learned vector, so words used in similar ways get similar vectors.",
+        "why": "The model's input and output are word embeddings, with position information added.",
+        "builds_on": [
+          "p4"
+        ]
+      },
+      {
+        "id": "p6",
+        "topic": "Recurrent networks (RNNs)",
+        "primer": "An RNN reads a sentence one word at a time, carrying a memory forward. That makes it slow to train, because each step waits for the one before.",
+        "why": "The paper's main argument is that attention can replace recurrence and train much faster.",
+        "builds_on": [
+          "p4",
+          "p5"
+        ]
+      }
     ],
     "sections": [
       {
@@ -331,6 +380,62 @@
         ],
         "section_id": "s7",
         "page": 7
+      }
+    ],
+    "figures": [
+      {
+        "id": "f1",
+        "label": "Figure 1",
+        "kind": "figure",
+        "page": 3,
+        "caption": "The Transformer - model architecture.",
+        "caption_verified": true,
+        "top": 0.07,
+        "bottom": 0.62,
+        "explanation": {
+          "beginner": "A map of the whole model. The left tower reads the sentence you start with, the right tower writes the translation one word at a time, and arrows show information moving between them.",
+          "student": "The encoder (left) is a stack of N = 6 identical layers, each with self-attention and a feed-forward network. The decoder (right) adds a third block that attends to the encoder's output, and its self-attention is masked so it can't peek at future words.",
+          "expert": "Encoder and decoder stacks of N = 6 layers; each sub-layer is wrapped as LayerNorm(x + Sublayer(x)). The decoder's masked self-attention preserves the autoregressive property, and encoder-decoder attention draws keys and values from the encoder output. Positional encodings are added to the input embeddings."
+        },
+        "how_to_read": "Read from the bottom up: words enter at the bottom, pass through the stacked blocks (the \"N×\" means the block repeats 6 times), and the probabilities for the next word come out at the top right.",
+        "takeaway": "The whole model is built from attention and simple feed-forward layers, with no recurrence anywhere.",
+        "section_id": "s2"
+      },
+      {
+        "id": "f2",
+        "label": "Figure 2",
+        "kind": "figure",
+        "page": 4,
+        "caption": "(left) Scaled Dot-Product Attention.",
+        "caption_verified": true,
+        "top": 0.07,
+        "bottom": 0.36,
+        "explanation": {
+          "beginner": "Two diagrams of the attention step. On the left, one word asks a question of every other word and gets back a blend of their answers. On the right, that is done several times side by side and the results are joined.",
+          "student": "Left: queries are compared with keys by a dot product, scaled, optionally masked, and put through a softmax; the weights then average the values. Right: multi-head attention runs h such attention layers in parallel on different learned projections and concatenates them.",
+          "expert": "Left: softmax(QK^T/√d_k)V with an optional mask. Right: h = 8 heads, each with its own projections W^Q, W^K, W^V to d_k = d_v = 64, concatenated and projected by W^O."
+        },
+        "how_to_read": "Each box is one operation and the arrows show the order, bottom to top. In the right diagram, the stacked shadows behind the middle box stand for the h heads running at once.",
+        "takeaway": "Multi-head attention is just scaled dot-product attention run several times in parallel.",
+        "section_id": "s4"
+      },
+      {
+        "id": "f3",
+        "label": "Table 2",
+        "kind": "table",
+        "page": 8,
+        "caption": "The Transformer achieves better BLEU scores than previous state-of-the-art models on the English-to-German and English-to-French newstest2014 tests at a fraction of the training cost.",
+        "caption_verified": true,
+        "top": 0.07,
+        "bottom": 0.33,
+        "explanation": {
+          "beginner": "A scoreboard. Each row is a translation system, the middle columns show how good its translations were, and the last columns show how much computer work it took to train.",
+          "student": "Rows are models, BLEU is the translation-quality score (higher is better) for English-German and English-French, and training cost is in FLOPs. The two Transformer rows at the bottom beat every earlier model while costing far less to train.",
+          "expert": "The big Transformer reaches 28.4 BLEU on EN-DE and 41.8 on EN-FR, beating previous single models and ensembles, at training costs one or more orders of magnitude lower (2.3·10^19 FLOPs for the big model)."
+        },
+        "how_to_read": "Compare the bottom two rows with the ones above: look for higher BLEU numbers and smaller training-cost numbers (the costs are written as powers of ten).",
+        "takeaway": "The Transformer translated better than anything before it while needing much less training.",
+        "section_id": "s7"
       }
     ],
     "concepts": [

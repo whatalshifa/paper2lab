@@ -38,6 +38,21 @@ def test_sample_is_consistent(path):
         assert equation["latex"] and equation["symbols"]
         texts += equation["in_words"].values()
 
+    figure_ids = [f["id"] for f in reading["figures"]]
+    assert len(set(figure_ids)) == len(figure_ids)
+    for figure in reading["figures"]:
+        assert figure["section_id"] in section_ids
+        assert 1 <= figure["page"] <= data["page_count"]
+        assert 0 <= figure["top"] < figure["bottom"] <= 1
+        assert figure["caption"] and figure["how_to_read"] and figure["takeaway"]
+        texts += figure["explanation"].values()
+
+    earlier: set[str] = set()
+    for item in reading["prerequisites"]:
+        assert set(item["builds_on"]) <= earlier, f"{item['id']} builds on a later idea"
+        assert item["primer"] and item["why"]
+        earlier.add(item["id"])
+
     for text in texts:
         assert text.strip()
         for ref in re.findall(r"\[(e\d+)\]", text):

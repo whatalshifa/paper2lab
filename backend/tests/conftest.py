@@ -18,8 +18,10 @@ from app.services.ratelimit import RateLimiter
 from app.services.reader import (
     Concept,
     Equation,
+    Figure,
     Leveled,
     PaperReading,
+    Prerequisite,
     Quote,
     Section,
     Symbol,
@@ -31,9 +33,13 @@ from tests.pdfs import make_pdf
 PAGE_ONE = "We propose a new way to read research papers that anyone can follow along with."
 PAGE_TWO = "Our experiments show that readers understood the main result twice as often as before."
 
+CAPTION = "Readers who used the guide understood more of the paper."
+
 PAPER_PDF = make_pdf(
     [(72, 760, "A Test Paper About Reading"), (72, 700, PAGE_ONE)],
-    [(72, 760, PAGE_TWO)],
+    [(72, 760, PAGE_TWO), (72, 380, f"Figure 1: {CAPTION}")],
+    # A bar chart above the caption on page 2.
+    drawings={1: "0.3 0.3 0.8 rg 100 400 60 200 re f 200 400 60 120 re f 0 0 0 RG 90 400 m 300 400 l S"},
 )
 
 
@@ -50,7 +56,17 @@ def sample_reading(**overrides) -> PaperReading:
         field="Education",
         summary=leveled("people read papers better with help [e1]."),
         contributions=["A new reading method."],
-        prerequisites=["Reading"],
+        prerequisites=[
+            Prerequisite(id="p1", topic="Reading", primer="Words.", why="A paper.", builds_on=[]),
+            Prerequisite(
+                id="p2",
+                topic="Statistics",
+                primer="Counting with care.",
+                why="The results are averages.",
+                builds_on=["p1", "p3", "p2"],  # p3 comes later and p2 is itself: both are dropped
+            ),
+            Prerequisite(id="p3", topic="Charts", primer="Pictures.", why="Figure 1.", builds_on=["p2"]),
+        ],
         sections=[
             Section(
                 id="s1",
@@ -83,6 +99,21 @@ def sample_reading(**overrides) -> PaperReading:
                 symbols=[Symbol(latex="U", meaning="understanding")],
                 section_id="s9",  # doesn't exist: should be moved to the section on its page
                 page=2,
+            )
+        ],
+        figures=[
+            Figure(
+                id="f1",
+                label="Figure 1",
+                kind="figure",
+                page=1,  # really on page 2: the caption check should correct it
+                caption=CAPTION,
+                top=0.3,
+                bottom=0.55,
+                explanation=leveled("readers with the guide did better."),
+                how_to_read="Each bar is a group of readers; taller is better.",
+                takeaway="The guide helps.",
+                section_id="s2",
             )
         ],
         concepts=[Concept(term="paper", meaning="A written report of research.")],

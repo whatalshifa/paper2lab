@@ -215,3 +215,13 @@ def test_non_arxiv_links_are_refused(client):
     for link in ["https://evil.example/abs/1706.03762", "http://169.254.169.254/", "not a link"]:
         response = client.post("/api/papers/arxiv", json={"link": link})
         assert response.status_code == 422, link
+
+
+def test_with_a_proxy_secret_only_the_website_may_call(client, settings):
+    settings.proxy_secret = "s3cret"
+    assert client.get("/api/papers").status_code == 403
+    assert client.get("/api/papers", headers={"x-p2l-proxy": "wrong"}).status_code == 403
+    assert client.get("/api/papers", headers={"x-p2l-proxy": "s3cret"}).status_code == 200
+    assert client.get(f"/api/papers/{SAMPLE_ID}/questions").status_code == 403
+    # The hosting platform's health check doesn't go through the website.
+    assert client.get("/api/health").status_code == 200

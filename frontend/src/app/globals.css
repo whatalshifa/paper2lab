@@ -144,6 +144,11 @@ body {
 .katex {
   font-size: 1.08em;
 }
+/* Inside a box that scrolls by itself (and can be focused, so keyboards can scroll it too), the
+   formula doesn't need its own scrollbar. */
+.tex-scroll .katex-display {
+  overflow: visible;
+}
 .katex-display {
   margin: 0;
   overflow-x: auto;

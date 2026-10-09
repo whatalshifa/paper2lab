@@ -10,7 +10,7 @@ the PDF's own text.
 
 import base64
 from functools import lru_cache
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -54,6 +54,30 @@ class Equation(BaseModel):
     page: int
 
 
+class Figure(BaseModel):
+    id: str = Field(description="f1, f2, f3 ... in reading order.")
+    label: str = Field(description="The paper's own name for it, e.g. 'Figure 2' or 'Table 1'.")
+    kind: Literal["figure", "table"]
+    page: int = Field(description="1-based page in the PDF where it appears.")
+    caption: str = Field(description="The first sentence of its caption, copied exactly, without the label.")
+    top: float = Field(description="Where it starts, as a fraction of the page height from the top (0 to 1).")
+    bottom: float = Field(description="Where it ends, caption included, as a fraction of the page height.")
+    explanation: Leveled = Field(description="What it shows, 1 to 3 sentences.")
+    how_to_read: str = Field(
+        description="How to read it: axes, colours, arrows, rows and columns. 1 or 2 sentences."
+    )
+    takeaway: str = Field(description="The one thing to remember from it, in one sentence.")
+    section_id: str
+
+
+class Prerequisite(BaseModel):
+    id: str = Field(description="p1, p2, p3 ... with the most basic ideas first.")
+    topic: str = Field(description="A few words, e.g. 'Matrix multiplication'.")
+    primer: str = Field(description="2 or 3 plain sentences that teach the idea to a newcomer.")
+    why: str = Field(description="One sentence: where this paper relies on it.")
+    builds_on: list[str] = Field(description="Ids of the other prerequisites to learn before this one.")
+
+
 class Concept(BaseModel):
     term: str = Field(description="The term exactly as the paper writes it.")
     meaning: str = Field(description="One plain sentence.")
@@ -67,9 +91,10 @@ class PaperReading(BaseModel):
     field: str = Field(description="The research field in 1 to 4 words, e.g. 'Machine learning'.")
     summary: Leveled = Field(description="The whole paper in 2 or 3 sentences.")
     contributions: list[str] = Field(description="2 to 4 short sentences: what is new in this paper.")
-    prerequisites: list[str] = Field(description="2 to 5 topics that help a reader, a few words each.")
+    prerequisites: list[Prerequisite] = Field(description="3 to 7 ideas that help a reader, as a map.")
     sections: list[Section]
     equations: list[Equation]
+    figures: list[Figure]
     concepts: list[Concept]
     suggested_questions: list[str] = Field(
         description="3 questions a reader might ask that this paper itself answers, under 12 words each."
@@ -107,6 +132,16 @@ checked automatically against the PDF's text, so never paraphrase or fix their w
 Equations: the paper's most important equations, at most 12, in reading order. Write the LaTeX so KaTeX \
 can draw it: no equation environments, \\label or \\tag; use \\begin{aligned} for several lines. List \
 every symbol in it with a short meaning. Skip routine algebra steps.
+
+Figures: the paper's most important figures and tables, at most 8, in reading order. For each, copy \
+the first sentence of its caption exactly (without "Figure 2:"), give where it sits on its page as \
+fractions of the page height (top and bottom, caption included; a rough estimate is fine), and explain \
+what it shows at the three levels, how to read it (axes, colours, arrows, rows and columns), and its \
+one takeaway. Skip decorative images and logos.
+
+Prerequisites: 3 to 7 ideas a reader should know before this paper, as a small map. List the most \
+basic first; builds_on names the earlier ones each idea depends on. The primer teaches the idea in \
+plain words; why says where this paper uses it.
 
 Concepts: 5 to 15 technical terms a newcomer would trip over, each with one plain sentence.
 

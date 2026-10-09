@@ -48,7 +48,8 @@ class S3Storage:
         self.client = client
 
     def save(self, key: str, data: bytes) -> None:
-        self.client.put_object(Bucket=self.bucket, Key=key, Body=data, ContentType="application/pdf")
+        kind = "image/png" if key.endswith(".png") else "application/pdf"
+        self.client.put_object(Bucket=self.bucket, Key=key, Body=data, ContentType=kind)
 
     def read(self, key: str) -> bytes:
         return self.client.get_object(Bucket=self.bucket, Key=key)["Body"].read()

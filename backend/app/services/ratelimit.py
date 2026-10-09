@@ -41,7 +41,9 @@ class RateLimiter:
 
 
 def client_ip(request: Request) -> str:
-    """The visitor's address. Behind Vercel and Render it is the first X-Forwarded-For entry."""
+    """The visitor's address. Behind Vercel and Render it is the first X-Forwarded-For entry:
+    Vercel replaces whatever the visitor sent with their real address. Requests that skip
+    Vercel are refused by the proxy-secret check (app/api/guard.py), so this can't be faked."""
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()

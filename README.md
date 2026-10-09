@@ -11,7 +11,11 @@ based on, checked word for word against the PDF, so you can trust it or catch it
 
 ![Hovering an equation](docs/screenshots/equation.png)
 
-## What works today (Phases 1 and 2)
+![A figure cut out of the paper and explained](docs/screenshots/figure.png)
+
+![The prerequisite map with a primer open](docs/screenshots/prerequisite-map.png)
+
+## What works today (Phases 1 to 4)
 
 - **Add a paper** by uploading a PDF (up to 20 MB and 60 pages) or pasting an arXiv link or id.
   The PDF is checked before any AI sees it: is it really a PDF, how many pages, what text is on each.
@@ -24,6 +28,16 @@ based on, checked word for word against the PDF, so you can trust it or catch it
 - **Equation hovers.** Equations are drawn with KaTeX. Hover one (or tap it on a phone) to see what
   it means at your level and a table of its symbols. In the text, chips like **Eq. 1** preview the
   equation they mention.
+- **Figure explainers.** The paper's key figures and tables are cut out of the PDF and shown inside
+  their section, each with what it shows (at your level), how to read it, and its one takeaway.
+  Claude only says roughly where a figure is; the cut is then fixed using the PDF itself: the
+  caption's words are found on the page, and any chart the cut slices through is kept whole.
+  Captions get the same word-for-word check as quotes.
+- **Prerequisite map.** "Before you read" lays out what helps to know first, in steps from the most
+  basic idea down to the paper. Hover or tap an idea for a short primer and where the paper uses it.
+- **Listen.** Reads the summary and every section aloud at your level, with the browser's own
+  voice (free, and nothing leaves your device). Maths is said in words ("the square root of d k"),
+  with pause, skip and speed controls.
 - **Glossary terms.** Technical terms are underlined the first time they appear in a section; hover
   or tap for a one-line meaning.
 - **Every explanation shows its source.** Each section comes with one or two quotes from the paper
@@ -45,10 +59,15 @@ based on, checked word for word against the PDF, so you can trust it or catch it
   network (10 an hour) and for the whole site (40 a day). Questions
   have their own limits: 30 a day per browser, 40 an hour per network, 300 a day for the site. All
   are settings.
-- **Tested.** 64 backend tests (pytest) and 14 browser tests (Playwright, desktop and phone) run in
+- **Secure by default.** Only the website can call the API (a shared secret the website adds), so
+  nobody can skip it to dodge the spending limits. Pages carry a strict content security policy,
+  maths from the AI is drawn with KaTeX's safe mode, and the API's docs are hidden in production.
+- **Accessible.** Every page is checked against WCAG 2.1 AA with axe, in light and dark mode, as
+  part of the browser tests. Everything works with a keyboard.
+- **Tested.** 74 backend tests (pytest) and 30 browser tests (Playwright, desktop and phone) run in
   GitHub Actions on every push, plus a check of the sample quotes against the real PDFs on arXiv.
 
-Coming next: figure explainers, a prerequisite map, and accounts.
+Coming next: accounts, and deployment.
 
 ## How it fits together
 

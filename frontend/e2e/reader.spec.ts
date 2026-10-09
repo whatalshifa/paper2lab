@@ -81,3 +81,73 @@ test("asking a sample paper shows a prepared answer with its source page", async
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 });
+
+test("the prerequisite map opens a primer for each idea", async ({ page }) => {
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  const map = page.locator("#before-you-read");
+  await expect(map.getByRole("heading", { name: "Before you read" })).toBeVisible();
+  await expect(map.getByRole("list", { name: "Step 1" })).toContainText("Vectors and matrices");
+  await map.getByRole("button", { name: "Dot product: a quick primer" }).click();
+  const primer = page.getByRole("dialog", { name: "Dot product: a quick primer" });
+  await expect(primer).toContainText("In this paper: Attention scores how well a query matches each key");
+  await expect(primer).toContainText("Builds on Vectors and matrices.");
+});
+
+test("a figure is explained at the chosen level", async ({ page }) => {
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  const figure = page.locator("#fig-f1");
+  await figure.scrollIntoViewIfNeeded();
+  await expect(figure).toContainText("The Transformer - model architecture.");
+  await expect(figure).toContainText("How to read it");
+  await expect(figure).toContainText("The whole model is built from attention");
+  await expect(figure).toContainText("stack of N = 6 identical layers");
+
+  const slider = page.getByRole("slider", { name: "Reading level" });
+  await slider.focus();
+  await page.keyboard.press("Home");
+  await expect(figure).toContainText("A map of the whole model.");
+});
+
+test("listen reads the explanation aloud, section by section", async ({ page }) => {
+  // A stand-in voice: it records what it is asked to say and finishes each sentence quickly.
+  await page.addInitScript(() => {
+    const spoken: string[] = [];
+    (window as unknown as { spoken: string[] }).spoken = spoken;
+    let timer: number | undefined;
+    const synth = {
+      speak(utterance: SpeechSynthesisUtterance) {
+        spoken.push(utterance.text);
+        timer = window.setTimeout(() => utterance.onend?.(new Event("end") as SpeechSynthesisEvent), 30);
+      },
+      cancel() {
+        window.clearTimeout(timer);
+      },
+    };
+    Object.defineProperty(window, "speechSynthesis", { value: synth });
+  });
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  await page.getByRole("button", { name: "Listen", exact: true }).click();
+  const player = page.getByRole("region", { name: "Listening" });
+  await expect(player).toContainText("student level");
+
+  await expect.poll(() => page.evaluate(() => (window as unknown as { spoken: string[] }).spoken)).toContain(
+    "Section 3: Scaled dot-product attention.",
+  );
+  const spoken = await page.evaluate(() => (window as unknown as { spoken: string[] }).spoken.join(" "));
+  expect(spoken).toContain("Attention Is All You Need.");
+  // Maths is said in words, and equation marks are named.
+  expect(spoken).toContain("The dot products are divided by the square root of d k.");
+  expect(spoken).toContain("(equation 1)");
+  expect(spoken).not.toContain("$");
+
+  await page.getByRole("button", { name: "Stop listening" }).click();
+  await expect(player).toBeHidden();
+});
+
+test("pages carry a content security policy, and the API only answers the website", async ({ page, request }) => {
+  const response = await page.goto("/");
+  expect(response?.headers()["content-security-policy"]).toContain("object-src 'none'");
+  // Through the website, the API answers; straight to the API, it refuses.
+  expect((await request.get("/api/papers")).status()).toBe(200);
+  expect((await request.get("http://localhost:8000/api/papers")).status()).toBe(403);
+});

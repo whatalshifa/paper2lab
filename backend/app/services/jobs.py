@@ -116,6 +116,15 @@ def sample_pdf(arxiv_id: str, storage: Storage) -> bytes:
         return pdf
 
 
+def paper_pdf(paper: Paper, storage: Storage) -> bytes:
+    """The paper's PDF: the stored copy, or for a sample the cached copy from arXiv."""
+    if paper.file_key:
+        return storage.read(paper.file_key)
+    if paper.arxiv_id:
+        return sample_pdf(paper.arxiv_id, storage)
+    raise AIError("This paper has no PDF.")
+
+
 def process_question(
     question_id: str, factory: sessionmaker[Session], storage: Storage, answerer: Answerer
 ) -> None:
@@ -127,12 +136,7 @@ def process_question(
         session.commit()
         paper = session.get(Paper, question.paper_id)
         try:
-            if paper.file_key:
-                pdf = storage.read(paper.file_key)
-            elif paper.arxiv_id:
-                pdf = sample_pdf(paper.arxiv_id, storage)
-            else:
-                raise AIError("This paper has no PDF to answer from.")
+            pdf = paper_pdf(paper, storage)
             answer = answerer.answer(pdf, paper.title or "Paper", question.text, question.level)
             question.answer = answer.model_dump()
             question.status = "ready"
