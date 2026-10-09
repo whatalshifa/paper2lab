@@ -152,7 +152,15 @@ export function AttentionDemo() {
           ))}
         </ul>
         <p className="mt-3 text-xs text-muted">
-          Scores {scaled ? "q·k/√d_k" : "q·k"}:{" "}
+          Scores{" "}
+          {scaled ? (
+            <>
+              q·k/√d<sub>k</sub>
+            </>
+          ) : (
+            "q·k"
+          )}
+          :{" "}
           <span className="font-mono">{scores.map((s) => s.toFixed(1)).join(", ")}</span> · softmax slope at the top word{" "}
           <span className="font-mono">{slope.toFixed(3)}</span> (max 0.250)
         </p>

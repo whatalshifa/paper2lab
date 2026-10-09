@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Logo } from "@/components/Logo";
 import { THEME_SCRIPT, ThemeToggle } from "@/components/ThemeToggle";
+import { SITE_URL } from "@/lib/site";
 import "@fontsource-variable/source-serif-4";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -12,7 +13,7 @@ const DESCRIPTION =
   "Upload a research paper or paste an arXiv link. Paper2Lab explains every section at the level you choose, shows what each equation means, and backs every explanation with a quote from the paper.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: { default: "Paper2Lab: read any research paper at your level", template: "%s · Paper2Lab" },
   description: DESCRIPTION,
   applicationName: "Paper2Lab",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     title: "Paper2Lab: read any research paper at your level",
     description: DESCRIPTION,
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
@@ -73,9 +75,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
               .
             </p>
-            <a href="https://github.com/whatalshifa/paper2lab" className="hover:text-foreground">
-              Source code
-            </a>
+            <p className="flex shrink-0 gap-4">
+              <span>
+                Built by{" "}
+                <a href="https://github.com/whatalshifa" className="underline hover:text-foreground">
+                  Alshifa
+                </a>
+              </span>
+              <a href="https://github.com/whatalshifa/paper2lab" className="underline hover:text-foreground">
+                Source code
+              </a>
+            </p>
           </div>
         </footer>
       </body>

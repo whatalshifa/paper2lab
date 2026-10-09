@@ -93,3 +93,19 @@ test("references and code links appear when the paper has them", async ({ page }
   await expect(section.getByText("Key reference")).toBeVisible();
   await expect(section.getByText(/most important of its 40 references/)).toBeVisible();
 });
+
+test("the site is ready to share: paper titles, a sitemap and a preview image", async ({ page, request }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Try a sample paper" }).click();
+  await expect(page.getByRole("heading", { name: "Try a sample paper" })).toBeInViewport();
+
+  await page.goto(ATTENTION);
+  await expect(page).toHaveTitle("Attention Is All You Need · Paper2Lab");
+
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("/accuracy</loc>");
+  expect(sitemap).toContain("/papers/00000000-0000-4000-8000-000000001706</loc>");
+  expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /api/");
+  const image = await request.get("/opengraph-image");
+  expect(image.headers()["content-type"]).toBe("image/png");
+});

@@ -7,10 +7,15 @@ import { AttentionDemo } from "./AttentionDemo";
 
 export const DEMO_KINDS = ["attention-scaling", "adam-optimizer"];
 
-const DEMOS: Record<string, { title: string; note: string; body: () => ReactNode }> = {
+const DEMOS: Record<string, { title: string; note: ReactNode; body: () => ReactNode }> = {
   "attention-scaling": {
-    title: "Why divide by √d_k?",
-    note: "Queries and keys are random numbers with mean 0 and variance 1, as in the paper's footnote, so a dot product of d_k of them has variance d_k.",
+    title: "Why divide by the square root of the key size?",
+    note: (
+      <>
+        Queries and keys are random numbers with mean 0 and variance 1, as in the paper&apos;s footnote, so a dot
+        product of d<sub>k</sub> of them has variance d<sub>k</sub>.
+      </>
+    ),
     body: () => <AttentionDemo />,
   },
   "adam-optimizer": {
