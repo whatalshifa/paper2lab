@@ -32,6 +32,8 @@ def main(write: bool, figures_dir: Path | None) -> int:
         print(f"{path.name}: downloading arXiv {data['arxiv_id']}")
         pdf = download_pdf(data["arxiv_id"], 50_000_000)
         pages = page_texts(pdf, max_pages=200)
+        # How this PDF's text comes out, to see why a quote isn't found.
+        print(f"  page 2 text starts: {pages[1][:160]!r}" if len(pages) > 1 else "  (one page)")
         data["page_count"] = len(pages)
         for section in data["reading"]["sections"]:
             for quote in section["quotes"]:
