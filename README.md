@@ -1,19 +1,39 @@
 # Paper2Lab
 
+[![CI](https://github.com/whatalshifa/paper2lab/actions/workflows/ci.yml/badge.svg)](https://github.com/whatalshifa/paper2lab/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+**Live demo: [paper2lab-psi.vercel.app](https://paper2lab-psi.vercel.app)**
+
 Read any research paper at your level. Upload a PDF or paste an arXiv link, and Paper2Lab explains
 every section in plain words, with a slider from "new to this" to expert. Hover any equation to see
 what it says and what each symbol means. Every explanation shows the sentence from the paper it's
-based on, checked word for word against the PDF, so you can trust it or catch it out.
+based on, checked word for word against the PDF, so you can trust it or catch it out. Then check
+yourself with a short quiz, and play with the key equations to see why they work.
+
+> The live demo runs without an AI key, so it shows two sample papers explained in advance
+> (*Attention Is All You Need* and *Adam*). Every feature works on them. The API is on a free plan
+> that sleeps when idle, so the first visit can take up to a minute to wake it.
 
 ![Paper2Lab home page](docs/screenshots/home.png)
 
-![Reading a paper at student level](docs/screenshots/reader.png)
+| Read at your level | Hover an equation |
+|---|---|
+| ![Reading a paper at student level](docs/screenshots/reader.png) | ![Hovering an equation](docs/screenshots/equation.png) |
+| **Check yourself** | **Play with it** |
+| ![A quiz answered, with the paper's own words](docs/screenshots/quiz.png) | ![The attention scaling demo](docs/screenshots/demo.png) |
+| **Figures, cut out and explained** | **What to know first** |
+| ![A figure cut out of the paper and explained](docs/screenshots/figure.png) | ![The prerequisite map with a primer open](docs/screenshots/prerequisite-map.png) |
 
-![Hovering an equation](docs/screenshots/equation.png)
+![The public accuracy page](docs/screenshots/accuracy.png)
 
-![A figure cut out of the paper and explained](docs/screenshots/figure.png)
+## Built with
 
-![The prerequisite map with a primer open](docs/screenshots/prerequisite-map.png)
+- **Website:** Next.js 16, React 19, TypeScript, Tailwind CSS 4, KaTeX. Hosted on Vercel.
+- **API:** Python 3.12, FastAPI, SQLAlchemy, Alembic, pdfplumber. Hosted on Render.
+- **AI:** Claude through the Anthropic API (structured outputs, citations, prompt caching).
+- **Data:** Postgres and an S3 bucket on Neon. Semantic Scholar and Hugging Face for references.
+- **Quality:** pytest, Playwright (desktop and phone), axe accessibility checks, GitHub Actions.
 
 ## What works today (Phases 1 to 5)
 
@@ -75,6 +95,9 @@ based on, checked word for word against the PDF, so you can trust it or catch it
   your browser. (Sample papers for now; written for every paper once the AI is on.)
 - **Play with it.** Interactive demos beside key equations: see why attention divides by √dk (bigger
   keys make softmax pick one word), and race Adam against plain gradient descent down a valley.
+- **Ready to share.** Each paper's tab shows its title, links shared on social media get a preview
+  image, and there is a sitemap for search engines. When the free API server is waking up, pages
+  say so instead of looking stuck.
 - **Tested.** 88 backend tests (pytest) and 48 browser tests (Playwright, desktop and phone) run in
   GitHub Actions on every push, plus a check of the sample quotes against the real PDFs on arXiv.
 
@@ -119,3 +142,7 @@ Tests: `cd backend && pytest` and `cd frontend && npx playwright test`.
 
 See [docs/DEPLOY.md](docs/DEPLOY.md): Render (API) + Vercel (website) + Neon (database and PDF
 bucket), all on free plans.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

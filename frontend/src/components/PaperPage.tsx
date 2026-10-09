@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiError, api, type PaperDetail } from "@/lib/api";
+import { useSlow, WAKING_UP } from "@/lib/useSlow";
 
 import { ReadingView } from "./ReadingView";
 
@@ -98,6 +99,13 @@ export function PaperPage({ id }: { id: string }) {
     load();
   }, [load]);
 
+  // The tab (and the browser history) shows which paper this is.
+  const title = paper?.title;
+  useEffect(() => {
+    if (title) document.title = `${title} · Paper2Lab`;
+  }, [title]);
+  const slow = useSlow(!paper && !error);
+
   // While the paper is being read, check again every few seconds.
   const working = paper?.status === "queued" || paper?.status === "reading";
   useEffect(() => {
@@ -147,7 +155,17 @@ export function PaperPage({ id }: { id: string }) {
       </div>
     );
   }
-  if (!paper) return <Skeleton />;
+  if (!paper)
+    return (
+      <>
+        {slow && (
+          <p role="status" className="mb-6 text-sm text-muted">
+            {WAKING_UP}
+          </p>
+        )}
+        <Skeleton />
+      </>
+    );
   if (paper.status === "failed") return <Failed paper={paper} onRetry={retry} onDelete={remove} />;
   if (paper.status !== "ready" || !paper.reading) return <Working paper={paper} />;
   return <ReadingView paper={paper} reading={paper.reading} onDelete={paper.is_sample ? undefined : remove} />;

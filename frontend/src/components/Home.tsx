@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiError, api, type PaperSummary, type SiteConfig } from "@/lib/api";
+import { useSlow, WAKING_UP } from "@/lib/useSlow";
 
 import { AddPaper } from "./AddPaper";
 
@@ -87,6 +88,7 @@ export function Home() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading data when the page opens
     load();
   }, [load]);
+  const slow = useSlow(!papers && !error);
 
   return (
     <div className="space-y-16">
@@ -113,6 +115,16 @@ export function Home() {
               </li>
             ))}
           </ol>
+          {config && !config.ai_enabled && (
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href="#samples" className="btn btn-primary">
+                Try a sample paper
+              </a>
+              <Link href="/accuracy" className="btn btn-secondary">
+                How accurate is it?
+              </Link>
+            </div>
+          )}
         </div>
         <AddPaper config={config} />
       </section>
@@ -139,9 +151,14 @@ export function Home() {
           </div>
         )}
 
-        <div>
+        <div id="samples" className="scroll-mt-20">
           <h2 className="text-xl font-semibold tracking-tight">Try a sample paper</h2>
           <p className="mt-1 text-sm text-muted">Two famous papers, explained in advance so you can explore right away.</p>
+          {slow && (
+            <p role="status" className="mt-3 text-sm text-muted">
+              {WAKING_UP}
+            </p>
+          )}
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {papers
               ? papers.samples.map((paper) => <SampleCard key={paper.id} paper={paper} />)

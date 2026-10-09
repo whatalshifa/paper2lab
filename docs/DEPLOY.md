@@ -4,7 +4,7 @@ Three pieces, each on a free plan, all in your own accounts:
 
 | Piece | Where | What it needs |
 |---|---|---|
-| Website (`frontend/`) | Vercel | `API_URL` (the API's address, set before building) and `API_PROXY_SECRET` |
+| Website (`frontend/`) | Vercel | `API_URL` (the API's address, set before building) and `API_PROXY_SECRET`. Optional `SITE_URL` for a custom domain (share links and the sitemap use it; Vercel's address is used otherwise) |
 | API (`backend/`) | Render (Docker) | The settings below. Migrations run on every start |
 | Database and PDF bucket | Neon | A Postgres database and a private bucket named `papers` |
 

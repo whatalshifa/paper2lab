@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { type AccuracyReport, ApiError, api } from "@/lib/api";
+import { useSlow, WAKING_UP } from "@/lib/useSlow";
 
 function percent(found: number, total: number) {
   return total === 0 ? "–" : `${Math.round((found / total) * 1000) / 10}%`;
@@ -52,6 +53,7 @@ export function AccuracyPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading data when the page opens
     load();
   }, [load]);
+  const slow = useSlow(!report && !error);
 
   return (
     <div className="mx-auto max-w-4xl space-y-12">
@@ -93,7 +95,7 @@ export function AccuracyPage() {
             />
           </div>
           <p className="text-xs text-muted">
-            Updated {new Date(report.updated_at).toLocaleString()}.
+            Updated {new Date(report.updated_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             {report.scanned_papers > 0 &&
               ` ${report.scanned_papers} scanned ${report.scanned_papers === 1 ? "paper has" : "papers have"} no text to check against, so ${
                 report.scanned_papers === 1 ? "it isn't" : "they aren't"
@@ -101,7 +103,16 @@ export function AccuracyPage() {
           </p>
         </section>
       ) : (
-        !error && <div className="grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-36" />)}</div>
+        !error && (
+          <div className="space-y-3">
+            {slow && (
+              <p role="status" className="text-sm text-muted">
+                {WAKING_UP}
+              </p>
+            )}
+            <div className="grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-36" />)}</div>
+          </div>
+        )
       )}
 
       <section aria-labelledby="how" className="space-y-4">
