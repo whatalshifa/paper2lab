@@ -47,7 +47,7 @@
           {
             "page": 2,
             "text": "sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths",
-            "verified": false
+            "verified": true
           },
           {
             "page": 2,
@@ -397,10 +397,10 @@
             "text": "Without the scaling, the dot products between queries and keys get large when the vectors are long. Large scores push softmax into a region where almost all the weight goes to one word, and there its gradients are tiny, so the model learns very slowly.",
             "citations": [
               {
-                "quote": "pushing the softmax function into regions where it has extremely small gradients",
+                "quote": "To counteract this effect, we scale the dot products by",
                 "start_page": 4,
                 "end_page": 4,
-                "verified": false
+                "verified": true
               }
             ]
           },
