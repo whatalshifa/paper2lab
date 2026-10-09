@@ -48,3 +48,11 @@ def test_tolerates_missing_and_extra_spaces_from_latex_pdfs():
     )
     pages = ["The name A dam is de rived from adap tive moment estimation."]
     assert find_page("The name Adam is derived from adaptive moment estimation.", pages, 1) == 1
+
+
+def test_short_captions_are_found_with_their_label():
+    from app.services.quotes import find_caption
+
+    pages = ["text", "Figure1:TheTransformer-modelarchitecture."]
+    assert find_caption("Figure 1", "The Transformer - model architecture.", pages, 2) == 2
+    assert find_caption("Figure 9", "The Transformer - model architecture.", pages, 2) is None

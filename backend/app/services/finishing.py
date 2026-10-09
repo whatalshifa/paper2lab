@@ -11,7 +11,7 @@ on ideas listed before it, so it never goes round in a circle.
 
 import re
 
-from app.services.quotes import find_page
+from app.services.quotes import find_caption, find_page
 from app.services.reader import Leveled, PaperReading
 
 _EQ_REF = re.compile(r"\[(e\d+)\]")
@@ -111,11 +111,12 @@ def finish(reading: PaperReading, pages: list[str]) -> dict:
 
     def figure_dict(figure_id: str, figure) -> dict:
         caption = figure.caption.strip()
-        found = find_page(caption, pages, figure.page) if has_text and caption else None
+        label = figure.label.strip()
+        found = find_caption(label, caption, pages, figure.page) if has_text and caption else None
         top, bottom = _region(figure.top, figure.bottom)
         return {
             "id": figure_id,
-            "label": figure.label.strip() or f"Figure {figure_id[1:]}",
+            "label": label or f"Figure {figure_id[1:]}",
             "kind": figure.kind,
             "page": found or clamp(figure.page),
             "caption": caption,

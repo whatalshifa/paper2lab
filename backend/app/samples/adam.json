@@ -79,12 +79,12 @@
           {
             "page": 1,
             "text": "The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients",
-            "verified": false
+            "verified": true
           },
           {
             "page": 1,
             "text": "The name Adam is derived from adaptive moment estimation.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -101,7 +101,7 @@
           {
             "page": 2,
             "text": "The algorithm updates exponential moving averages of the gradient",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -116,9 +116,9 @@
         },
         "quotes": [
           {
-            "page": 3,
+            "page": 2,
             "text": "An important property of Adam's update rule is its careful choice of stepsizes.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -133,9 +133,9 @@
         },
         "quotes": [
           {
-            "page": 3,
+            "page": 2,
             "text": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -152,7 +152,7 @@
           {
             "page": 4,
             "text": "We analyze the convergence of Adam using the online learning framework proposed in",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -169,7 +169,7 @@
           {
             "page": 5,
             "text": "Using large models and datasets, we demonstrate Adam can efficiently solve practical deep learning problems.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -186,7 +186,7 @@
           {
             "page": 9,
             "text": "We have introduced a simple and computationally efficient algorithm for gradient-based optimization of stochastic objective functions.",
-            "verified": false
+            "verified": true
           }
         ]
       }
@@ -374,7 +374,7 @@
         "kind": "figure",
         "page": 6,
         "caption": "Logistic regression training negative log likelihood on MNIST images and IMDB movie reviews with 10,000 bag-of-words (BoW) feature vectors.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.4,
         "explanation": {
@@ -392,7 +392,7 @@
         "kind": "figure",
         "page": 7,
         "caption": "Training of multilayer neural networks on MNIST images.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.38,
         "explanation": {
@@ -403,24 +403,6 @@
         "how_to_read": "As in Figure 1, each line is an optimizer, time runs left to right and lower cost is better.",
         "takeaway": "On a real neural network, Adam trains faster than every method it was compared with.",
         "section_id": "s6"
-      },
-      {
-        "id": "f3",
-        "label": "Figure 4",
-        "kind": "figure",
-        "page": 8,
-        "caption": "Effect of bias-correction terms (red line) versus no bias correction terms (green line) after 10 epochs (left) and 100 epochs (right) on the loss (y-axes) when learning a Variational Auto-Encoder (VAE) for different settings of stepsize α (x-axes) and hyperparameters β1 and β2.",
-        "caption_verified": false,
-        "top": 0.07,
-        "bottom": 0.5,
-        "explanation": {
-          "beginner": "A grid of small charts testing one small fix in Adam. Where the green line shoots up, training went badly without the fix; the red line, with the fix, stays low.",
-          "student": "Loss against step size for many settings of β1 and β2, with bias correction (red) and without it (green). Without correction, training becomes unstable when β2 is close to 1, which is exactly the setting you want for sparse gradients.",
-          "expert": "Bias correction matters most for β2 near 1 (e.g. 0.9999): without it the early second-moment estimate is biased toward zero, steps blow up, and the loss diverges, especially at larger α."
-        },
-        "how_to_read": "Each small panel is one choice of β1 and β2; inside it, the horizontal axis is the step size and the vertical axis is the loss. Compare the red and green lines within each panel.",
-        "takeaway": "Bias correction keeps Adam stable, especially with the slow-forgetting settings it recommends.",
-        "section_id": "s4"
       }
     ],
     "concepts": [
@@ -489,7 +471,8 @@
               {
                 "quote": "Good default settings for the tested machine learning problems are",
                 "start_page": 2,
-                "end_page": 2
+                "end_page": 2,
+                "verified": true
               }
             ]
           }
@@ -503,8 +486,9 @@
             "citations": [
               {
                 "quote": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
-                "start_page": 3,
-                "end_page": 3
+                "start_page": 2,
+                "end_page": 2,
+                "verified": true
               }
             ]
           },
@@ -523,7 +507,8 @@
               {
                 "quote": "RMSProp with momentum generates its parameter updates using a momentum on the rescaled gradient",
                 "start_page": 5,
-                "end_page": 5
+                "end_page": 5,
+                "verified": true
               }
             ]
           },
@@ -533,7 +518,8 @@
               {
                 "quote": "RMSProp also lacks a bias-correction term",
                 "start_page": 5,
-                "end_page": 5
+                "end_page": 5,
+                "verified": true
               }
             ]
           }

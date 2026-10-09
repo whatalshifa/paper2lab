@@ -132,3 +132,16 @@ def test_sample_figure_on_a_page_the_pdf_lacks(client, monkeypatch):
     response = client.get(f"/api/papers/{SAMPLE_ID}/figures/f1.png")
     # The stand-in PDF has only 2 pages and the sample's figure is on page 3.
     assert response.status_code == 503
+
+
+def test_caption_is_found_when_the_pdf_lost_its_spaces():
+    import pdfplumber
+
+    from app.services.figures import _caption_box
+    from tests.pdfs import make_pdf
+
+    pdf = make_pdf([(72, 380, "Figure1:Readerswhousedtheguideunderstoodmoreofthepaper.")])
+    with pdfplumber.open(io.BytesIO(pdf)) as document:
+        box = _caption_box(document.pages[0], "Readers who used the guide understood more of the paper.")
+    assert box is not None
+    assert 450 < box[0] < 470  # 842 - 380 = 462 points from the top, less the font's height

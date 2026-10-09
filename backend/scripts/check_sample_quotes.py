@@ -21,7 +21,7 @@ from pathlib import Path
 from app.services.arxiv import download_pdf
 from app.services.figures import render_figure
 from app.services.pdf_text import page_texts
-from app.services.quotes import find_page
+from app.services.quotes import find_caption, find_page
 from app.services.samples import sample_files
 
 
@@ -57,7 +57,7 @@ def main(write: bool, figures_dir: Path | None) -> int:
                         print(f"  found on page {page} (said {cite['start_page']}): {cite['quote'][:60]}")
                         cite["start_page"] = cite["end_page"] = page
         for figure in data["reading"].get("figures", []):
-            page = find_page(figure["caption"], pages, figure["page"])
+            page = find_caption(figure["label"], figure["caption"], pages, figure["page"])
             figure["caption_verified"] = page is not None
             if page is None:
                 missing += 1
