@@ -15,9 +15,11 @@ from fastapi import (
     UploadFile,
     status,
 )
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.api.guard import require_proxy
 from app.config import Settings, get_settings
 from app.db import get_session, get_session_factory
 from app.models import Paper
@@ -32,7 +34,7 @@ from app.services.ratelimit import RateLimiter, client_ip
 from app.services.reader import Reader, get_reader
 from app.services.storage import Storage, get_storage
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(require_proxy)])
 
 SessionDep = Annotated[Session, Depends(get_session)]
 FactoryDep = Annotated[sessionmaker[Session], Depends(get_session_factory)]
@@ -211,13 +213,14 @@ async def upload_paper(
     if len(data) > limit:
         raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, f"Papers up to {settings.max_upload_mb} MB.")
     try:
-        pages = page_texts(data, settings.max_pages)
+        # Opening a long PDF takes a moment: do it off the main loop so other visitors aren't kept waiting.
+        pages = await run_in_threadpool(page_texts, data, settings.max_pages)
     except BadPDF as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
 
     library = get_or_create_library(request, response, session)
     key = new_file_key()
-    storage.save(key, data)
+    await run_in_threadpool(storage.save, key, data)
     filename = (file.filename or "paper.pdf").rsplit("/", 1)[-1][:255]
     paper = Paper(
         library_id=library.id,

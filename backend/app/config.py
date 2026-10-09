@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     questions_per_ip_per_hour: int = 40
     questions_per_day_total: int = 300
 
+    # A shared secret the website sends with every /api request it forwards. When set, the API
+    # refuses requests that don't carry it, so nobody can skip the website and fake the
+    # X-Forwarded-For address the per-network limits count by. Empty turns the check off.
+    proxy_secret: str = ""
+
     # Re-run papers a restart interrupted. Off when several API copies run at once.
     recover_jobs_on_start: bool = True
 

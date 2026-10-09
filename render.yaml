@@ -22,6 +22,9 @@ services:
       # Render asks for these when the Blueprint is first created. To switch on explaining new
       # papers, add ANTHROPIC_API_KEY in the service's Environment tab; without it the site runs
       # as a demo with the sample papers.
+      # Copy this value to the Vercel project as API_PROXY_SECRET.
+      - key: P2L_PROXY_SECRET
+        generateValue: true
       - key: P2L_DATABASE_URL
         sync: false
       - key: P2L_S3_ENDPOINT_URL
