@@ -55,19 +55,38 @@ def test_the_prerequisite_map_never_goes_in_circles():
 def test_crop_follows_the_caption_when_the_guess_is_far_off():
     height = 1000.0
     caption = (800.0, 812.0)
-    # Near the caption: the cut is stretched to include it, and ends at a figure's caption...
-    assert crop_box({"top": 0.5, "bottom": 0.75, "kind": "figure"}, height, caption) == (494.0, 818.0)
-    assert crop_box({"top": 0.5, "bottom": 0.9, "kind": "figure"}, height, caption) == (494.0, 818.0)
-    # ...or starts at a table's.
+    # Near the caption: a figure's cut ends just above it (the caption is shown as text)...
+    assert crop_box({"top": 0.5, "bottom": 0.75, "kind": "figure"}, height, caption) == (494.0, 799.0)
+    assert crop_box({"top": 0.5, "bottom": 0.9, "kind": "figure"}, height, caption) == (494.0, 799.0)
+    # ...and a table's starts at it.
     assert crop_box({"top": 0.7, "bottom": 0.95, "kind": "table"}, height, caption) == (794.0, 956.0)
     # Far from it: a figure is taken from above its caption, a table from below.
-    assert crop_box({"top": 0.05, "bottom": 0.2, "kind": "figure"}, height, caption) == (394.0, 818.0)
+    assert crop_box({"top": 0.05, "bottom": 0.2, "kind": "figure"}, height, caption) == (394.0, 799.0)
     assert crop_box({"top": 0.05, "bottom": 0.2, "kind": "table"}, height, caption) == (794.0, 1000.0)
     # A drawing the cut slices through is taken in whole, but a frame round the page is not.
     spans = [(450.0, 700.0), (0.0, 1000.0)]
-    assert crop_box({"top": 0.5, "bottom": 0.75, "kind": "figure"}, height, caption, spans) == (444.0, 818.0)
+    assert crop_box({"top": 0.5, "bottom": 0.75, "kind": "figure"}, height, caption, spans) == (444.0, 799.0)
     # No caption found: the guess is used as it is.
     assert crop_box({"top": 0.1, "bottom": 0.3, "kind": "figure"}, height, None) == (94.0, 306.0)
+    # Nothing above a running header's rule is shown.
+    cut = crop_box({"top": 0.05, "bottom": 0.3, "kind": "figure"}, height, None, header=80.0)
+    assert cut == (81.0, 306.0)
+
+
+def test_a_ruled_off_running_header_is_found():
+    import pdfplumber
+
+    from app.services.figures import _header_bottom
+    from tests.pdfs import make_pdf
+
+    # A header line 40 points from the top, with a rule across the page under it at 50 points.
+    ruled = make_pdf([(72, 802, "Published as a conference paper")], drawings={0: "50 792 m 545 792 l S"})
+    # A short line near the top (part of a drawing, say) is not a header rule.
+    short = make_pdf([(72, 802, "A chart")], drawings={0: "50 792 m 150 792 l S"})
+    with pdfplumber.open(io.BytesIO(ruled)) as document:
+        assert 49 < _header_bottom(document.pages[0]) < 52
+    with pdfplumber.open(io.BytesIO(short)) as document:
+        assert _header_bottom(document.pages[0]) is None
 
 
 def test_render_cuts_out_the_figure():
