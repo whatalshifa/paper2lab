@@ -40,6 +40,62 @@ class PaperLists(BaseModel):
     mine: list[PaperSummary]
 
 
+class SampleAccuracy(BaseModel):
+    id: str
+    title: str
+    quotes: int
+    quotes_found: int
+    captions: int
+    captions_found: int
+
+
+class AccuracyReport(BaseModel):
+    papers: int
+    scanned_papers: int
+    quotes: int
+    quotes_found: int
+    captions: int
+    captions_found: int
+    samples: list[SampleAccuracy]
+    updated_at: datetime
+
+
+class Reference(BaseModel):
+    title: str
+    year: int | None
+    authors: list[str]
+    more_authors: bool
+    url: str | None
+    tldr: str | None
+    context: str | None
+    influential: bool
+    citations: int
+
+
+class References(BaseModel):
+    items: list[Reference]
+    total: int
+
+
+class Link(BaseModel):
+    url: str
+    label: str
+
+
+class HubItem(BaseModel):
+    id: str
+    url: str
+    downloads: int
+
+
+class Connections(BaseModel):
+    references: References | None = None
+    code: list[Link] = []
+    models: list[HubItem] = []
+    datasets: list[HubItem] = []
+    complete: bool = False
+
+
 class ArxivRequest(BaseModel):
     link: str
 

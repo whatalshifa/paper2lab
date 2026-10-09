@@ -53,6 +53,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/#library" className="btn btn-ghost btn-sm">
                 Library
               </Link>
+              <Link href="/accuracy" className="btn btn-ghost btn-sm">
+                Accuracy
+              </Link>
               <ThemeToggle />
             </nav>
           </div>
@@ -64,7 +67,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
             <p>
               Explanations are written by AI and can be wrong. Every one shows the quote it&apos;s based on, so you can
-              check.
+              check.{" "}
+              <Link href="/accuracy" className="underline hover:text-foreground">
+                See how accurate it is
+              </Link>
+              .
             </p>
             <a href="https://github.com/whatalshifa/paper2lab" className="hover:text-foreground">
               Source code

@@ -61,6 +61,12 @@ class Settings(BaseSettings):
     # X-Forwarded-For address the per-network limits count by. Empty turns the check off.
     proxy_secret: str = ""
 
+    # References, code, models and datasets for each paper (connections.py). Semantic Scholar works
+    # without a key but shares a small rate limit among everyone; a free key raises it. Off in the
+    # browser tests, which shouldn't depend on outside services.
+    connections_enabled: bool = True
+    semantic_scholar_api_key: str = ""
+
     # Re-run papers a restart interrupted. Off when several API copies run at once.
     recover_jobs_on_start: bool = True
 

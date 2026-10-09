@@ -4,6 +4,7 @@ import os
 os.environ.setdefault("P2L_RECOVER_JOBS_ON_START", "false")
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-key-not-used")  # a fake reader stands in for Claude
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
@@ -13,7 +14,9 @@ from app.api.questions import get_question_limiter
 from app.config import Settings, get_settings
 from app.db import Base, get_session_factory, make_engine
 from app.main import app
+from app.services import accuracy
 from app.services.answerer import Answer, AnswerPart, Citation, get_answerer
+from app.services.connections import Connector, get_connector
 from app.services.ratelimit import RateLimiter
 from app.services.reader import (
     Concept,
@@ -157,6 +160,65 @@ class FakeAnswerer:
         )
 
 
+def fake_services(request: httpx.Request) -> httpx.Response:
+    """Semantic Scholar and Hugging Face, as the tests see them."""
+    path = request.url.path
+    if path.endswith("/references"):
+        return httpx.Response(
+            200,
+            json={
+                "data": [
+                    {
+                        "contexts": ["We build on   earlier work [3]."],
+                        "isInfluential": False,
+                        "citedPaper": {
+                            "paperId": "b" * 40,
+                            "title": "A Popular Paper",
+                            "year": 2014,
+                            "authors": [{"name": n} for n in ("A", "B", "C", "D")],
+                            "externalIds": {"DOI": "10.1000/xyz"},
+                            "citationCount": 900,
+                        },
+                    },
+                    {
+                        "contexts": [],
+                        "isInfluential": True,
+                        "citedPaper": {
+                            "paperId": "a" * 40,
+                            "title": "The Key Idea",
+                            "year": 2012,
+                            "authors": [{"name": "Kim Lee"}],
+                            "externalIds": {"ArXiv": "1207.0580"},
+                            "citationCount": 10,
+                        },
+                    },
+                    {"contexts": [], "isInfluential": False, "citedPaper": {"paperId": None, "title": None}},
+                ]
+            },
+        )
+    if path.endswith("/paper/batch"):
+        return httpx.Response(
+            200, json=[{"paperId": "a" * 40, "tldr": {"text": "Dropping units helps."}}, None]
+        )
+    if path.endswith("/paper/search/match"):
+        return httpx.Response(200, json={"data": [{"paperId": "c" * 40}]})
+    if path == "/api/models":
+        return httpx.Response(200, json=[{"id": "org/model", "downloads": 12}, {"id": "../evil"}])
+    if path == "/api/datasets":
+        return httpx.Response(200, json=[])
+    return httpx.Response(404)
+
+
+@pytest.fixture
+def connector():
+    return Connector(transport=httpx.MockTransport(fake_services))
+
+
+@pytest.fixture(autouse=True)
+def fresh_accuracy():
+    accuracy._cache.clear()
+
+
 @pytest.fixture
 def answerer():
     return FakeAnswerer()
@@ -186,7 +248,7 @@ def settings():
 
 
 @pytest.fixture
-def client(session_factory, storage, reader, answerer, settings):
+def client(session_factory, storage, reader, answerer, settings, connector):
     app.dependency_overrides[get_session_factory] = lambda: session_factory
     app.dependency_overrides[get_storage] = lambda: storage
     app.dependency_overrides[get_reader] = lambda: reader
@@ -194,6 +256,7 @@ def client(session_factory, storage, reader, answerer, settings):
     limiter = RateLimiter(settings.papers_per_ip_per_hour, 3600)  # fresh counts for every test
     app.dependency_overrides[get_ip_limiter] = lambda: limiter
     app.dependency_overrides[get_answerer] = lambda: answerer
+    app.dependency_overrides[get_connector] = lambda: connector
     question_limiter = RateLimiter(settings.questions_per_ip_per_hour, 3600)
     app.dependency_overrides[get_question_limiter] = lambda: question_limiter
     with TestClient(app) as test_client:

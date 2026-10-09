@@ -24,6 +24,8 @@ minute.
 | `P2L_S3_ENDPOINT_URL` | The bucket's endpoint from Neon |
 | `P2L_S3_REGION` | The bucket's region |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | The bucket's keys from Neon |
+| `P2L_SEMANTIC_SCHOLAR_API_KEY` | Optional, free from Semantic Scholar. Without it references still load, at a lower rate limit |
+| `P2L_CONNECTIONS_ENABLED` | Optional. `false` turns off looking up references, models and datasets |
 | `P2L_PAPERS_PER_LIBRARY_PER_DAY`, `P2L_PAPERS_PER_IP_PER_HOUR`, `P2L_PAPERS_PER_DAY_TOTAL` | Optional spending guards: 5, 10 and 40 by default |
 
 Run one copy of the API: papers are read inside it, and a restarted API picks up papers it was in the

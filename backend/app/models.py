@@ -4,7 +4,7 @@ libraries  one row per browser. There are no accounts yet: the first time someon
            paper, the browser gets a random key in a cookie, and their papers belong to it.
            Only a hash of the key is stored, so a database leak can't be used to open them.
 papers     one row per paper. The explanation itself is one JSON document (reading), since
-           it is always written and read whole.
+           it is always written and read whole; so are its connections (references, code).
 questions  one row per question asked about a paper, with its cited answer.
 """
 
@@ -62,6 +62,9 @@ class Paper(Base):
     field: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
     reading: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    # References, code, models and datasets, fetched the first time someone opens them
+    # (connections.py). Kept apart from the reading so reloading the samples keeps them.
+    connections: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)

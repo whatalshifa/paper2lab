@@ -10,6 +10,7 @@ from app.services.samples import load_samples, sample_files
 
 FILES = sample_files()
 LEVELS = ("beginner", "student", "expert")
+DEMOS = {"attention-scaling", "adam-optimizer"}  # frontend/src/components/demos
 
 
 def test_there_are_samples():
@@ -33,7 +34,19 @@ def test_sample_is_consistent(path):
         for quote in section["quotes"]:
             assert 1 <= quote["page"] <= data["page_count"]
             assert isinstance(quote["verified"], bool)
+    question_ids: set[str] = set()
+    for section in reading["sections"]:
+        assert set(section["quiz"]) == set(LEVELS)
+        for question in (q for level in LEVELS for q in section["quiz"][level]):
+            assert question["id"] not in question_ids
+            question_ids.add(question["id"])
+            assert len(question["choices"]) == len(set(question["choices"])) >= 3
+            assert 0 <= question["answer"] < len(question["choices"])
+            # A question either points at a quote that backs its answer, or at nothing.
+            assert question["quote"] is None or 0 <= question["quote"] < len(section["quotes"])
+            texts += [question["question"], question["why"], *question["choices"]]
     for equation in reading["equations"]:
+        assert equation.get("demo") in DEMOS | {None}
         assert equation["section_id"] in section_ids
         assert equation["latex"] and equation["symbols"]
         texts += equation["in_words"].values()

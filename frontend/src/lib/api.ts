@@ -10,12 +10,24 @@ export interface Quote {
   verified: boolean;
 }
 
+/** A check-yourself question. quote points into its section's quotes, or is null when the
+ * answer comes from the section's explanation rather than one quote. */
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  choices: string[];
+  answer: number;
+  why: string;
+  quote: number | null;
+}
+
 export interface Section {
   id: string;
   title: string;
   page: number;
   explanation: Leveled;
   quotes: Quote[];
+  quiz?: Record<Level, QuizQuestion[]>;
 }
 
 export interface Symbol {
@@ -32,6 +44,8 @@ export interface Equation {
   symbols: Symbol[];
   section_id: string | null;
   page: number;
+  /** A hands-on demo drawn under the equation (see components/demos). */
+  demo?: string;
 }
 
 export interface Concept {
@@ -137,6 +151,52 @@ export interface SiteConfig {
   max_pages: number;
 }
 
+export interface SampleAccuracy {
+  id: string;
+  title: string;
+  quotes: number;
+  quotes_found: number;
+  captions: number;
+  captions_found: number;
+}
+
+export interface AccuracyReport {
+  papers: number;
+  scanned_papers: number;
+  quotes: number;
+  quotes_found: number;
+  captions: number;
+  captions_found: number;
+  samples: SampleAccuracy[];
+  updated_at: string;
+}
+
+export interface Reference {
+  title: string;
+  year: number | null;
+  authors: string[];
+  more_authors: boolean;
+  url: string | null;
+  tldr: string | null;
+  context: string | null;
+  influential: boolean;
+  citations: number;
+}
+
+export interface HubItem {
+  id: string;
+  url: string;
+  downloads: number;
+}
+
+export interface Connections {
+  references: { items: Reference[]; total: number } | null;
+  code: { url: string; label: string }[];
+  models: HubItem[];
+  datasets: HubItem[];
+  complete: boolean;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -193,5 +253,7 @@ export const api = {
   question: (id: string) => call<Question>(`/api/questions/${encodeURIComponent(id)}`),
   figureUrl: (paperId: string, figureId: string) =>
     `/api/papers/${encodeURIComponent(paperId)}/figures/${encodeURIComponent(figureId)}.png`,
+  connections: (paperId: string) => call<Connections>(`/api/papers/${encodeURIComponent(paperId)}/connections`),
+  accuracy: () => call<AccuracyReport>("/api/accuracy"),
   remove: (id: string) => call<void>(`/api/papers/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

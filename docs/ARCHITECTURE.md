@@ -159,6 +159,22 @@ LaTeX said in words, `[e1]` read as "equation 1") and splits it into sentences, 
 browsers stop part-way through a long passage. Changing the level restarts the current section in
 the new wording.
 
+## 8. Accuracy, connections, quizzes and demos
+
+- **Accuracy page.** `services/accuracy.py` counts, over every ready paper, the quotes and captions
+  marked found word for word (scanned PDFs, which have no text to check, are left out), and lists
+  each sample separately. `GET /api/accuracy` serves it, cached for ten minutes.
+- **Connections.** `services/connections.py` asks Semantic Scholar for the paper's references (by
+  arXiv id, or by title for an upload), puts the ones it marks influential first, and adds each one's
+  TLDR in one batch call. It finds GitHub links in the PDF's own text, and asks Hugging Face for
+  models and datasets tagged with the arXiv id. The result is kept in the paper's `connections`
+  column for 30 days; if a source failed, it is tried again after an hour. Nothing here is needed to
+  read the paper, so the page simply leaves out what's missing.
+- **Quizzes.** Each section can carry `quiz` questions per level, each with its answer, why, and the
+  index of the quote that backs it (or none). Answers live in the browser's `localStorage`.
+- **Demos.** An equation can name a `demo`; `components/demos` holds the two that exist. They run
+  entirely in the browser.
+
 ## Security
 
 - **Only the website may call the API.** `src/proxy.ts` adds a shared secret header to every `/api`
@@ -179,19 +195,21 @@ Three tables (`backend/app/models.py`, created by the Alembic migrations in `bac
 - `questions`: one row per question, with its level, status and the cited answer as JSON.
 - `papers`: one row per paper. Its status, error, title, authors and year are columns so lists stay
   quick; the whole explanation is one JSON column, because it is always written and read whole.
+  `connections` holds what the paper connects to, with when it was fetched.
 
 Sample papers are rows with no library and `is_sample = true`, loaded at startup from
 `backend/app/samples/*.json` (`services/samples.py`).
 
 ## Tests
 
-- `backend/tests` (pytest, 74 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
+- `backend/tests` (pytest, 88 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
   written by hand (`tests/pdfs.py`). They cover uploading, quote checking, arXiv parsing and download
   (including redirects away from arXiv), privacy between browsers, spending limits, demo mode,
   failures and retries, asking questions and their limits, figure cutting and the prerequisite map, and that the hand-written samples hang together.
-- `frontend/e2e` (Playwright, 30 tests, plus axe accessibility checks): the real website and API in Chromium, on a desktop and a
+- `frontend/e2e` (Playwright, 48 tests, plus axe accessibility checks): the real website and API in Chromium, on a desktop and a
   phone screen. They check the slider rewrites the text, equations explain themselves, quotes link to
   the right page, a sample's prepared answer shows its source,
-  the prerequisite map opens primers, figures follow the slider, and nothing scrolls sideways.
+  the prerequisite map opens primers, figures follow the slider, quiz answers survive a reload, the
+  demos respond, the accuracy page adds up, and nothing scrolls sideways.
 - CI (`.github/workflows/ci.yml`) runs all of it on every push, applies the migrations to a real
   Postgres, and checks the sample quotes against the real PDFs on arXiv.

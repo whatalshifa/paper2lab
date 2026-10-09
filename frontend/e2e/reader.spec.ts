@@ -130,10 +130,11 @@ test("listen reads the explanation aloud, section by section", async ({ page }) 
   const player = page.getByRole("region", { name: "Listening" });
   await expect(player).toContainText("student level");
 
-  await expect.poll(() => page.evaluate(() => (window as unknown as { spoken: string[] }).spoken)).toContain(
-    "Section 3: Scaled dot-product attention.",
-  );
-  const spoken = await page.evaluate(() => (window as unknown as { spoken: string[] }).spoken.join(" "));
+  const said = () => page.evaluate(() => (window as unknown as { spoken: string[] }).spoken.join(" "));
+  // Wait until it has read past the sentence checked below (each sentence takes a moment).
+  await expect.poll(said).toContain("Section 3: Scaled dot-product attention.");
+  await expect.poll(said).toContain("The dot products are divided by the square root of d k.");
+  const spoken = await said();
   expect(spoken).toContain("Attention Is All You Need.");
   // Maths is said in words, and equation marks are named.
   expect(spoken).toContain("The dot products are divided by the square root of d k.");
