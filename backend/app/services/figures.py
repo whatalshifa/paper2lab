@@ -2,10 +2,11 @@
 
 Claude says roughly where each figure is on its page (top and bottom, as fractions of the page
 height). That guess is checked against the PDF itself: if the caption's words can be found on
-the page, the picture is stretched to include them, and if the guess is nowhere near the
-caption, the caption's position wins. Figures usually sit above their caption and tables
-below theirs. Finally, any drawing or image the cut slices through is taken in whole, so a
-rough guess doesn't chop the top off a chart.
+the page, a figure's picture ends just above them (the caption is shown as text under the
+picture) and a table's starts at them, and if the guess is nowhere near the caption, the
+caption's position wins. Any drawing or image the cut slices through is taken in whole, so a
+rough guess doesn't chop the top off a chart, and a running header ruled off at the top of the
+page ("Published as a conference paper at ...") is left out.
 
 Pictures are made the first time someone opens them and then kept in storage.
 """
@@ -25,6 +26,8 @@ PADDING = 6  # points of breathing room around the cut
 NEAR = 0.15  # how far (as a fraction of the page) a guess may be from its caption and still count
 REACH = 0.4  # how much of the page to show next to a caption when the guess is unusable
 GROW = 0.25  # how far (as a fraction of the page) the cut may grow to take in a whole drawing
+HEADER = 0.12  # a rule across the page this close to the top separates a running header
+CROP_VERSION = 2  # part of each picture's storage name, so pictures cut the old way are redrawn
 
 
 class FigureError(Exception):
@@ -65,6 +68,20 @@ def _graphics(page) -> list[tuple[float, float]]:
     return spans
 
 
+def _header_bottom(page) -> float | None:
+    """Where a running header ends, if one is ruled off: the lowest line across at least half
+    the page's width in the page's top HEADER part."""
+    offset, width, height = float(page.bbox[1]), float(page.width), float(page.height)
+    bottoms = [
+        float(item["bottom"]) - offset
+        for item in [*page.lines, *page.rects]
+        if float(item["bottom"]) - float(item["top"]) <= 2
+        and float(item["x1"]) - float(item["x0"]) >= 0.5 * width
+        and float(item["bottom"]) - offset <= HEADER * height
+    ]
+    return max(bottoms) if bottoms else None
+
+
 def _take_in_whole(
     top: float, bottom: float, height: float, spans: list[tuple[float, float]], kind: str
 ) -> tuple[float, float]:
@@ -86,8 +103,10 @@ def crop_box(
     height: float,
     caption: tuple[float, float] | None,
     spans: list[tuple[float, float]] | None = None,
+    header: float | None = None,
 ) -> tuple[float, float]:
-    """The part of the page to show, from top to bottom in points."""
+    """The part of the page to show, from top to bottom in points. header is where a running
+    header ends; nothing above it is shown."""
     top, bottom = figure["top"] * height, figure["bottom"] * height
     if caption:
         caption_top, caption_bottom = caption
@@ -97,15 +116,21 @@ def crop_box(
             if figure.get("kind") == "table":
                 top, bottom = caption_top, caption_top + REACH * height
             else:
-                top, bottom = caption_top - REACH * height, caption_bottom
-        # A figure ends with its caption and a table starts with one, so the caption trims the cut.
+                top, bottom = caption_top - REACH * height, caption_top
+        # A figure ends just above its caption and a table starts with one.
         if figure.get("kind") == "table":
             top, bottom = caption_top, max(bottom, caption_bottom)
         else:
-            top, bottom = min(top, caption_top), caption_bottom
+            top, bottom = min(top, caption_top), caption_top
     if spans:
         top, bottom = _take_in_whole(top, bottom, height, spans, figure.get("kind", "figure"))
-    top, bottom = max(top - PADDING, 0.0), min(bottom + PADDING, height)
+    ceiling = header + 1 if header is not None and header < bottom else 0.0
+    if caption and figure.get("kind") != "table":
+        # Padding below would show the top of the caption's letters.
+        bottom = bottom - 1
+    else:
+        bottom = bottom + PADDING
+    top, bottom = max(top - PADDING, ceiling), min(bottom, height)
     return top, bottom
 
 
@@ -117,7 +142,7 @@ def render_figure(pdf: bytes, figure: dict) -> bytes:
                 raise FigureError("That figure's page isn't in the PDF.")
             page = document.pages[figure["page"] - 1]
             caption = _caption_box(page, figure.get("caption", ""))
-            top, bottom = crop_box(figure, float(page.height), caption, _graphics(page))
+            top, bottom = crop_box(figure, float(page.height), caption, _graphics(page), _header_bottom(page))
             cut = page.crop((0, top, float(page.width), bottom), relative=True, strict=False)
             image = cut.to_image(resolution=RESOLUTION).original
             out = io.BytesIO()
@@ -132,6 +157,9 @@ def render_figure(pdf: bytes, figure: dict) -> bytes:
 def figure_key(paper_id: str, figure: dict) -> str:
     """Where the picture is kept. The name changes if the figure's place changes (say, after the
     paper is read again), so an old picture is never shown for a new reading."""
-    where = f"{figure['page']}|{figure['top']}|{figure['bottom']}|{figure.get('caption', '')}|{RESOLUTION}"
+    where = (
+        f"{figure['page']}|{figure['top']}|{figure['bottom']}|{figure.get('caption', '')}"
+        f"|{RESOLUTION}|{CROP_VERSION}"
+    )
     digest = hashlib.sha256(where.encode()).hexdigest()[:12]
     return f"figures/{paper_id}/{figure['id']}-{digest}.png"
