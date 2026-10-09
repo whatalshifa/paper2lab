@@ -36,7 +36,15 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Paper2Lab API", version="0.1.0", lifespan=lifespan)
+_public = get_settings().env != "production"  # the interactive API docs are for development only
+app = FastAPI(
+    title="Paper2Lab API",
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url="/docs" if _public else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _public else None,
+)
 
 app.add_middleware(
     CORSMiddleware,

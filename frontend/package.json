@@ -10,14 +10,15 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@fontsource-variable/source-serif-4": "^5.2.6",
+    "geist": "^1.4.2",
+    "katex": "0.18.7",
     "next": "16.3.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "katex": "0.16.22",
-    "geist": "^1.4.2",
-    "@fontsource-variable/source-serif-4": "^5.2.6"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@types/katex": "^0.16.7",

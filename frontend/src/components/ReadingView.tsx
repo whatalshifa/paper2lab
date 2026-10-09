@@ -10,6 +10,7 @@ import { AskPanel } from "./AskPanel";
 import { EquationCard } from "./Equations";
 import { FigureCard } from "./FigureCard";
 import { LevelSlider } from "./LevelSlider";
+import { Listen } from "./Listen";
 import { asPrerequisites, PrerequisiteMap } from "./PrerequisiteMap";
 import { ReadingContext, RichText } from "./RichText";
 
@@ -193,6 +194,7 @@ export function ReadingView({
             <button type="button" onClick={() => setAsking(true)} className="btn btn-primary btn-sm">
               Ask the paper
             </button>
+            <Listen reading={reading} level={level} />
             {onDelete && (
               <button type="button" onClick={onDelete} className="btn btn-danger-quiet btn-sm">
                 Delete

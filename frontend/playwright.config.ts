@@ -27,12 +27,15 @@ export default defineConfig({
         P2L_DATABASE_URL: process.env.E2E_DATABASE_URL ?? "sqlite:///./e2e.db",
         P2L_UPLOAD_DIR: "./e2e-uploads",
         ANTHROPIC_API_KEY: "",
+        // The website must add this to every /api request (src/proxy.ts), as in production.
+        P2L_PROXY_SECRET: "e2e-proxy-secret",
       },
     },
     {
       command: "npm run start -- -p 3000",
       url: "http://localhost:3000/",
       reuseExistingServer: !process.env.CI,
+      env: { API_PROXY_SECRET: "e2e-proxy-secret" },
     },
   ],
 });

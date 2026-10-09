@@ -151,6 +151,26 @@ drops any link to a later idea (or itself), so the map can never loop; the page 
 steps by how deep they sit (`PrerequisiteMap.tsx`). Papers read before the map existed still show
 their prerequisites as plain tags.
 
+## 7. Listening
+
+`Listen.tsx` reads the explanation with the browser's own speech voice (`speechSynthesis`), so it
+costs nothing and needs no server. `lib/speech.ts` turns each explanation into plain speech (simple
+LaTeX said in words, `[e1]` read as "equation 1") and splits it into sentences, because some
+browsers stop part-way through a long passage. Changing the level restarts the current section in
+the new wording.
+
+## Security
+
+- **Only the website may call the API.** `src/proxy.ts` adds a shared secret header to every `/api`
+  request Next forwards; `api/guard.py` refuses requests without it (when `P2L_PROXY_SECRET` is set).
+  That matters because the per-network limits count by `X-Forwarded-For`, which Vercel sets but a
+  caller going straight to Render could fake.
+- **Pages** carry a content security policy: only this site's own scripts, styles, fonts and images.
+- **Untrusted content** (everything the AI writes, since it read an untrusted PDF) is rendered as text
+  by React, and maths by KaTeX with `trust: false` and expansion limits.
+- **Privacy:** papers, questions and figure pictures belong to one browser; anyone else gets 404.
+- **Uploads** are size-capped before reading and parsed off the main loop.
+
 ## The database
 
 Three tables (`backend/app/models.py`, created by the Alembic migrations in `backend/alembic/versions`):
@@ -165,11 +185,11 @@ Sample papers are rows with no library and `is_sample = true`, loaded at startup
 
 ## Tests
 
-- `backend/tests` (pytest, 73 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
+- `backend/tests` (pytest, 74 tests): a fake reader and answerer stand in for Claude, and small real PDFs are
   written by hand (`tests/pdfs.py`). They cover uploading, quote checking, arXiv parsing and download
   (including redirects away from arXiv), privacy between browsers, spending limits, demo mode,
   failures and retries, asking questions and their limits, figure cutting and the prerequisite map, and that the hand-written samples hang together.
-- `frontend/e2e` (Playwright, 18 tests): the real website and API in Chromium, on a desktop and a
+- `frontend/e2e` (Playwright, 30 tests, plus axe accessibility checks): the real website and API in Chromium, on a desktop and a
   phone screen. They check the slider rewrites the text, equations explain themselves, quotes link to
   the right page, a sample's prepared answer shows its source,
   the prerequisite map opens primers, figures follow the slider, and nothing scrolls sideways.

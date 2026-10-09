@@ -107,3 +107,47 @@ test("a figure is explained at the chosen level", async ({ page }) => {
   await page.keyboard.press("Home");
   await expect(figure).toContainText("A map of the whole model.");
 });
+
+test("listen reads the explanation aloud, section by section", async ({ page }) => {
+  // A stand-in voice: it records what it is asked to say and finishes each sentence quickly.
+  await page.addInitScript(() => {
+    const spoken: string[] = [];
+    (window as unknown as { spoken: string[] }).spoken = spoken;
+    let timer: number | undefined;
+    const synth = {
+      speak(utterance: SpeechSynthesisUtterance) {
+        spoken.push(utterance.text);
+        timer = window.setTimeout(() => utterance.onend?.(new Event("end") as SpeechSynthesisEvent), 30);
+      },
+      cancel() {
+        window.clearTimeout(timer);
+      },
+    };
+    Object.defineProperty(window, "speechSynthesis", { value: synth });
+  });
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  await page.getByRole("button", { name: "Listen", exact: true }).click();
+  const player = page.getByRole("region", { name: "Listening" });
+  await expect(player).toContainText("student level");
+
+  await expect.poll(() => page.evaluate(() => (window as unknown as { spoken: string[] }).spoken)).toContain(
+    "Section 3: Scaled dot-product attention.",
+  );
+  const spoken = await page.evaluate(() => (window as unknown as { spoken: string[] }).spoken.join(" "));
+  expect(spoken).toContain("Attention Is All You Need.");
+  // Maths is said in words, and equation marks are named.
+  expect(spoken).toContain("The dot products are divided by the square root of d k.");
+  expect(spoken).toContain("(equation 1)");
+  expect(spoken).not.toContain("$");
+
+  await page.getByRole("button", { name: "Stop listening" }).click();
+  await expect(player).toBeHidden();
+});
+
+test("pages carry a content security policy, and the API only answers the website", async ({ page, request }) => {
+  const response = await page.goto("/");
+  expect(response?.headers()["content-security-policy"]).toContain("object-src 'none'");
+  // Through the website, the API answers; straight to the API, it refuses.
+  expect((await request.get("/api/papers")).status()).toBe(200);
+  expect((await request.get("http://localhost:8000/api/papers")).status()).toBe(403);
+});
