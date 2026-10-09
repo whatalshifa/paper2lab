@@ -389,7 +389,7 @@
         "kind": "figure",
         "page": 3,
         "caption": "The Transformer - model architecture.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.62,
         "explanation": {
