@@ -28,6 +28,8 @@ def main(write: bool) -> int:
         data = json.loads(path.read_text(encoding="utf-8"))
         print(f"{path.name}: downloading arXiv {data['arxiv_id']}")
         pages = page_texts(download_pdf(data["arxiv_id"], 50_000_000), max_pages=200)
+        # How this PDF's text comes out, to see why a quote isn't found.
+        print(f"  page 2 text starts: {pages[1][:160]!r}" if len(pages) > 1 else "  (one page)")
         data["page_count"] = len(pages)
         for section in data["reading"]["sections"]:
             for quote in section["quotes"]:

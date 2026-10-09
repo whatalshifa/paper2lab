@@ -7,8 +7,9 @@ unverified, so the reader can tell the difference. This is plain Python, so it c
 fooled the way a second AI check could.
 
 PDF text is messy: words are split by hyphens at line ends, letters become ligatures (ﬁ),
-quote marks curl. So both sides are reduced to lowercase letters and digits separated by
-single spaces before comparing.
+quote marks curl, and many LaTeX papers come out with the spaces between words missing
+("Mostcompetitiveneural...") or added inside them. So both sides are reduced to lowercase
+letters and digits only, with no spaces at all, before comparing.
 """
 
 import re
@@ -19,6 +20,11 @@ _NOT_WORD = re.compile(r"[^a-z0-9]+")
 
 # Too short and a "quote" matches by accident; the AI is asked for 8 to 30 words.
 MIN_WORDS = 5
+MIN_LETTERS = 20
+
+
+def _compact(text: str) -> str:
+    return normalise(text).replace(" ", "")
 
 
 def normalise(text: str) -> str:
@@ -30,8 +36,10 @@ def normalise(text: str) -> str:
 def find_page(quote: str, pages: list[str], claimed_page: int) -> int | None:
     """The 1-based page the quote is on (the claimed page first, then its neighbours, then the
     rest), or None if it isn't in the paper's text."""
-    needle = normalise(quote)
-    if len(needle.split()) < MIN_WORDS:
+    if len(normalise(quote).split()) < MIN_WORDS:
+        return None
+    needle = _compact(quote)
+    if len(needle) < MIN_LETTERS:
         return None
     count = len(pages)
     order = [claimed_page, claimed_page + 1, claimed_page - 1, *range(1, count + 1)]
@@ -40,10 +48,10 @@ def find_page(quote: str, pages: list[str], claimed_page: int) -> int | None:
         if page in seen or not 1 <= page <= count:
             continue
         seen.add(page)
-        if needle in normalise(pages[page - 1]):
+        if needle in _compact(pages[page - 1]):
             return page
     # A quote that runs over a page break.
-    joined = normalise(" ".join(pages))
+    joined = _compact(" ".join(pages))
     if needle in joined:
         return claimed_page if 1 <= claimed_page <= count else None
     return None
