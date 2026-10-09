@@ -374,7 +374,7 @@
         "kind": "figure",
         "page": 6,
         "caption": "Logistic regression training negative log likelihood on MNIST images and IMDB movie reviews with 10,000 bag-of-words (BoW) feature vectors.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.4,
         "explanation": {
@@ -392,7 +392,7 @@
         "kind": "figure",
         "page": 7,
         "caption": "Training of multilayer neural networks on MNIST images.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.38,
         "explanation": {
@@ -403,24 +403,6 @@
         "how_to_read": "As in Figure 1, each line is an optimizer, time runs left to right and lower cost is better.",
         "takeaway": "On a real neural network, Adam trains faster than every method it was compared with.",
         "section_id": "s6"
-      },
-      {
-        "id": "f3",
-        "label": "Figure 4",
-        "kind": "figure",
-        "page": 8,
-        "caption": "Effect of bias-correction terms (red line) versus no bias correction terms (green line) after 10 epochs (left) and 100 epochs (right) on the loss (y-axes) when learning a Variational Auto-Encoder (VAE) for different settings of stepsize α (x-axes) and hyperparameters β1 and β2.",
-        "caption_verified": false,
-        "top": 0.07,
-        "bottom": 0.5,
-        "explanation": {
-          "beginner": "A grid of small charts testing one small fix in Adam. Where the green line shoots up, training went badly without the fix; the red line, with the fix, stays low.",
-          "student": "Loss against step size for many settings of β1 and β2, with bias correction (red) and without it (green). Without correction, training becomes unstable when β2 is close to 1, which is exactly the setting you want for sparse gradients.",
-          "expert": "Bias correction matters most for β2 near 1 (e.g. 0.9999): without it the early second-moment estimate is biased toward zero, steps blow up, and the loss diverges, especially at larger α."
-        },
-        "how_to_read": "Each small panel is one choice of β1 and β2; inside it, the horizontal axis is the step size and the vertical axis is the loss. Compare the red and green lines within each panel.",
-        "takeaway": "Bias correction keeps Adam stable, especially with the slow-forgetting settings it recommends.",
-        "section_id": "s4"
       }
     ],
     "concepts": [

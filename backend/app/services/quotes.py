@@ -55,3 +55,9 @@ def find_page(quote: str, pages: list[str], claimed_page: int) -> int | None:
     if needle in joined:
         return claimed_page if 1 <= claimed_page <= count else None
     return None
+
+
+def find_caption(label: str, caption: str, pages: list[str], claimed_page: int) -> int | None:
+    """Like find_page, for a figure caption. Captions are often short ("The Transformer - model
+    architecture."), so the label in front of them ("Figure 1:") is searched too."""
+    return find_page(f"{label} {caption}", pages, claimed_page) or find_page(caption, pages, claimed_page)

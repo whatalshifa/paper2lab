@@ -13,6 +13,8 @@ Pictures are made the first time someone opens them and then kept in storage.
 import hashlib
 import io
 import logging
+import re
+import unicodedata
 
 import pdfplumber
 
@@ -29,13 +31,22 @@ class FigureError(Exception):
     pass
 
 
+def _caption_pattern(caption: str) -> str | None:
+    """A pattern for the caption's first letters that allows any spaces or punctuation between
+    them, because many PDFs come out with spaces lost or added (see quotes.py)."""
+    letters = [c for c in unicodedata.normalize("NFKC", caption).lower() if c.isascii() and c.isalnum()][:30]
+    if len(letters) < 12:
+        return None
+    return r"[\W_]*".join(re.escape(c) for c in letters)
+
+
 def _caption_box(page, caption: str) -> tuple[float, float] | None:
     """Where the caption's first words are on the page (top and bottom, in points), if found."""
-    words = caption.split()[:6]
-    if len(words) < 3:
+    pattern = _caption_pattern(caption)
+    if pattern is None:
         return None
     try:
-        matches = page.search(" ".join(words), regex=False, case=False)
+        matches = page.search(pattern, regex=True, case=False)
     except Exception:  # an odd page shouldn't stop the picture
         log.warning("Searching page %s for a caption failed", page.page_number, exc_info=True)
         return None

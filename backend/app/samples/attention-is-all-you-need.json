@@ -407,7 +407,7 @@
         "kind": "figure",
         "page": 4,
         "caption": "(left) Scaled Dot-Product Attention.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.36,
         "explanation": {
@@ -425,7 +425,7 @@
         "kind": "table",
         "page": 8,
         "caption": "The Transformer achieves better BLEU scores than previous state-of-the-art models on the English-to-German and English-to-French newstest2014 tests at a fraction of the training cost.",
-        "caption_verified": false,
+        "caption_verified": true,
         "top": 0.07,
         "bottom": 0.33,
         "explanation": {
