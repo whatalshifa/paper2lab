@@ -46,13 +46,13 @@
         "quotes": [
           {
             "page": 2,
-            "text": "This inherently sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths",
+            "text": "sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths",
             "verified": false
           },
           {
             "page": 2,
             "text": "In this work we propose the Transformer, a model architecture eschewing recurrence and instead relying entirely on an attention mechanism to draw global dependencies between input and output.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -69,7 +69,7 @@
           {
             "page": 2,
             "text": "Most competitive neural sequence transduction models have an encoder-decoder structure.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -86,7 +86,7 @@
           {
             "page": 3,
             "text": "An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -103,7 +103,7 @@
           {
             "page": 5,
             "text": "Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -120,7 +120,7 @@
           {
             "page": 6,
             "text": "Since our model contains no recurrence and no convolution, in order for the model to make use of the order of the sequence, we must inject some information about the relative or absolute position of the tokens in the sequence.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -137,7 +137,7 @@
           {
             "page": 6,
             "text": "The third is the path length between long-range dependencies in the network.",
-            "verified": false
+            "verified": true
           }
         ]
       },
@@ -154,12 +154,12 @@
           {
             "page": 7,
             "text": "We trained on the standard WMT 2014 English-German dataset consisting of about 4.5 million sentence pairs.",
-            "verified": false
+            "verified": true
           },
           {
             "page": 8,
             "text": "outperforms the best previously reported models (including ensembles) by more than 2.0 BLEU",
-            "verified": false
+            "verified": true
           }
         ]
       }
@@ -397,9 +397,10 @@
             "text": "Without the scaling, the dot products between queries and keys get large when the vectors are long. Large scores push softmax into a region where almost all the weight goes to one word, and there its gradients are tiny, so the model learns very slowly.",
             "citations": [
               {
-                "quote": "We suspect that for large values of dk, the dot products grow large in magnitude, pushing the softmax function into regions where it has extremely small gradients",
+                "quote": "the dot products grow large in magnitude, pushing the softmax function into regions where it has extremely small gradients",
                 "start_page": 4,
-                "end_page": 4
+                "end_page": 4,
+                "verified": false
               }
             ]
           },
@@ -418,7 +419,8 @@
               {
                 "quote": "We trained our models on one machine with 8 NVIDIA P100 GPUs.",
                 "start_page": 7,
-                "end_page": 7
+                "end_page": 7,
+                "verified": true
               }
             ]
           },
@@ -428,7 +430,8 @@
               {
                 "quote": "The big models were trained for 300,000 steps (3.5 days).",
                 "start_page": 7,
-                "end_page": 7
+                "end_page": 7,
+                "verified": true
               }
             ]
           }
@@ -443,7 +446,8 @@
               {
                 "quote": "We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.",
                 "start_page": 1,
-                "end_page": 1
+                "end_page": 1,
+                "verified": true
               }
             ]
           },
@@ -453,7 +457,8 @@
               {
                 "quote": "We are excited about the future of attention-based models and plan to apply them to other tasks.",
                 "start_page": 10,
-                "end_page": 10
+                "end_page": 10,
+                "verified": true
               }
             ]
           }
