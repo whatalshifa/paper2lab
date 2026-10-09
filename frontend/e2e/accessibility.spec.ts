@@ -32,6 +32,49 @@ for (const scheme of ["light", "dark"] as const) {
       await check(page, errors);
     });
 
+    test("the accuracy page is accessible", async ({ page }) => {
+      const errors = watch(page);
+      await page.goto("/accuracy");
+      await expect(page.getByText("of quotes found word for word")).toBeVisible();
+      await check(page, errors);
+    });
+
+    test("a paper is accessible with a question answered, a demo and its references", async ({ page }) => {
+      const errors = watch(page);
+      await page.route("**/api/papers/*/connections", (route) =>
+        route.fulfill({
+          json: {
+            references: {
+              items: [
+                {
+                  title: "Adaptive Subgradient Methods",
+                  year: 2011,
+                  authors: ["John Duchi"],
+                  more_authors: true,
+                  url: "https://doi.org/10.5555/1953048.2021068",
+                  tldr: "AdaGrad gives rare features bigger steps.",
+                  context: "AdaGrad works well with sparse gradients.",
+                  influential: true,
+                  citations: 10000,
+                },
+              ],
+              total: 30,
+            },
+            code: [],
+            models: [{ id: "org/model", url: "https://huggingface.co/org/model", downloads: 3 }],
+            datasets: [],
+            complete: true,
+          },
+        }),
+      );
+      await page.goto("/papers/00000000-0000-4000-8000-000000001412");
+      await expect(page.getByText("What this paper connects to")).toBeVisible();
+      const first = page.locator("fieldset").first();
+      await first.getByRole("button").nth(1).click();
+      await expect(first.getByText(/^(Right|Not quite)\./)).toBeVisible();
+      await check(page, errors);
+    });
+
     test("a paper is accessible, with a primer and the ask panel open", async ({ page }) => {
       const errors = watch(page);
       await page.goto("/papers/00000000-0000-4000-8000-000000001706");

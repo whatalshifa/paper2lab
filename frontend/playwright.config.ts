@@ -29,6 +29,8 @@ export default defineConfig({
         ANTHROPIC_API_KEY: "",
         // The website must add this to every /api request (src/proxy.ts), as in production.
         P2L_PROXY_SECRET: "e2e-proxy-secret",
+        // No calls to Semantic Scholar or Hugging Face: tests that need references fake them.
+        P2L_CONNECTIONS_ENABLED: "false",
       },
     },
     {

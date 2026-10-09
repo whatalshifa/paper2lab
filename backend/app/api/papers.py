@@ -23,9 +23,10 @@ from app.api.guard import require_proxy
 from app.config import Settings, get_settings
 from app.db import get_session, get_session_factory
 from app.models import Paper
-from app.schemas import ArxivRequest, PaperDetail, PaperLists, PaperSummary, SiteConfig
+from app.schemas import ArxivRequest, Connections, PaperDetail, PaperLists, PaperSummary, SiteConfig
 from app.services.arxiv import ArxivError, parse_arxiv_id
 from app.services.claude import AI_OFF, AIError
+from app.services.connections import Connector, get_connector, is_fresh
 from app.services.figures import FigureError, figure_key, render_figure
 from app.services.jobs import new_file_key, paper_pdf, process_paper
 from app.services.library import current_library, get_or_create_library
@@ -41,6 +42,7 @@ FactoryDep = Annotated[sessionmaker[Session], Depends(get_session_factory)]
 StorageDep = Annotated[Storage, Depends(get_storage)]
 ReaderDep = Annotated[Reader, Depends(get_reader)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+ConnectorDep = Annotated[Connector, Depends(get_connector)]
 
 
 @lru_cache
@@ -160,6 +162,33 @@ def get_figure(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+@router.get("/papers/{paper_id}/connections", response_model=Connections)
+def get_connections(
+    paper_id: str,
+    request: Request,
+    session: SessionDep,
+    storage: StorageDep,
+    connector: ConnectorDep,
+    settings: SettingsDep,
+) -> dict:
+    """The papers this one builds on, and its code, models and datasets. Looked up the first time
+    someone opens the paper, then kept."""
+    paper = _visible_paper(paper_id, request, session)
+    if paper.status != "ready":
+        raise HTTPException(status.HTTP_409_CONFLICT, "This paper isn't ready yet.")
+    if is_fresh(paper.connections):
+        return paper.connections
+    if not settings.connections_enabled:
+        return paper.connections or {}
+    # An uploaded PDF has no arXiv id, so it is looked up by its title instead.
+    title = None if paper.arxiv_id else paper.title
+    paper.connections = connector.gather(
+        paper.arxiv_id, title, lambda: paper_pdf(paper, storage), settings.max_pages
+    )
+    session.commit()
+    return paper.connections
 
 
 def _check_allowance(request: Request, session: Session, settings: Settings, limiter: RateLimiter) -> None:

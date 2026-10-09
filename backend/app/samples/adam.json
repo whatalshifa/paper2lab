@@ -86,7 +86,87 @@
             "text": "The name Adam is derived from adaptive moment estimation.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s1-b1",
+              "question": "What does Adam choose during training?",
+              "choices": [
+                "One step size for every direction",
+                "A good step in every direction separately",
+                "Which batch of data to look at"
+              ],
+              "answer": 1,
+              "why": "Adam picks a step for each direction separately, using what the slopes have been doing recently.",
+              "quote": null
+            },
+            {
+              "id": "s1-b2",
+              "question": "Why is training like walking down a hill whose ground keeps shifting?",
+              "choices": [
+                "The hill has only one direction",
+                "You can see the whole hill clearly",
+                "You only look at a small batch of data each time"
+              ],
+              "answer": 2,
+              "why": "Each step uses only a small batch of data, so the slope you feel keeps changing.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s1-s1",
+              "question": "Which two earlier methods does Adam combine?",
+              "choices": [
+                "SGD and Newton's method",
+                "AdaGrad and RMSProp",
+                "Momentum and dropout"
+              ],
+              "answer": 1,
+              "why": "Adam combines AdaGrad (good with sparse gradients) and RMSProp (good with changing objectives).",
+              "quote": null
+            },
+            {
+              "id": "s1-s2",
+              "question": "What limitation of plain SGD do the authors highlight?",
+              "choices": [
+                "One learning rate must suit every parameter",
+                "It needs second-order gradients",
+                "It cannot use mini-batches"
+              ],
+              "answer": 0,
+              "why": "SGD must pick a single learning rate that suits every parameter.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s1-e1",
+              "question": "What does Adam estimate to compute individual adaptive learning rates?",
+              "choices": [
+                "The full Hessian",
+                "First and second moments of the gradient",
+                "Third and fourth moments of the loss"
+              ],
+              "answer": 1,
+              "why": "Adam derives per-parameter rates from first- and second-moment estimates of the gradient.",
+              "quote": null
+            },
+            {
+              "id": "s1-e2",
+              "question": "Which is a claimed advantage of Adam?",
+              "choices": [
+                "It requires a stationary objective",
+                "It needs second-order derivatives",
+                "Update magnitudes are invariant to gradient rescaling"
+              ],
+              "answer": 2,
+              "why": "The paper claims update magnitudes invariant to gradient rescaling, with no stationarity requirement.",
+              "quote": 0
+            }
+          ]
+        }
       },
       {
         "id": "s2",
@@ -103,7 +183,87 @@
             "text": "The algorithm updates exponential moving averages of the gradient",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s2-b1",
+              "question": "What are Adam's two short memories?",
+              "choices": [
+                "Average direction and average squared size of recent slopes",
+                "Largest and smallest slope ever seen",
+                "Current position and the lowest point"
+              ],
+              "answer": 0,
+              "why": "Adam tracks the average direction of recent slopes and their average squared size.",
+              "quote": null
+            },
+            {
+              "id": "s2-b2",
+              "question": "Which directions get careful steps?",
+              "choices": [
+                "Calm, steady ones",
+                "Wild, jumpy ones",
+                "Directions never seen before"
+              ],
+              "answer": 1,
+              "why": "Adam divides by the bumpiness, so jumpy directions get careful steps.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s2-s1",
+              "question": "What is $v_t$?",
+              "choices": [
+                "Moving average of the gradient",
+                "The learning rate at step $t$",
+                "Moving average of the squared gradient"
+              ],
+              "answer": 2,
+              "why": "$v_t$ is an exponential moving average of the squared gradient; $m_t$ averages the gradient itself.",
+              "quote": null
+            },
+            {
+              "id": "s2-s2",
+              "question": "What do $\\beta_1$ and $\\beta_2$ control?",
+              "choices": [
+                "How fast the averages forget the past",
+                "The mini-batch size",
+                "The number of parameters"
+              ],
+              "answer": 0,
+              "why": "They set how quickly the moving averages $m_t$ and $v_t$ forget the past.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s2-e1",
+              "question": "How do the authors say Algorithm 1's efficiency can be improved?",
+              "choices": [
+                "Compute moments every 10 steps",
+                "Use matrix inverses instead of elementwise ops",
+                "Fold the bias corrections into $\\alpha_t$"
+              ],
+              "answer": 2,
+              "why": "Folding the bias corrections into $\\alpha_t$ improves efficiency.",
+              "quote": null
+            },
+            {
+              "id": "s2-e2",
+              "question": "What range must the decay rates $\\beta_1, \\beta_2$ lie in?",
+              "choices": [
+                "$(1, 2]$",
+                "$[0, 1)$",
+                "$[-1, 1]$"
+              ],
+              "answer": 1,
+              "why": "Algorithm 1 uses decay rates $\\beta_1, \\beta_2 \\in [0, 1)$.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s3",
@@ -120,7 +280,87 @@
             "text": "An important property of Adam's update rule is its careful choice of stepsizes.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s3-b1",
+              "question": "What does the step size setting roughly mean?",
+              "choices": [
+                "How many steps to take in total",
+                "How far am I willing to move at once",
+                "How much data to look at"
+              ],
+              "answer": 1,
+              "why": "Roughly no step is bigger than the chosen step size.",
+              "quote": null
+            },
+            {
+              "id": "s3-b2",
+              "question": "If all the slopes are multiplied by 100, what happens to Adam's steps?",
+              "choices": [
+                "They get 100 times bigger",
+                "They get 100 times smaller",
+                "They stay exactly the same"
+              ],
+              "answer": 2,
+              "why": "The direction and the bumpiness both grow by 100 and cancel out.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s3-s1",
+              "question": "What happens when gradients disagree from step to step?",
+              "choices": [
+                "The ratio $\\hat m_t/\\sqrt{\\hat v_t}$ is small and steps shrink",
+                "Steps grow to escape the noise",
+                "The learning rate resets"
+              ],
+              "answer": 0,
+              "why": "Like a low signal-to-noise ratio, disagreement shrinks steps, a form of automatic annealing.",
+              "quote": null
+            },
+            {
+              "id": "s3-s2",
+              "question": "What does the rough bound $|\\Delta_t| \\lesssim \\alpha$ establish?",
+              "choices": [
+                "Reaching the global optimum",
+                "A fixed number of training steps",
+                "A trust region around the current parameters"
+              ],
+              "answer": 2,
+              "why": "Bounding the step by about $\\alpha$ sets a trust region, giving $\\alpha$ a clear meaning.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s3-e1",
+              "question": "When $(1-\\beta_1) > \\sqrt{1-\\beta_2}$, what bounds $|\\Delta_t|$?",
+              "choices": [
+                "$\\alpha$",
+                "$\\alpha(1-\\beta_1)/\\sqrt{1-\\beta_2}$",
+                "$\\alpha\\sqrt{1-\\beta_2}$"
+              ],
+              "answer": 1,
+              "why": "In that case $|\\Delta_t| \\le \\alpha(1-\\beta_1)/\\sqrt{1-\\beta_2}$; otherwise $|\\Delta_t| \\le \\alpha$.",
+              "quote": null
+            },
+            {
+              "id": "s3-e2",
+              "question": "Why is the update invariant to scaling gradients by $c$?",
+              "choices": [
+                "$\\epsilon$ absorbs the factor $c$",
+                "Bias correction divides out $c$",
+                "$c\\hat m_t/\\sqrt{c^2\\hat v_t} = \\hat m_t/\\sqrt{\\hat v_t}$"
+              ],
+              "answer": 2,
+              "why": "The factor $c$ in the numerator cancels $\\sqrt{c^2}$ in the denominator.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s4",
@@ -137,7 +377,87 @@
             "text": "leading to moment estimates that are biased towards zero, especially during the initial timesteps",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s4-b1",
+              "question": "Why are Adam's memories too small in the first few steps?",
+              "choices": [
+                "The slopes are tiny early on",
+                "They start at zero",
+                "The step size starts at zero"
+              ],
+              "answer": 1,
+              "why": "Like a thermometer that hasn't warmed up, the memories start at zero and read low.",
+              "quote": null
+            },
+            {
+              "id": "s4-b2",
+              "question": "What does the correction divide each memory by?",
+              "choices": [
+                "A number small at first that grows towards 1",
+                "A number large at first that shrinks",
+                "The total number of steps"
+              ],
+              "answer": 0,
+              "why": "Dividing by a number that starts small and grows to 1 exactly cancels the warm-up effect.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s4-s1",
+              "question": "When is the early bias towards zero worst?",
+              "choices": [
+                "When gradients are large",
+                "When $\\beta_1, \\beta_2$ are close to 0",
+                "When $\\beta_1, \\beta_2$ are close to 1"
+              ],
+              "answer": 2,
+              "why": "Long memories ($\\beta$ near 1) make the zero start linger, so the bias is strongest.",
+              "quote": null
+            },
+            {
+              "id": "s4-s2",
+              "question": "Without bias correction, what can happen to the first steps?",
+              "choices": [
+                "Much too large, making training unstable",
+                "Much too small, stalling training",
+                "Nothing; the correction is cosmetic"
+              ],
+              "answer": 0,
+              "why": "Uncorrected, early steps can be much too large, which the experiments show destabilizes training.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s4-e1",
+              "question": "Under zero initialization, what is $\\mathbb{E}[v_t]$?",
+              "choices": [
+                "$\\mathbb{E}[g_t^2] + \\zeta$",
+                "$\\mathbb{E}[g_t^2](1-\\beta_2^t) + \\zeta$",
+                "$\\mathbb{E}[g_t^2]/(1-\\beta_2^t)$"
+              ],
+              "answer": 1,
+              "why": "The estimate is shrunk by $(1-\\beta_2^t)$, which dividing by $1-\\beta_2^t$ corrects.",
+              "quote": null
+            },
+            {
+              "id": "s4-e2",
+              "question": "Why does bias correction matter most for sparse gradients?",
+              "choices": [
+                "They need $\\beta_1 \\to 0$",
+                "They make $\\zeta$ large",
+                "They need $\\beta_2 \\to 1$, where uncorrected early steps are huge"
+              ],
+              "answer": 2,
+              "why": "Sparse gradients require $\\beta_2 \\to 1$, where uncorrected initial steps would be very large.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s5",
@@ -154,7 +474,87 @@
             "text": "We analyze the convergence of Adam using the online learning framework proposed in",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s5-b1",
+              "question": "What is regret?",
+              "choices": [
+                "The number of steps Adam took",
+                "How much worse Adam did than knowing the best answer upfront",
+                "How much memory Adam uses"
+              ],
+              "answer": 1,
+              "why": "Regret adds up how much worse Adam did over all its steps than the best answer.",
+              "quote": null
+            },
+            {
+              "id": "s5-b2",
+              "question": "For which kind of problems is the guarantee proved?",
+              "choices": [
+                "Any problem at all",
+                "Problems full of traps",
+                "Convex ones: a single valley, no traps"
+              ],
+              "answer": 2,
+              "why": "The proof covers convex problems, a single valley with no traps.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s5-s1",
+              "question": "What regret bound does Adam achieve after $T$ steps?",
+              "choices": [
+                "$O(\\sqrt{T})$",
+                "$O(T)$",
+                "$O(T^2)$"
+              ],
+              "answer": 0,
+              "why": "Under bounded gradients and decaying step size, regret is $O(\\sqrt{T})$, the best known rate here.",
+              "quote": null
+            },
+            {
+              "id": "s5-s2",
+              "question": "What does $O(\\sqrt{T})$ regret imply for the average regret $R(T)/T$?",
+              "choices": [
+                "It grows without bound",
+                "It goes to zero",
+                "It stays constant"
+              ],
+              "answer": 1,
+              "why": "Dividing $O(\\sqrt{T})$ by $T$ gives a quantity that shrinks to zero.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s5-e1",
+              "question": "What step-size schedule does Theorem 4.1 assume?",
+              "choices": [
+                "Constant $\\alpha$",
+                "$\\alpha_t = \\alpha/t$",
+                "$\\alpha_t = \\alpha/\\sqrt{t}$"
+              ],
+              "answer": 2,
+              "why": "Theorem 4.1 uses $\\alpha_t = \\alpha/\\sqrt{t}$ with $\\beta_{1,t} = \\beta_1\\lambda^{t-1}$.",
+              "quote": null
+            },
+            {
+              "id": "s5-e2",
+              "question": "What does Corollary 4.2 state?",
+              "choices": [
+                "$R(T)/T = O(1/\\sqrt{T})$",
+                "$R(T)/T = O(\\sqrt{T})$",
+                "$R(T) = O(1/T)$"
+              ],
+              "answer": 0,
+              "why": "From the $O(\\sqrt{T})$ regret bound, average regret is $O(1/\\sqrt{T})$.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s6",
@@ -171,7 +571,87 @@
             "text": "Using large models and datasets, we demonstrate Adam can efficiently solve practical deep learning problems.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s6-b1",
+              "question": "How did Adam compare with the popular methods of the time?",
+              "choices": [
+                "Slower, but more accurate",
+                "As fast or faster in almost every test, without special tuning",
+                "Only good on handwritten digits"
+              ],
+              "answer": 1,
+              "why": "Adam matched or beat the others in almost every test without special tuning.",
+              "quote": null
+            },
+            {
+              "id": "s6-b2",
+              "question": "Why did Adam spread so quickly?",
+              "choices": [
+                "It needed special hardware",
+                "It was the only method available",
+                "It was reliable across many tests"
+              ],
+              "answer": 2,
+              "why": "Its reliability across different models is why it spread so quickly.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s6-s1",
+              "question": "How did Adam do on the sparse IMDB features?",
+              "choices": [
+                "It matched AdaGrad",
+                "It clearly lost to AdaGrad",
+                "It could not be applied"
+              ],
+              "answer": 0,
+              "why": "On sparse bag-of-words features, Adam matches AdaGrad.",
+              "quote": null
+            },
+            {
+              "id": "s6-s2",
+              "question": "How did Adam compare with AdaGrad on convolutional networks?",
+              "choices": [
+                "It matched it",
+                "It beat it clearly",
+                "It lost to it"
+              ],
+              "answer": 1,
+              "why": "On convolutional networks Adam clearly beats AdaGrad.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s6-e1",
+              "question": "Why does AdaGrad fall behind on the CIFAR-10 CNNs?",
+              "choices": [
+                "It diverges without bias correction",
+                "It cannot handle dropout",
+                "Its second-moment estimate vanishes early"
+              ],
+              "answer": 2,
+              "why": "AdaGrad's second-moment estimate vanishes early, so Adam and SGD outpace it.",
+              "quote": null
+            },
+            {
+              "id": "s6-e2",
+              "question": "What did the VAE runs confirm?",
+              "choices": [
+                "Bias correction prevents instability at $\\beta_2 \\to 1$",
+                "AdaMax beats Adam",
+                "Dropout is unnecessary"
+              ],
+              "answer": 0,
+              "why": "The VAE experiments show bias correction prevents instability when $\\beta_2$ is near 1.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s7",
@@ -188,7 +668,87 @@
             "text": "We have introduced a simple and computationally efficient algorithm for gradient-based optimization of stochastic objective functions.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s7-b1",
+              "question": "What does AdaMax remember instead of the average bumpiness?",
+              "choices": [
+                "The smallest recent slope",
+                "The biggest recent slope",
+                "The very first slope"
+              ],
+              "answer": 1,
+              "why": "AdaMax remembers the biggest recent slope, which is simpler and very stable.",
+              "quote": null
+            },
+            {
+              "id": "s7-b2",
+              "question": "What do the authors conclude about Adam?",
+              "choices": [
+                "It only suits small, clean problems",
+                "It needs careful tuning",
+                "It is simple, fast and robust"
+              ],
+              "answer": 2,
+              "why": "They call Adam simple, fast and robust, fitting large noisy problems.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s7-s1",
+              "question": "How is AdaMax derived from Adam?",
+              "choices": [
+                "Use an $L^p$ norm and let $p \\to \\infty$",
+                "Use an $L^1$ norm instead",
+                "Let $p \\to 0$"
+              ],
+              "answer": 0,
+              "why": "Generalizing Adam's $L^2$ scaling to $L^p$ and taking $p \\to \\infty$ gives AdaMax.",
+              "quote": null
+            },
+            {
+              "id": "s7-s2",
+              "question": "Which is true of AdaMax's $u_t$?",
+              "choices": [
+                "It needs stronger bias correction than $v_t$",
+                "It needs no bias correction",
+                "It averages squared gradients"
+              ],
+              "answer": 1,
+              "why": "$u_t$ is a running maximum and needs no bias correction.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s7-e1",
+              "question": "How is $u_t$ updated in AdaMax?",
+              "choices": [
+                "$\\beta_2 u_{t-1} + |g_t|$",
+                "$\\min(\\beta_2 u_{t-1}, |g_t|)$",
+                "$\\max(\\beta_2 u_{t-1}, |g_t|)$"
+              ],
+              "answer": 2,
+              "why": "The $p \\to \\infty$ limit gives $u_t = \\max(\\beta_2 u_{t-1}, |g_t|)$.",
+              "quote": null
+            },
+            {
+              "id": "s7-e2",
+              "question": "What default step size $\\alpha$ is given for AdaMax?",
+              "choices": [
+                "0.001",
+                "0.002",
+                "0.01"
+              ],
+              "answer": 1,
+              "why": "AdaMax uses the default $\\alpha = 0.002$, with $|\\Delta_t| \\le \\alpha$.",
+              "quote": null
+            }
+          ]
+        }
       }
     ],
     "equations": [
@@ -283,7 +843,8 @@
           }
         ],
         "section_id": "s2",
-        "page": 2
+        "page": 2,
+        "demo": "adam-optimizer"
       },
       {
         "id": "e4",

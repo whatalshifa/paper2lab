@@ -7,11 +7,14 @@ import type { PaperDetail, Quote, Reading, Section } from "@/lib/api";
 import { useLevel } from "@/lib/level";
 
 import { AskPanel } from "./AskPanel";
+import { ConnectionsSection, hasLinks, useConnections } from "./Connections";
+import { Demo } from "./demos";
 import { EquationCard } from "./Equations";
 import { FigureCard } from "./FigureCard";
 import { LevelSlider } from "./LevelSlider";
 import { Listen } from "./Listen";
 import { asPrerequisites, PrerequisiteMap } from "./PrerequisiteMap";
+import { type Answers, Quiz, quizScore, useQuizAnswers } from "./Quiz";
 import { ReadingContext, RichText } from "./RichText";
 
 function pageLink(pdfUrl: string | null, page: number) {
@@ -55,11 +58,15 @@ function SectionBlock({
   number,
   paper,
   reading,
+  answers,
+  onChoose,
 }: {
   section: Section;
   number: number;
   paper: PaperDetail;
   reading: Reading;
+  answers: Answers;
+  onChoose: (questionId: string, choice: number | null) => void;
 }) {
   const level = useLevel();
   const equations = reading.equations
@@ -81,7 +88,10 @@ function SectionBlock({
       {equations.length > 0 && (
         <div className="mt-6 space-y-3">
           {equations.map(({ equation, index }) => (
-            <EquationCard key={equation.id} equation={equation} index={index} level={level} />
+            <div key={equation.id} className="space-y-3">
+              <EquationCard equation={equation} index={index} level={level} />
+              {equation.demo && <Demo kind={equation.demo} />}
+            </div>
           ))}
         </div>
       )}
@@ -107,6 +117,7 @@ function SectionBlock({
           </div>
         </details>
       )}
+      <Quiz section={section} level={level} pdfUrl={paper.pdf_url} answers={answers} onChoose={onChoose} />
     </section>
   );
 }
@@ -160,6 +171,10 @@ export function ReadingView({
   const verified = reading.sections.flatMap((s) => s.quotes).filter((q) => q.verified).length;
   const quotes = reading.sections.flatMap((s) => s.quotes).length;
   const hasMap = asPrerequisites(reading.prerequisites).some((p) => p.primer);
+  const { answers, choose } = useQuizAnswers(paper.id);
+  const score = quizScore(reading.sections, level, answers);
+  const connections = useConnections(paper.id);
+  const hasConnections = (connections?.references?.items.length ?? 0) > 0 || hasLinks(connections);
 
   return (
     <ReadingContext.Provider value={context}>
@@ -189,6 +204,11 @@ export function ReadingView({
                 className="btn btn-ghost btn-sm"
               >
                 arXiv:{paper.arxiv_id}
+              </a>
+            )}
+            {connections && connections.code.length > 0 && (
+              <a href={connections.code[0].url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+                Code ↗
               </a>
             )}
             <button type="button" onClick={() => setAsking(true)} className="btn btn-primary btn-sm">
@@ -237,6 +257,13 @@ export function ReadingView({
                     </a>
                   </li>
                 ))}
+                {hasConnections && (
+                  <li>
+                    <a href="#builds-on" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
+                      What it connects to
+                    </a>
+                  </li>
+                )}
                 {reading.concepts.length > 0 && (
                   <li>
                     <a href="#glossary" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
@@ -247,7 +274,17 @@ export function ReadingView({
               </ol>
               {quotes > 0 && !(paper.is_sample && verified === 0) && (
                 <p className="mt-6 text-xs leading-relaxed text-muted">
-                  {verified} of {quotes} quotes found word for word in the PDF.
+                  {verified} of {quotes} quotes found word for word in the PDF.{" "}
+                  <Link href="/accuracy" className="link">
+                    How we check
+                  </Link>
+                </p>
+              )}
+              {score.total > 0 && (
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  {score.answered === 0
+                    ? `${score.total} check-yourself questions at this level.`
+                    : `Check yourself: ${score.right} of ${score.answered} right so far, ${score.total - score.answered} to go.`}
                 </p>
               )}
             </div>
@@ -282,8 +319,18 @@ export function ReadingView({
             {reading.prerequisites.length > 0 && <PrerequisiteMap items={reading.prerequisites} />}
 
             {reading.sections.map((section, i) => (
-              <SectionBlock key={section.id} section={section} number={i + 1} paper={paper} reading={reading} />
+              <SectionBlock
+                key={section.id}
+                section={section}
+                number={i + 1}
+                paper={paper}
+                reading={reading}
+                answers={answers}
+                onChoose={choose}
+              />
             ))}
+
+            <ConnectionsSection connections={connections} />
 
             {reading.concepts.length > 0 && (
               <section id="glossary" className="scroll-mt-32 border-t border-line pt-8" aria-labelledby="glossary-title">

@@ -15,7 +15,7 @@ based on, checked word for word against the PDF, so you can trust it or catch it
 
 ![The prerequisite map with a primer open](docs/screenshots/prerequisite-map.png)
 
-## What works today (Phases 1 to 4)
+## What works today (Phases 1 to 5)
 
 - **Add a paper** by uploading a PDF (up to 20 MB and 60 pages) or pasting an arXiv link or id.
   The PDF is checked before any AI sees it: is it really a PDF, how many pages, what text is on each.
@@ -64,10 +64,21 @@ based on, checked word for word against the PDF, so you can trust it or catch it
   maths from the AI is drawn with KaTeX's safe mode, and the API's docs are hidden in production.
 - **Accessible.** Every page is checked against WCAG 2.1 AA with axe, in light and dark mode, as
   part of the browser tests. Everything works with a keyboard.
-- **Tested.** 74 backend tests (pytest) and 30 browser tests (Playwright, desktop and phone) run in
+- **Public accuracy page.** `/accuracy` shows how many quotes and figure captions across every paper
+  read were found word for word in the PDF, how the check works, and each sample paper's own score.
+- **What the paper connects to.** The papers it builds on, most important first, each with a
+  one-line summary and the sentence where it's cited (from Semantic Scholar's free API); code links
+  found in the paper itself; and models and datasets on Hugging Face that cite it. Fetched once
+  and kept for 30 days.
+- **Check yourself.** A few multiple-choice questions at the end of each section, at your level.
+  Each answer says why, and shows the paper's own words when a quote backs it. The score is kept in
+  your browser. (Sample papers for now; written for every paper once the AI is on.)
+- **Play with it.** Interactive demos beside key equations: see why attention divides by √dk (bigger
+  keys make softmax pick one word), and race Adam against plain gradient descent down a valley.
+- **Tested.** 88 backend tests (pytest) and 48 browser tests (Playwright, desktop and phone) run in
   GitHub Actions on every push, plus a check of the sample quotes against the real PDFs on arXiv.
 
-Coming next: accounts, and deployment.
+Coming next: quizzes for every paper once the AI is on, and accounts.
 
 ## How it fits together
 

@@ -103,7 +103,87 @@
             "text": "In this work we propose the Transformer, a model architecture eschewing recurrence and instead relying entirely on an attention mechanism to draw global dependencies between input and output.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s1-b1",
+              "question": "Why were the older translation programs slow?",
+              "choices": [
+                "They looked up every word in a dictionary",
+                "Each word had to wait for the word before it",
+                "They read the sentence backwards"
+              ],
+              "answer": 1,
+              "why": "They read one word after another, so word 10 had to wait for word 9.",
+              "quote": 0
+            },
+            {
+              "id": "s1-b2",
+              "question": "What role does attention play in the Transformer?",
+              "choices": [
+                "A small helper added to step-by-step reading",
+                "It is replaced by a running memory",
+                "It becomes the whole model"
+              ],
+              "answer": 2,
+              "why": "Attention had been used as a helper before; here it becomes the whole model.",
+              "quote": 1
+            }
+          ],
+          "student": [
+            {
+              "id": "s1-s1",
+              "question": "What stops an RNN from processing positions within one example in parallel?",
+              "choices": [
+                "The state at $t$ depends on the state at $t-1$",
+                "Softmax must normalize the attention weights",
+                "The vocabulary is too large"
+              ],
+              "answer": 0,
+              "why": "Each hidden state is computed from the previous one, so the chain is inherently sequential.",
+              "quote": 0
+            },
+            {
+              "id": "s1-s2",
+              "question": "What does the paper propose instead of recurrence?",
+              "choices": [
+                "Adding attention on top of LSTMs",
+                "Swapping LSTMs for GRUs",
+                "Building the model from attention alone"
+              ],
+              "answer": 2,
+              "why": "The Transformer drops recurrence entirely and relies on attention alone, making each layer fully parallel.",
+              "quote": 1
+            }
+          ],
+          "expert": [
+            {
+              "id": "s1-e1",
+              "question": "How many operations does the Transformer need to relate two distant positions?",
+              "choices": [
+                "Linear in their distance",
+                "A constant number",
+                "Logarithmic in their distance"
+              ],
+              "answer": 1,
+              "why": "Unlike ConvS2S (linear) or ByteNet (logarithmic), the Transformer relates any two positions in a constant number of operations.",
+              "quote": null
+            },
+            {
+              "id": "s1-e2",
+              "question": "What cost of constant-operation relating does multi-head attention counteract?",
+              "choices": [
+                "Quadratic memory in sequence length",
+                "Averaging over attention-weighted positions",
+                "Loss of intra-example parallelism"
+              ],
+              "answer": 1,
+              "why": "Relating positions in one step averages attention-weighted positions; multi-head attention counteracts this.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s2",
@@ -120,7 +200,87 @@
             "text": "Most competitive neural sequence transduction models have an encoder-decoder structure.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s2-b1",
+              "question": "What does the decoder do?",
+              "choices": [
+                "Reads the whole English sentence at once",
+                "Writes the German sentence one word at a time",
+                "Adds a position stamp to each word"
+              ],
+              "answer": 1,
+              "why": "The decoder writes the output one word at a time, peeking at the encoder's notes and its own earlier words.",
+              "quote": null
+            },
+            {
+              "id": "s2-b2",
+              "question": "What does stacking identical blocks, like floors in a building, achieve?",
+              "choices": [
+                "Each floor translates a different sentence",
+                "Only the top floor does real work",
+                "Each floor refines the understanding a little more"
+              ],
+              "answer": 2,
+              "why": "Each half stacks 6 identical blocks, and every floor refines the understanding a bit more.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s2-s1",
+              "question": "What extra sub-layer does a decoder layer have compared with an encoder layer?",
+              "choices": [
+                "A second feed-forward network",
+                "Attention over the encoder's output",
+                "A positional encoding layer"
+              ],
+              "answer": 1,
+              "why": "Decoder layers add a third sub-layer that attends over the encoder's output.",
+              "quote": null
+            },
+            {
+              "id": "s2-s2",
+              "question": "How is each sub-layer wrapped?",
+              "choices": [
+                "Dropout followed by softmax",
+                "ReLU followed by max pooling",
+                "Residual connection followed by layer normalization"
+              ],
+              "answer": 2,
+              "why": "Every sub-layer sits inside a residual connection followed by layer normalization.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s2-e1",
+              "question": "Why is decoder self-attention masked?",
+              "choices": [
+                "To cut the cost of attention",
+                "So position $i$ only sees positions $< i$",
+                "To hide the encoder output from lower layers"
+              ],
+              "answer": 1,
+              "why": "Masking, with outputs offset by one, keeps the decoder auto-regressive.",
+              "quote": null
+            },
+            {
+              "id": "s2-e2",
+              "question": "In encoder-decoder attention, where do queries, keys and values come from?",
+              "choices": [
+                "Queries from encoder; keys and values from decoder",
+                "All three from the decoder",
+                "Queries from decoder; keys and values from encoder output"
+              ],
+              "answer": 2,
+              "why": "The decoder's middle sub-layer takes queries from the decoder and keys and values from the encoder output.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s3",
@@ -137,7 +297,87 @@
             "text": "An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s3-b1",
+              "question": "In the library analogy, what decides how much of another word's content a word takes in?",
+              "choices": [
+                "How close together the two words sit",
+                "How well its question matches that word's label",
+                "How long the other word is"
+              ],
+              "answer": 1,
+              "why": "A word compares its question with every label; the better the match, the more content it takes in.",
+              "quote": null
+            },
+            {
+              "id": "s3-b2",
+              "question": "In \"the animal didn't cross the street because it was tired\", what can \"it\" learn to focus on?",
+              "choices": [
+                "animal",
+                "street",
+                "cross"
+              ],
+              "answer": 0,
+              "why": "Attention lets \"it\" pay most attention to \"animal\", the thing that was tired.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s3-s1",
+              "question": "How are the attention weights computed?",
+              "choices": [
+                "Softmax of query-key dot products",
+                "Distance between the value vectors",
+                "Random sampling of positions"
+              ],
+              "answer": 0,
+              "why": "Query-key dot products measure similarity and softmax turns them into probabilities that weight the values.",
+              "quote": null
+            },
+            {
+              "id": "s3-s2",
+              "question": "Why are dot products divided by $\\sqrt{d_k}$?",
+              "choices": [
+                "To make attention cheaper to compute",
+                "Large dot products make softmax all-or-nothing with tiny gradients",
+                "To give the values unit length"
+              ],
+              "answer": 1,
+              "why": "Without scaling, large dot products saturate softmax and its gradients shrink, stalling learning.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s3-e1",
+              "question": "Why use dot-product rather than additive attention?",
+              "choices": [
+                "It wins at every $d_k$ even unscaled",
+                "It needs no learned parameters",
+                "It is faster and more memory-efficient via matrix multiplication"
+              ],
+              "answer": 2,
+              "why": "Dot-product attention benefits from optimized matrix multiplication, making it faster and more memory-efficient.",
+              "quote": null
+            },
+            {
+              "id": "s3-e2",
+              "question": "For unit-variance components, what is the variance of $q\\cdot k$?",
+              "choices": [
+                "$1$",
+                "$\\sqrt{d_k}$",
+                "$d_k$"
+              ],
+              "answer": 2,
+              "why": "The variance of $q\\cdot k$ grows to $d_k$, which the $1/\\sqrt{d_k}$ scaling counters.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s4",
@@ -154,7 +394,87 @@
             "text": "Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s4-b1",
+              "question": "Why run several attention heads instead of one?",
+              "choices": [
+                "One round can only focus on one kind of connection",
+                "One round cannot read long sentences",
+                "More rounds make the model smaller"
+              ],
+              "answer": 0,
+              "why": "A single round of attention focuses on one kind of connection at a time, so 8 heads run side by side.",
+              "quote": null
+            },
+            {
+              "id": "s4-b2",
+              "question": "What happens to the heads' results at the end?",
+              "choices": [
+                "Only the best head is kept",
+                "They are averaged into one number",
+                "They are glued together"
+              ],
+              "answer": 2,
+              "why": "Like combining eight friends' notes, the heads' results are glued together at the end.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s4-s1",
+              "question": "How many dimensions does each head's projected space have?",
+              "choices": [
+                "512",
+                "64",
+                "2048"
+              ],
+              "answer": 1,
+              "why": "The model projects into $h = 8$ smaller spaces of 64 dimensions each.",
+              "quote": null
+            },
+            {
+              "id": "s4-s2",
+              "question": "What can separate heads do that one attention cannot?",
+              "choices": [
+                "Skip the learned projections",
+                "Remove the need for positional encodings",
+                "Attend to different kinds of information at different positions"
+              ],
+              "answer": 2,
+              "why": "One attention averages everything into one weighting; separate heads attend to different information at once.",
+              "quote": 0
+            }
+          ],
+          "expert": [
+            {
+              "id": "s4-e1",
+              "question": "In the Table 3 ablations, how did single-head attention compare?",
+              "choices": [
+                "Identical BLEU",
+                "0.9 BLEU worse",
+                "0.9 BLEU better"
+              ],
+              "answer": 1,
+              "why": "Single-head attention is 0.9 BLEU worse, though too many heads also hurt quality.",
+              "quote": null
+            },
+            {
+              "id": "s4-e2",
+              "question": "How are illegal connections handled in masked decoder self-attention?",
+              "choices": [
+                "Set to $-\\infty$ before softmax",
+                "Set to zero after softmax",
+                "Removed from $W^O$"
+              ],
+              "answer": 0,
+              "why": "Illegal connections are set to $-\\infty$ before softmax so they get zero weight.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s5",
@@ -171,7 +491,87 @@
             "text": "Since our model contains no recurrence and no convolution, in order for the model to make use of the order of the sequence, we must inject some information about the relative or absolute position of the tokens in the sequence.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s5-b1",
+              "question": "Why does the model add a position stamp to each word?",
+              "choices": [
+                "To make each word's numbers shorter",
+                "Attention alone treats a sentence like a bag of words",
+                "To mark which words are nouns"
+              ],
+              "answer": 1,
+              "why": "Without it, \"dog bites man\" and \"man bites dog\" would look the same to attention.",
+              "quote": 0
+            },
+            {
+              "id": "s5-b2",
+              "question": "What are the position stamps made from?",
+              "choices": [
+                "Fresh random numbers each time",
+                "The word's dictionary entry",
+                "Smooth waves of different lengths"
+              ],
+              "answer": 2,
+              "why": "The stamps are built from smooth waves of different lengths, so each word knows where it sits.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s5-s1",
+              "question": "What is the position-wise feed-forward network?",
+              "choices": [
+                "Two linear layers with a ReLU, applied per position",
+                "One attention head per position",
+                "An LSTM run over all positions"
+              ],
+              "answer": 0,
+              "why": "It is two linear layers with a ReLU between them, applied to each position independently.",
+              "quote": null
+            },
+            {
+              "id": "s5-s2",
+              "question": "Why did the authors choose sine and cosine waves?",
+              "choices": [
+                "They are cheaper than learned embeddings",
+                "The encoding of $pos + k$ is a linear function of that at $pos$",
+                "They clearly beat learned embeddings"
+              ],
+              "answer": 1,
+              "why": "This linear relation should make relative positions easy to learn; learned embeddings did nearly the same.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s5-e1",
+              "question": "The FFN is equivalent to what?",
+              "choices": [
+                "One convolution with kernel size 3",
+                "A dilated convolution stack",
+                "Two convolutions with kernel size 1"
+              ],
+              "answer": 2,
+              "why": "Two linear maps applied per position equal two kernel-size-1 convolutions.",
+              "quote": null
+            },
+            {
+              "id": "s5-e2",
+              "question": "How did learned positional embeddings compare with sinusoidal ones (Table 3, row E)?",
+              "choices": [
+                "Much worse",
+                "Nearly identically",
+                "Much better"
+              ],
+              "answer": 1,
+              "why": "Learned positional embeddings performed nearly identically to the sinusoidal encoding.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s6",
@@ -188,7 +588,87 @@
             "text": "The third is the path length between long-range dependencies in the network.",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s6-b1",
+              "question": "How many steps does a signal need to travel between any two words in self-attention?",
+              "choices": [
+                "One step per word in between",
+                "It depends on sentence length",
+                "One step"
+              ],
+              "answer": 2,
+              "why": "Any word reaches any other word in one step.",
+              "quote": null
+            },
+            {
+              "id": "s6-b2",
+              "question": "What is the main cost of self-attention?",
+              "choices": [
+                "Words can't be processed at the same time",
+                "Every word looks at every other word, costly for long texts",
+                "Far-apart words can never connect"
+              ],
+              "answer": 1,
+              "why": "Since every word looks at every other word, it gets expensive for very long texts.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s6-s1",
+              "question": "Why does a shorter maximum path length matter?",
+              "choices": [
+                "It makes long-range dependencies easier to learn",
+                "It reduces the number of parameters",
+                "It removes the need for softmax"
+              ],
+              "answer": 0,
+              "why": "Shorter paths between positions make long-range dependencies easier to learn.",
+              "quote": null
+            },
+            {
+              "id": "s6-s2",
+              "question": "When is self-attention cheaper per layer than recurrence?",
+              "choices": [
+                "When $n$ is larger than $d$",
+                "When $n$ is smaller than $d$",
+                "Only when $n = d$"
+              ],
+              "answer": 1,
+              "why": "$O(n^2 \\cdot d)$ beats $O(n \\cdot d^2)$ when $n < d$, the usual case for sentences.",
+              "quote": null
+            }
+          ],
+          "expert": [
+            {
+              "id": "s6-e1",
+              "question": "What is the maximum path length for dilated convolutions with kernel width $k$?",
+              "choices": [
+                "$O(1)$",
+                "$O(n)$",
+                "$O(\\log_k n)$"
+              ],
+              "answer": 2,
+              "why": "Table 1 lists $O(\\log_k n)$ for dilated convolutions, versus $O(1)$ for self-attention.",
+              "quote": null
+            },
+            {
+              "id": "s6-e2",
+              "question": "What does restricted self-attention over a neighbourhood $r$ trade?",
+              "choices": [
+                "Path length $O(n/r)$ for lower cost",
+                "Cost $O(n^3)$ for shorter paths",
+                "Parallelism for interpretability"
+              ],
+              "answer": 0,
+              "why": "Restricting to a neighbourhood $r$ lengthens paths to $O(n/r)$ to save cost on very long sequences.",
+              "quote": null
+            }
+          ]
+        }
       },
       {
         "id": "s7",
@@ -210,7 +690,87 @@
             "text": "outperforms the best previously reported models (including ensembles) by more than 2.0 BLEU",
             "verified": true
           }
-        ]
+        ],
+        "quiz": {
+          "beginner": [
+            {
+              "id": "s7-b1",
+              "question": "How did the Transformer's translation scores compare with earlier programs?",
+              "choices": [
+                "Best anyone had reported, for both language pairs",
+                "Good, but below the older models",
+                "Best for English-French only"
+              ],
+              "answer": 0,
+              "why": "It got the best translation scores anyone had reported for both language pairs.",
+              "quote": null
+            },
+            {
+              "id": "s7-b2",
+              "question": "What was the Transformer trained on?",
+              "choices": [
+                "A few hundred hand-written sentences",
+                "Millions of English-German and English-French sentence pairs",
+                "Only English text, no translations"
+              ],
+              "answer": 1,
+              "why": "It learned from millions of sentence pairs in two language pairs.",
+              "quote": null
+            }
+          ],
+          "student": [
+            {
+              "id": "s7-s1",
+              "question": "How did the big model's English-German score compare with the previous best, including ensembles?",
+              "choices": [
+                "About equal",
+                "Over 2 BLEU lower",
+                "Over 2 BLEU higher"
+              ],
+              "answer": 2,
+              "why": "It scored 28.4 BLEU, over 2 points above the previous best, ensembles included.",
+              "quote": 1
+            },
+            {
+              "id": "s7-s2",
+              "question": "Roughly how many sentence pairs were in WMT 2014 English-German?",
+              "choices": [
+                "About 4.5 million",
+                "About 36 million",
+                "About 450 thousand"
+              ],
+              "answer": 0,
+              "why": "English-German had about 4.5 million pairs; 36 million was English-French.",
+              "quote": 0
+            }
+          ],
+          "expert": [
+            {
+              "id": "s7-e1",
+              "question": "What was the effect of label smoothing $\\epsilon_{ls}=0.1$?",
+              "choices": [
+                "Helped perplexity and BLEU",
+                "Hurt perplexity but helped BLEU",
+                "Hurt BLEU but helped perplexity"
+              ],
+              "answer": 1,
+              "why": "Label smoothing hurts perplexity but improves BLEU.",
+              "quote": null
+            },
+            {
+              "id": "s7-e2",
+              "question": "By how much did Transformer (big) beat the best previous En-De result, ensembles included?",
+              "choices": [
+                "It matched it, within 0.2 BLEU",
+                "By more than 2.0 BLEU",
+                "By about 10 BLEU"
+              ],
+              "answer": 1,
+              "why": "28.4 BLEU on En-De is more than 2.0 BLEU above the best previously reported models, including ensembles.",
+              "quote": 1
+            }
+          ]
+        }
       }
     ],
     "equations": [
@@ -251,7 +811,8 @@
           }
         ],
         "section_id": "s3",
-        "page": 4
+        "page": 4,
+        "demo": "attention-scaling"
       },
       {
         "id": "e2",
