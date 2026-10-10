@@ -12,9 +12,9 @@ function percent(found: number, total: number) {
 
 function Stat({ value, label, detail }: { value: string; label: string; detail: string }) {
   return (
-    <div className="card p-5">
-      <p className="font-serif text-4xl font-semibold tracking-tight text-accent tabular-nums">{value}</p>
-      <p className="mt-2 font-semibold">{label}</p>
+    <div className="border-t border-line pt-5">
+      <p className="text-[2.25rem] leading-none font-semibold tracking-tight text-accent tabular-nums">{value}</p>
+      <p className="mt-3 font-medium">{label}</p>
       <p className="mt-1 text-sm text-muted">{detail}</p>
     </div>
   );
@@ -56,11 +56,12 @@ export function AccuracyPage() {
   const slow = useSlow(!report && !error);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-12">
+    <div className="max-w-4xl space-y-16">
       <header>
-        <p className="eyebrow">Accuracy</p>
-        <h1 className="mt-3 font-serif text-5xl font-medium tracking-tight text-balance">How accurate is Paper2Lab?</h1>
-        <p className="mt-4 max-w-2xl text-lg text-pretty text-muted">
+        <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.02em] text-balance sm:text-[2.25rem]">
+          How accurate is Paper2Lab?
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-pretty text-muted">
           Any AI can sound sure of itself. Paper2Lab backs every explanation with the paper&apos;s own words and checks
           each quote against the PDF. These are the results, across every paper it has explained.
         </p>
@@ -77,7 +78,7 @@ export function AccuracyPage() {
 
       {report ? (
         <section aria-label="The numbers" className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-3">
             <Stat
               value={percent(report.quotes_found, report.quotes)}
               label="of quotes found word for word"
@@ -94,7 +95,7 @@ export function AccuracyPage() {
               detail="Including the sample papers"
             />
           </div>
-          <p className="text-xs text-muted">
+          <p className="text-[0.8125rem] text-muted">
             Updated {new Date(report.updated_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             {report.scanned_papers > 0 &&
               ` ${report.scanned_papers} scanned ${report.scanned_papers === 1 ? "paper has" : "papers have"} no text to check against, so ${
@@ -110,27 +111,25 @@ export function AccuracyPage() {
                 {WAKING_UP}
               </p>
             )}
-            <div className="grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-36" />)}</div>
+            <div className="grid gap-8 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-28" />)}</div>
           </div>
         )
       )}
 
-      <section aria-labelledby="how" className="space-y-4">
-        <h2 id="how" className="font-serif text-[1.75rem] font-semibold tracking-tight">
+      <section aria-labelledby="how" className="space-y-6">
+        <h2 id="how" className="text-2xl font-semibold tracking-tight">
           How the check works
         </h2>
-        <ol className="grid gap-4 sm:grid-cols-3">
+        <ol className="grid gap-8 pt-2 sm:grid-cols-3">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="card p-5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
-                {i + 1}
-              </span>
-              <p className="mt-3 font-semibold">{step.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{step.text}</p>
+            <li key={step.title}>
+              <span className="text-[0.8125rem] font-semibold text-accent tabular-nums">Step {i + 1}</span>
+              <p className="mt-1 font-semibold">{step.title}</p>
+              <p className="mt-1 text-[0.9375rem] leading-relaxed text-muted">{step.text}</p>
             </li>
           ))}
         </ol>
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="max-w-2xl border-t border-line pt-6 text-[0.9375rem] leading-relaxed text-muted">
           What this proves, and what it doesn&apos;t: a quote found word for word shows the paper really says it. It
           doesn&apos;t prove the explanation reads that sentence correctly, which is why the quote sits right next to
           it, with a link to its page, for you to judge.
@@ -139,23 +138,23 @@ export function AccuracyPage() {
 
       {report && report.samples.length > 0 && (
         <section aria-labelledby="samples" className="space-y-4">
-          <h2 id="samples" className="font-serif text-[1.75rem] font-semibold tracking-tight">
+          <h2 id="samples" className="text-2xl font-semibold tracking-tight">
             The sample papers
           </h2>
-          <p className="text-sm text-muted">
+          <p className="text-[0.9375rem] text-muted">
             Other people&apos;s papers are counted above but never listed. The samples are public, so here they are.
           </p>
-          <div className="card overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-line text-xs text-muted">
+          <div className="overflow-x-auto rounded-lg border border-line">
+            <table className="w-full text-left text-[0.9375rem]">
+              <thead className="border-b border-line bg-sunken text-[0.8125rem] text-muted">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-4 py-2.5 font-medium">
                     Paper
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-4 py-2.5 font-medium">
                     Quotes found
                   </th>
-                  <th scope="col" className="px-4 py-3 font-semibold">
+                  <th scope="col" className="px-4 py-2.5 font-medium">
                     Captions found
                   </th>
                 </tr>
@@ -163,7 +162,7 @@ export function AccuracyPage() {
               <tbody className="divide-y divide-line">
                 {report.samples.map((sample) => (
                   <tr key={sample.id}>
-                    <th scope="row" className="px-4 py-3 font-medium">
+                    <th scope="row" className="px-4 py-3 font-serif font-semibold">
                       <Link href={`/papers/${sample.id}`} className="hover:text-accent hover:underline">
                         {sample.title}
                       </Link>

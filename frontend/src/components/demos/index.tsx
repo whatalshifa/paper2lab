@@ -30,9 +30,9 @@ export function Demo({ kind }: { kind: string }) {
   const demo = DEMOS[kind];
   if (!demo) return null;
   return (
-    <section className="card p-4 sm:p-5" aria-label={`Play with it: ${demo.title}`}>
+    <section className="card p-5 sm:p-6" aria-label={`Play with it: ${demo.title}`}>
       <p className="eyebrow">Play with it</p>
-      <h3 className="mt-1 font-serif text-lg font-semibold">{demo.title}</h3>
+      <h3 className="mt-1 text-[1.0625rem] font-semibold tracking-tight">{demo.title}</h3>
       <div className="mt-4">{demo.body()}</div>
       <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">{demo.note}</p>
     </section>

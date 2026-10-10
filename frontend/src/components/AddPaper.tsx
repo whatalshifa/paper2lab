@@ -1,5 +1,6 @@
 "use client";
 
+import { FileUp, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
@@ -7,7 +8,8 @@ import { ApiError, api, type SiteConfig } from "@/lib/api";
 
 type Tab = "upload" | "arxiv";
 
-/** Add a paper: drop or pick a PDF, or paste an arXiv link. Opens the paper's page straight away. */
+/** Add a paper: drop or pick a PDF, or paste an arXiv link. Opens the paper's page straight away.
+ * In demo mode it says so once, calmly, and the controls stay visible but switched off. */
 export function AddPaper({ config }: { config: SiteConfig | null }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -46,14 +48,22 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
   }
 
   const tabClass = (t: Tab) =>
-    `-mb-px border-b-2 px-0.5 pb-2 text-sm font-semibold transition-colors ${
+    `-mb-px border-b-2 px-0.5 pb-2.5 text-sm font-medium transition-colors ${
       tab === t ? "border-claret-700 text-foreground dark:border-claret-300" : "border-transparent text-muted hover:text-foreground"
     }`;
 
   return (
     <div className="card p-5 sm:p-6">
-      <h2 className="font-serif text-2xl font-semibold tracking-tight">Add a paper</h2>
-      <div role="tablist" aria-label="How to add a paper" className="mt-4 flex gap-6 border-b border-line">
+      {off && (
+        <p className="mb-5 flex gap-2.5 rounded-md bg-sunken px-4 py-3 text-sm leading-relaxed text-muted">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            Explaining new papers is paused on this demo, so adding a paper is switched off. The sample papers above
+            show everything Paper2Lab does.
+          </span>
+        </p>
+      )}
+      <div role="tablist" aria-label="How to add a paper" className="flex gap-6 border-b border-line">
         <button role="tab" type="button" aria-selected={tab === "upload"} className={tabClass("upload")} onClick={() => setTab("upload")}>
           Upload a PDF
         </button>
@@ -74,15 +84,12 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
             setDragging(false);
             if (!disabled) pick(event.dataTransfer.files[0]);
           }}
-          className={`mt-4 flex flex-col items-center rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors ${
+          className={`mt-5 flex flex-col items-center rounded-md border border-dashed px-4 py-8 text-center transition-colors ${
             dragging ? "border-claret-500 bg-accent-soft" : "border-line"
           }`}
         >
-          <svg viewBox="0 0 24 24" className="h-8 w-8 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 3.5h7L19 8.5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14 3.5v5h5M12 17v-6m-2.5 2.5L12 11l2.5 2.5" />
-          </svg>
-          <p className="mt-3 text-sm font-medium">Drop a paper here, or</p>
+          <FileUp className="h-6 w-6 text-muted" strokeWidth={1.75} aria-hidden />
+          <p className="mt-3 text-sm text-muted">Drop a PDF here, or</p>
           <button type="button" className="btn btn-primary mt-3" disabled={disabled} onClick={() => input.current?.click()}>
             {busy ? "Uploading…" : "Choose a PDF"}
           </button>
@@ -103,11 +110,11 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
           </p>
         </div>
       ) : (
-        <form onSubmit={submitLink} className="mt-4">
+        <form onSubmit={submitLink} className="mt-5">
           <label htmlFor="arxiv" className="text-sm font-medium">
             arXiv link or id
           </label>
-          <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input
               id="arxiv"
               className="input"
@@ -118,7 +125,7 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
               autoComplete="off"
               spellCheck={false}
             />
-            <button type="submit" className="btn btn-primary min-h-11" disabled={disabled || !link.trim()}>
+            <button type="submit" className="btn btn-primary h-11" disabled={disabled || !link.trim()}>
               {busy ? "Adding…" : "Explain it"}
             </button>
           </div>
@@ -126,13 +133,8 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
         </form>
       )}
 
-      {off && (
-        <p className="mt-4 rounded-sm bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          Explaining new papers is paused on this demo. Open one of the sample papers below to see how it works.
-        </p>
-      )}
       {error && (
-        <p role="alert" className="mt-4 rounded-sm bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+        <p role="alert" className="mt-4 rounded-md bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
           {error}
         </p>
       )}

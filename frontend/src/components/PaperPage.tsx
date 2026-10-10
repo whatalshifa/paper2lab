@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -21,7 +22,9 @@ function Working({ paper }: { paper: PaperDetail }) {
     <div className="mx-auto max-w-xl">
       <div className="card p-6 sm:p-8" role="status" aria-live="polite">
         <p className="eyebrow">Explaining your paper</p>
-        <h1 className="mt-2 font-serif text-3xl font-medium tracking-tight text-balance">{paper.title ?? "Your paper"}</h1>
+        <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
+          {paper.title ?? "Your paper"}
+        </h1>
         <p className="mt-2 text-sm text-muted">
           This usually takes one to three minutes. You can leave this page; the paper will be in your library.
         </p>
@@ -34,7 +37,7 @@ function Working({ paper }: { paper: PaperDetail }) {
                 }`}
                 aria-hidden
               >
-                {i < current ? "✓" : i === current ? <span className="h-2 w-2 animate-pulse rounded-full bg-claret-600" /> : null}
+                {i < current ? <Check className="h-3 w-3" strokeWidth={3} /> : i === current ? <span className="h-2 w-2 animate-pulse rounded-full bg-claret-600" /> : null}
               </span>
               <span className={i > current ? "text-muted" : ""}>{step.label}</span>
             </li>
@@ -50,18 +53,21 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
     <div className="mx-auto max-w-xl">
       <div className="card p-6 sm:p-8" role="alert">
         <p className="eyebrow text-rose-700 dark:text-rose-300">Couldn&apos;t explain this paper</p>
-        <h1 className="mt-2 font-serif text-3xl font-medium tracking-tight text-balance">{paper.title ?? "Your paper"}</h1>
+        <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
+          {paper.title ?? "Your paper"}
+        </h1>
         <p className="mt-3">{paper.error}</p>
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           <button type="button" onClick={onRetry} className="btn btn-primary">
             Try again
           </button>
-          <button type="button" onClick={onDelete} className="btn btn-danger-quiet">
-            Delete
-          </button>
-          <Link href="/" className="btn btn-ghost">
+          <Link href="/" className="btn btn-secondary">
             Back to the library
           </Link>
+          <button type="button" onClick={onDelete} className="btn btn-danger-quiet sm:ml-auto">
+            <Trash2 className="h-4 w-4" aria-hidden />
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -135,14 +141,16 @@ export function PaperPage({ id }: { id: string }) {
 
   if (error && !paper) {
     return (
-      <div className="mx-auto max-w-xl card p-6 text-center sm:p-8">
-        <h1 className="font-serif text-2xl font-semibold">{error.status === 404 ? "Paper not found" : "Couldn't load this paper"}</h1>
-        <p className="mt-2 text-muted">
+      <div className="mx-auto max-w-md py-12 text-center sm:py-20">
+        <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">
+          {error.status === 404 ? "Paper not found" : "Couldn't load this paper"}
+        </h1>
+        <p className="mt-3 text-muted">
           {error.status === 404
             ? "It may have been deleted, or it was added from another browser."
             : error.message}
         </p>
-        <div className="mt-6 flex justify-center gap-2">
+        <div className="mt-8 flex justify-center gap-2">
           {error.status !== 404 && (
             <button type="button" onClick={load} className="btn btn-primary">
               Try again

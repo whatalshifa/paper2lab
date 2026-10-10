@@ -172,7 +172,7 @@ export function AdamDemo() {
         width="100%"
         role="img"
         aria-label={`Loss contours of a narrow tilted valley, with the paths of SGD and Adam after ${step} of ${STEPS} steps.`}
-        className="block rounded-sm border border-line bg-sunken"
+        className="block rounded-md border border-line bg-sunken"
       >
         <g fill="none" className="text-muted" stroke="currentColor" strokeWidth={0.75} opacity={0.5}>
           {CONTOURS.map((points, i) => (
@@ -214,7 +214,7 @@ export function AdamDemo() {
         </li>
       </ul>
 
-      <p className="rounded-sm bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="rounded-md bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
         {message}
       </p>
 

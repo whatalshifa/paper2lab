@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink, X } from "lucide-react";
 import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { type AnswerPart, ApiError, api, type Citation, type Level, type PaperDetail, type Question } from "@/lib/api";
@@ -76,8 +77,14 @@ function AnswerView({
                 <span>
                   <span className="font-serif text-[0.85rem] italic">&ldquo;{source.quote}&rdquo;</span>{" "}
                   {href ? (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="link whitespace-nowrap">
-                      {pageLabel(source)} ↗
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link inline-flex items-center gap-1 whitespace-nowrap"
+                    >
+                      {pageLabel(source)}
+                      <ExternalLink className="h-3 w-3" aria-hidden />
                     </a>
                   ) : (
                     <span className="text-muted">{pageLabel(source)}</span>
@@ -103,8 +110,8 @@ function EntryView({ entry, pdfUrl, onRetry }: { entry: Entry; pdfUrl: string | 
   const levelLabel = LEVELS.find((l) => l.id === entry.level)?.label;
   return (
     <li className="space-y-3">
-      <div className="ml-8 rounded-md rounded-br-md bg-claret-700 px-4 py-2.5 text-sm text-white">{entry.text}</div>
-      <div className="mr-2 rounded-md rounded-bl-md border border-line bg-surface px-4 py-3">
+      <div className="ml-8 rounded-lg bg-claret-700 px-4 py-2.5 text-sm text-white">{entry.text}</div>
+      <div className="mr-2 rounded-lg border border-line bg-surface px-4 py-3">
         {entry.status === "ready" && entry.answer ? (
           <AnswerView id={entry.id} parts={entry.answer.parts} pdfUrl={pdfUrl} prepared={!!entry.prepared} />
         ) : entry.status === "failed" ? (
@@ -230,17 +237,15 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
       >
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 id="ask-title" className="font-serif text-2xl font-semibold tracking-tight">
+            <h2 id="ask-title" className="text-lg font-semibold tracking-tight">
               Ask the paper
             </h2>
-            <p className="mt-0.5 text-xs text-muted">
+            <p className="mt-0.5 text-[0.8125rem] text-muted">
               Answers come only from this paper, with the passages they rest on.
             </p>
           </div>
           <button type="button" onClick={onClose} className="icon-btn" aria-label="Close the panel">
-            <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-              <path strokeLinecap="round" d="m5 5 10 10M15 5 5 15" />
-            </svg>
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </header>
 
@@ -272,7 +277,7 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
                       type="button"
                       onClick={() => send(q)}
                       disabled={sending}
-                      className="rounded-full border border-line bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-claret-300 hover:bg-accent-soft"
+                      className="rounded-md border border-line bg-surface px-3 py-1.5 text-left text-[0.8125rem] font-medium hover:border-claret-300 hover:bg-accent-soft"
                     >
                       {q}
                     </button>
