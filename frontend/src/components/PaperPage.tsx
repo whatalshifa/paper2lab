@@ -61,7 +61,7 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
           <button type="button" onClick={onRetry} className="btn btn-primary">
             Try again
           </button>
-          <Link href="/" className="btn btn-secondary">
+          <Link href="/library" className="btn btn-secondary">
             Back to the library
           </Link>
           <button type="button" onClick={onDelete} className="btn btn-danger-quiet sm:ml-auto">
@@ -133,7 +133,7 @@ export function PaperPage({ id }: { id: string }) {
     if (!confirm("Delete this paper and its explanation? This can't be undone.")) return;
     try {
       await api.remove(id);
-      router.push("/");
+      router.push("/library");
     } catch (err) {
       if (err instanceof ApiError) alert(err.message);
     }
@@ -156,7 +156,7 @@ export function PaperPage({ id }: { id: string }) {
               Try again
             </button>
           )}
-          <Link href="/" className="btn btn-secondary">
+          <Link href="/library" className="btn btn-secondary">
             Back to the library
           </Link>
         </div>

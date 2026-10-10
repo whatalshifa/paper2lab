@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("the home page is the library, and the command bar explains that the demo can't read new ones", async ({ page }) => {
-  await page.goto("/");
+test("the library lists the samples, and the command bar explains that the demo can't read new ones", async ({ page }) => {
+  await page.goto("/library");
   await expect(page.getByRole("heading", { name: "Library", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: /Attention Is All You Need/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ })).toBeVisible();
@@ -17,9 +17,9 @@ test("the home page is the library, and the command bar explains that the demo c
 
 test("on a wide screen the library shows the selected paper's first page and its margin notes", async ({ page, isMobile }) => {
   test.skip(isMobile, "Phones show the library list alone; a tap opens the reader");
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
-  await expect(page).toHaveURL(/\?paper=00000000-0000-4000-8000-000000001412/);
+  await expect(page).toHaveURL(/\/library\?paper=00000000-0000-4000-8000-000000001412/);
   await expect(page.getByRole("heading", { name: "Adam: A Method for Stochastic Optimization", level: 2 })).toBeVisible();
   const notes = page.getByRole("complementary", { name: "Margin notes" });
   await notes.getByRole("tab", { name: /Ask/ }).click();
@@ -31,7 +31,7 @@ test("on a wide screen the library shows the selected paper's first page and its
 
 test("on a phone, tapping a paper in the library opens the reader", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Wide screens show the paper beside the list instead");
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
   await expect(page).toHaveURL(/\/papers\/00000000-0000-4000-8000-000000001412$/);
   await page.getByRole("button", { name: "Notes", exact: true }).click();
@@ -39,7 +39,7 @@ test("on a phone, tapping a paper in the library opens the reader", async ({ pag
 });
 
 test("the reading-level slider rewrites the explanations", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Attention Is All You Need/ }).click();
   const nutshell = page.locator("section", { has: page.getByRole("heading", { name: "In a nutshell" }) });
   await expect(nutshell).toContainText("sequence-to-sequence model");

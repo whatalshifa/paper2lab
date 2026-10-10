@@ -45,6 +45,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // The library used to be the home page and the pitch lived at /about. Old links still land in the
+  // right place: /?paper=… opens that paper in the library (the query is carried over), and /about
+  // is now the home page itself.
+  async redirects() {
+    return [
+      { source: "/", has: [{ type: "query", key: "paper" }], destination: "/library", permanent: false },
+      { source: "/about", destination: "/", permanent: true },
+    ];
+  },
   // The browser calls /api/* on the website's own address and Next forwards it to FastAPI.
   // One address means the library cookie is first-party and there is no CORS to configure.
   async rewrites() {

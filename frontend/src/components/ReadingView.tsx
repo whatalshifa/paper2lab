@@ -438,7 +438,7 @@ export function ReadingView({
         >
           <div className="flex min-h-full flex-col px-4 py-5">
             <Link
-              href="/"
+              href="/library"
               className="-ml-1 inline-flex items-center gap-1.5 self-start rounded-md px-1 text-[0.8125rem] font-medium text-muted hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
@@ -484,7 +484,7 @@ export function ReadingView({
         <article className="min-w-0 bg-surface lg:min-h-[calc(100dvh-3rem)]">
           <header className="mx-auto max-w-[42rem] px-4 pt-5 sm:px-8 lg:pt-10">
             <Link
-              href="/"
+              href="/library"
               className="-ml-1 inline-flex items-center gap-1.5 rounded-md px-1 text-[0.8125rem] font-medium text-muted hover:text-foreground lg:hidden"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />

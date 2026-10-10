@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
 
-import { AppBar } from "@/components/AppBar";
 import { THEME_SCRIPT } from "@/components/ThemeToggle";
 import { SITE_URL } from "@/lib/site";
 import "katex/dist/katex.min.css";
@@ -50,10 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <AppBar />
-        <main id="main" className="w-full flex-1">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );

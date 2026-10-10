@@ -51,7 +51,8 @@ export function quizScore(sections: Section[], level: Level, answers: Answers) {
   };
 }
 
-function Question({
+/** One check-yourself question. Exported so the home page can show a real one. */
+export function Question({
   question,
   number,
   quote,
