@@ -59,7 +59,7 @@ export function AccuracyPage() {
     <div className="mx-auto max-w-4xl space-y-12">
       <header>
         <p className="eyebrow">Accuracy</p>
-        <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight text-balance">How accurate is Paper2Lab?</h1>
+        <h1 className="mt-3 font-serif text-5xl font-medium tracking-tight text-balance">How accurate is Paper2Lab?</h1>
         <p className="mt-4 max-w-2xl text-lg text-pretty text-muted">
           Any AI can sound sure of itself. Paper2Lab backs every explanation with the paper&apos;s own words and checks
           each quote against the PDF. These are the results, across every paper it has explained.
@@ -116,7 +116,7 @@ export function AccuracyPage() {
       )}
 
       <section aria-labelledby="how" className="space-y-4">
-        <h2 id="how" className="text-xl font-semibold tracking-tight">
+        <h2 id="how" className="font-serif text-[1.75rem] font-semibold tracking-tight">
           How the check works
         </h2>
         <ol className="grid gap-4 sm:grid-cols-3">
@@ -139,7 +139,7 @@ export function AccuracyPage() {
 
       {report && report.samples.length > 0 && (
         <section aria-labelledby="samples" className="space-y-4">
-          <h2 id="samples" className="text-xl font-semibold tracking-tight">
+          <h2 id="samples" className="font-serif text-[1.75rem] font-semibold tracking-tight">
             The sample papers
           </h2>
           <p className="text-sm text-muted">

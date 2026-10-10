@@ -172,7 +172,7 @@ export function AdamDemo() {
         width="100%"
         role="img"
         aria-label={`Loss contours of a narrow tilted valley, with the paths of SGD and Adam after ${step} of ${STEPS} steps.`}
-        className="block rounded-xl border border-line bg-sunken"
+        className="block rounded-sm border border-line bg-sunken"
       >
         <g fill="none" className="text-muted" stroke="currentColor" strokeWidth={0.75} opacity={0.5}>
           {CONTOURS.map((points, i) => (
@@ -193,7 +193,7 @@ export function AdamDemo() {
           stroke="currentColor"
           strokeWidth={1.75}
           strokeLinejoin="round"
-          className="text-indigo-700 dark:text-indigo-300"
+          className="text-claret-700 dark:text-claret-300"
         />
         <circle cx={150} cy={100} r={3} className="fill-foreground" />
         <circle cx={(START[0] + 3) * 50} cy={(2 - START[1]) * 50} r={3.5} className="fill-muted" />
@@ -205,7 +205,7 @@ export function AdamDemo() {
           SGD, loss <span className="font-mono tabular-nums">{show(sgdLoss)}</span>
         </li>
         <li className="flex items-center gap-2">
-          <span className="h-1 w-5 rounded-full bg-indigo-700 dark:bg-indigo-300" aria-hidden />
+          <span className="h-1 w-5 rounded-full bg-claret-700 dark:bg-claret-300" aria-hidden />
           Adam, loss <span className="font-mono tabular-nums">{show(adamLoss)}</span>
         </li>
         <li className="flex items-center gap-2 text-muted">
@@ -214,7 +214,7 @@ export function AdamDemo() {
         </li>
       </ul>
 
-      <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="rounded-sm bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
         {message}
       </p>
 
@@ -256,7 +256,7 @@ export function AdamDemo() {
           type="checkbox"
           checked={correct}
           onChange={(event) => setCorrect(event.target.checked)}
-          className="h-4 w-4 accent-indigo-700 dark:accent-indigo-300"
+          className="h-4 w-4 accent-claret-700 dark:accent-claret-300"
         />
         <label htmlFor={`${id}-correct`} className="font-semibold">
           Bias correction (m̂ = m / (1 − β₁ᵗ), v̂ = v / (1 − β₂ᵗ))

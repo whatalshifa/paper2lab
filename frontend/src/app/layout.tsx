@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { GeistSans } from "geist/font/sans";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
 import Link from "next/link";
 
 import { Logo } from "@/components/Logo";
 import { THEME_SCRIPT, ThemeToggle } from "@/components/ThemeToggle";
 import { SITE_URL } from "@/lib/site";
-import "@fontsource-variable/source-serif-4";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+
+// Newsreader is a serif drawn for long reading on screens; it carries the headlines and every
+// explanation. IBM Plex is the plain, technical voice of the controls, and its mono sets the numbers.
+const serif = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], variable: "--font-newsreader" });
+const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
 
 const DESCRIPTION =
   "Upload a research paper or paste an arXiv link. Paper2Lab explains every section at the level you choose, shows what each equation means, and backs every explanation with a quote from the paper.";
@@ -28,45 +33,48 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf9f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d0c12" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfaf6" },
+    { media: "(prefers-color-scheme: dark)", color: "#121113" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${GeistSans.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-sm focus:bg-surface focus:px-3 focus:py-2"
         >
           Skip to content
         </a>
-        <header className="border-b border-line bg-background/85 backdrop-blur print:hidden">
-          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+        <header className="print:hidden">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
             <Link href="/" aria-label="Paper2Lab home">
               <Logo />
             </Link>
-            <nav className="flex items-center gap-1">
-              <Link href="/#library" className="btn btn-ghost btn-sm">
+            <nav className="flex items-center gap-1 font-serif text-[1.05rem]">
+              <Link href="/#library" className="smallcaps px-2.5 py-1 text-muted hover:text-foreground">
                 Library
               </Link>
-              <Link href="/accuracy" className="btn btn-ghost btn-sm">
+              <Link href="/accuracy" className="smallcaps px-2.5 py-1 text-muted hover:text-foreground">
                 Accuracy
               </Link>
               <ThemeToggle />
             </nav>
           </div>
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="double-rule" />
+          </div>
         </header>
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-10">
           {children}
         </main>
-        <footer className="border-t border-line print:hidden">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+        <footer className="mx-auto w-full max-w-6xl px-4 print:hidden">
+          <div className="flex flex-col gap-3 border-t border-rule py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
             <p>
               Explanations are written by AI and can be wrong. Every one shows the quote it&apos;s based on, so you can
               check.{" "}

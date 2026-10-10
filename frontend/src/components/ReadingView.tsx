@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import type { PaperDetail, Quote, Reading, Section } from "@/lib/api";
+import type { Concept, PaperDetail, Quote, Reading, Section } from "@/lib/api";
 import { useLevel } from "@/lib/level";
 
 import { AskPanel } from "./AskPanel";
 import { ConnectionsSection, hasLinks, useConnections } from "./Connections";
 import { Demo } from "./demos";
-import { EquationCard } from "./Equations";
+import { EquationCard, equationLabel } from "./Equations";
 import { FigureCard } from "./FigureCard";
 import { LevelSlider } from "./LevelSlider";
 import { Listen } from "./Listen";
@@ -24,8 +24,8 @@ function pageLink(pdfUrl: string | null, page: number) {
 function QuoteBlock({ quote, pdfUrl, isSample }: { quote: Quote; pdfUrl: string | null; isSample: boolean }) {
   const href = pageLink(pdfUrl, quote.page);
   return (
-    <figure className="rounded-xl border-l-4 border-indigo-300 bg-sunken/70 px-4 py-3 dark:border-indigo-700">
-      <blockquote className="font-serif text-[0.95rem] leading-relaxed italic">&ldquo;{quote.text}&rdquo;</blockquote>
+    <figure className="border-l-2 border-claret-700 py-1 pl-4 dark:border-claret-300">
+      <blockquote className="font-serif text-[1.05rem] leading-relaxed italic">&ldquo;{quote.text}&rdquo;</blockquote>
       <figcaption className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
         {href ? (
           <a href={href} target="_blank" rel="noopener noreferrer" className="link">
@@ -53,6 +53,61 @@ function QuoteBlock({ quote, pdfUrl, isSample }: { quote: Quote; pdfUrl: string 
   );
 }
 
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The glossary terms an explanation uses, in the order they first appear. */
+function termsIn(text: string, concepts: Concept[]) {
+  return concepts
+    .map((concept) => ({
+      concept,
+      at: text.search(new RegExp(`\\b${escapeRegExp(concept.term)}\\b`, "i")),
+    }))
+    .filter(({ at }) => at >= 0)
+    .sort((a, b) => a.at - b.at)
+    .map(({ concept }) => concept);
+}
+
+/**
+ * Notes in the margin beside a section, like the pencil notes in an annotated paper: the terms it
+ * uses and the equations it introduces. Only on wide screens, where there's a margin to write in;
+ * on smaller ones the same terms are still underlined in the text, with a definition on hover.
+ */
+function MarginNotes({
+  section,
+  terms,
+  equations,
+}: {
+  section: Section;
+  terms: Concept[];
+  equations: { equation: Reading["equations"][number]; index: number }[];
+}) {
+  if (terms.length === 0 && equations.length === 0) return null;
+  return (
+    <aside aria-label={`Notes on ${section.title}`} className="hidden xl:block">
+      <div className="space-y-4 border-l border-line pl-4 font-serif text-[0.9rem] leading-snug">
+        {terms.slice(0, 4).map((concept) => (
+          <p key={concept.term}>
+            <span className="font-semibold text-accent">
+              {concept.term.charAt(0).toUpperCase() + concept.term.slice(1)}.
+            </span>{" "}
+            <span className="text-muted">{concept.meaning}</span>
+          </p>
+        ))}
+        {equations.map(({ equation, index }) => (
+          <p key={equation.id}>
+            <a href={`#eq-${equation.id}`} className="font-semibold text-accent hover:underline">
+              {equationLabel(equation, index)}
+            </a>{" "}
+            <span className="text-muted italic">{equation.name}</span>
+          </p>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 function SectionBlock({
   section,
   number,
@@ -73,51 +128,62 @@ function SectionBlock({
     .map((equation, index) => ({ equation, index }))
     .filter(({ equation }) => equation.section_id === section.id);
   const figures = (reading.figures ?? []).filter((figure) => figure.section_id === section.id);
+  const terms = termsIn(section.explanation[level], reading.concepts);
   return (
-    <section id={section.id} className="scroll-mt-32 border-t border-line pt-8" aria-labelledby={`${section.id}-title`}>
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 id={`${section.id}-title`} className="text-xl font-semibold tracking-tight text-balance">
-          <span className="mr-2 text-muted tabular-nums">{number}.</span>
-          {section.title}
-        </h2>
-        <span className="shrink-0 text-xs text-muted">p. {section.page}</span>
-      </div>
-      <div className="prose-reading mt-4">
-        <RichText text={section.explanation[level]} />
-      </div>
-      {equations.length > 0 && (
-        <div className="mt-6 space-y-3">
-          {equations.map(({ equation, index }) => (
-            <div key={equation.id} className="space-y-3">
-              <EquationCard equation={equation} index={index} level={level} />
-              {equation.demo && <Demo kind={equation.demo} />}
-            </div>
-          ))}
+    <section
+      id={section.id}
+      className="reading-section scroll-mt-32 border-t border-line pt-8 xl:grid xl:grid-cols-[minmax(0,40rem)_13rem] xl:gap-x-10"
+      aria-labelledby={`${section.id}-title`}
+    >
+      <div className="min-w-0">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2
+            id={`${section.id}-title`}
+            className="font-serif text-[1.75rem] leading-tight font-semibold tracking-tight text-balance"
+          >
+            <span className="mr-2 font-normal text-accent tabular-nums">§{number}</span>
+            {section.title}
+          </h2>
+          <span className="shrink-0 font-mono text-xs text-muted">p. {section.page}</span>
         </div>
-      )}
-      {figures.length > 0 && (
-        <div className="mt-6 space-y-4">
-          {figures.map((figure) => (
-            <FigureCard key={figure.id} figure={figure} paperId={paper.id} pdfUrl={paper.pdf_url} level={level} />
-          ))}
+        <div className="prose-reading mt-4">
+          <RichText text={section.explanation[level]} />
         </div>
-      )}
-      {section.quotes.length > 0 && (
-        <details className="group mt-6" open>
-          <summary className="cursor-pointer list-none text-sm font-semibold text-muted select-none hover:text-foreground">
-            <span className="inline-block transition-transform group-open:rotate-90" aria-hidden>
-              ›
-            </span>{" "}
-            What the paper says {section.quotes.length > 1 ? `(${section.quotes.length} quotes)` : ""}
-          </summary>
-          <div className="mt-3 space-y-3">
-            {section.quotes.map((quote) => (
-              <QuoteBlock key={quote.text} quote={quote} pdfUrl={paper.pdf_url} isSample={paper.is_sample} />
+        {equations.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {equations.map(({ equation, index }) => (
+              <div key={equation.id} className="space-y-3">
+                <EquationCard equation={equation} index={index} level={level} />
+                {equation.demo && <Demo kind={equation.demo} />}
+              </div>
             ))}
           </div>
-        </details>
-      )}
-      <Quiz section={section} level={level} pdfUrl={paper.pdf_url} answers={answers} onChoose={onChoose} />
+        )}
+        {figures.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {figures.map((figure) => (
+              <FigureCard key={figure.id} figure={figure} paperId={paper.id} pdfUrl={paper.pdf_url} level={level} />
+            ))}
+          </div>
+        )}
+        {section.quotes.length > 0 && (
+          <details className="group mt-6" open>
+            <summary className="cursor-pointer list-none text-sm font-semibold text-muted select-none hover:text-foreground">
+              <span className="inline-block transition-transform group-open:rotate-90" aria-hidden>
+                ›
+              </span>{" "}
+              What the paper says {section.quotes.length > 1 ? `(${section.quotes.length} quotes)` : ""}
+            </summary>
+            <div className="mt-3 space-y-3">
+              {section.quotes.map((quote) => (
+                <QuoteBlock key={quote.text} quote={quote} pdfUrl={paper.pdf_url} isSample={paper.is_sample} />
+              ))}
+            </div>
+          </details>
+        )}
+        <Quiz section={section} level={level} pdfUrl={paper.pdf_url} answers={answers} onChoose={onChoose} />
+      </div>
+      <MarginNotes section={section} terms={terms} equations={equations} />
     </section>
   );
 }
@@ -167,7 +233,8 @@ export function ReadingView({
     () => ({ equations: reading.equations, concepts: reading.concepts, level }),
     [reading.equations, reading.concepts, level],
   );
-  const authors = reading.authors.length > 4 ? `${reading.authors.slice(0, 3).join(", ")} and others` : reading.authors.join(", ");
+  const authors =
+    reading.authors.length > 4 ? `${reading.authors.slice(0, 3).join(", ")} and others` : reading.authors.join(", ");
   const verified = reading.sections.flatMap((s) => s.quotes).filter((q) => q.verified).length;
   const quotes = reading.sections.flatMap((s) => s.quotes).length;
   const hasMap = asPrerequisites(reading.prerequisites).some((p) => p.primer);
@@ -183,13 +250,13 @@ export function ReadingView({
           <Link href="/#library" className="text-sm font-medium text-accent hover:underline">
             ← Library
           </Link>
-          <p className="mt-6 flex flex-wrap items-center gap-2 text-xs">
-            {paper.is_sample && <span className="badge bg-accent-soft text-accent">Sample paper</span>}
-            <span className="badge bg-sunken text-muted">{reading.field}</span>
-            {reading.year && <span className="text-muted">{reading.year}</span>}
+          <p className="smallcaps mt-6 font-serif text-[1.05rem] text-accent">
+            {[paper.is_sample ? "Sample paper" : null, reading.field, reading.year].filter(Boolean).join(" · ")}
           </p>
-          <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{reading.title}</h1>
-          <p className="mt-3 text-muted">{authors}</p>
+          <h1 className="mt-2 font-serif text-4xl leading-[1.08] font-medium tracking-tight text-balance sm:text-5xl">
+            {reading.title}
+          </h1>
+          <p className="mt-3 font-serif text-xl text-muted italic">{authors}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             {paper.pdf_url && (
               <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
@@ -207,7 +274,12 @@ export function ReadingView({
               </a>
             )}
             {connections && connections.code.length > 0 && (
-              <a href={connections.code[0].url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+              <a
+                href={connections.code[0].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-ghost btn-sm"
+              >
                 Code ↗
               </a>
             )}
@@ -228,18 +300,21 @@ export function ReadingView({
           )}
         </header>
 
-        <div className="sticky top-0 z-30 -mx-4 mt-8 border-y border-line bg-background/90 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <div className="sticky top-0 z-30 -mx-4 mt-8 border-y border-rule bg-background/95 px-4 py-3 backdrop-blur sm:mx-0">
           <LevelSlider level={level} />
         </div>
 
-        <div className="mt-8 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12">
+        <div className="mt-8 lg:grid lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-10">
           <nav aria-label="Sections" className="hidden lg:block">
             <div className="sticky top-28">
               <p className="eyebrow">Contents</p>
               <ol className="mt-3 space-y-1 text-sm">
                 {hasMap && (
                   <li>
-                    <a href="#before-you-read" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
+                    <a
+                      href="#before-you-read"
+                      className="block rounded-sm px-2 py-1.5 text-muted hover:text-foreground"
+                    >
                       Before you read
                     </a>
                   </li>
@@ -249,8 +324,10 @@ export function ReadingView({
                     <a
                       href={`#${section.id}`}
                       aria-current={active === section.id ? "location" : undefined}
-                      className={`block rounded-lg px-2 py-1.5 leading-snug transition-colors ${
-                        active === section.id ? "bg-accent-soft font-medium text-accent" : "text-muted hover:text-foreground"
+                      className={`block rounded-sm px-2 py-1.5 leading-snug transition-colors ${
+                        active === section.id
+                          ? "bg-accent-soft font-medium text-accent"
+                          : "text-muted hover:text-foreground"
                       }`}
                     >
                       {i + 1}. {section.title}
@@ -259,14 +336,14 @@ export function ReadingView({
                 ))}
                 {hasConnections && (
                   <li>
-                    <a href="#builds-on" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
+                    <a href="#builds-on" className="block rounded-sm px-2 py-1.5 text-muted hover:text-foreground">
                       What it connects to
                     </a>
                   </li>
                 )}
                 {reading.concepts.length > 0 && (
                   <li>
-                    <a href="#glossary" className="block rounded-lg px-2 py-1.5 text-muted hover:text-foreground">
+                    <a href="#glossary" className="block rounded-sm px-2 py-1.5 text-muted hover:text-foreground">
                       Glossary
                     </a>
                   </li>
@@ -290,25 +367,30 @@ export function ReadingView({
             </div>
           </nav>
 
-          <div className="max-w-3xl space-y-10">
-            <section aria-labelledby="nutshell" className="card bg-accent-soft/40 p-5 sm:p-6">
+          <div className="max-w-3xl space-y-10 xl:max-w-none xl:[&>*:not(.reading-section)]:max-w-[40rem]">
+            <section
+              aria-labelledby="nutshell"
+              className="border-l-[3px] border-claret-700 pl-5 dark:border-claret-300"
+            >
               <h2 id="nutshell" className="eyebrow">
                 In a nutshell
               </h2>
-              <div className="prose-reading mt-3">
+              <div className="prose-reading mt-2 text-[1.25rem]">
                 <RichText text={reading.summary[level]} />
               </div>
             </section>
 
             {reading.contributions.length > 0 && (
-              <section className="card p-5 sm:p-6" aria-labelledby="new">
-                <h2 id="new" className="text-sm font-semibold">
+              <section aria-labelledby="new">
+                <h2 id="new" className="eyebrow">
                   What&apos;s new in this paper
                 </h2>
-                <ul className="mt-3 space-y-2 text-sm leading-relaxed">
+                <ul className="mt-2 space-y-2 font-serif text-[1.08rem] leading-relaxed">
                   {reading.contributions.map((item) => (
                     <li key={item} className="flex gap-2">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden />
+                      <span className="shrink-0 font-serif text-accent" aria-hidden>
+                        —
+                      </span>
                       {item}
                     </li>
                   ))}
@@ -333,14 +415,18 @@ export function ReadingView({
             <ConnectionsSection connections={connections} />
 
             {reading.concepts.length > 0 && (
-              <section id="glossary" className="scroll-mt-32 border-t border-line pt-8" aria-labelledby="glossary-title">
-                <h2 id="glossary-title" className="text-xl font-semibold tracking-tight">
+              <section
+                id="glossary"
+                className="scroll-mt-32 border-t border-line pt-8"
+                aria-labelledby="glossary-title"
+              >
+                <h2 id="glossary-title" className="font-serif text-[1.75rem] font-semibold tracking-tight">
                   Glossary
                 </h2>
                 <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
                   {reading.concepts.map((concept) => (
                     <div key={concept.term}>
-                      <dt className="font-semibold">{concept.term}</dt>
+                      <dt className="font-serif text-lg font-semibold">{concept.term}</dt>
                       <dd className="mt-0.5 text-sm leading-relaxed text-muted">{concept.meaning}</dd>
                     </div>
                   ))}
@@ -355,7 +441,7 @@ export function ReadingView({
         <button
           type="button"
           onClick={() => setAsking(true)}
-          className="btn btn-primary fixed right-4 bottom-4 z-30 rounded-full px-5 shadow-lg shadow-indigo-900/20 print:hidden"
+          className="btn btn-primary fixed right-4 bottom-4 z-30 px-5 shadow-lg shadow-black/20 print:hidden"
         >
           <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
             <path strokeLinejoin="round" d="M4 4.5h12v8H9l-3.5 3v-3H4Z" />

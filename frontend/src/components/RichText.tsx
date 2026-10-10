@@ -26,7 +26,7 @@ function Term({ concept, children }: { concept: Concept; children: ReactNode }) 
   return (
     <Hovercard
       label={`${concept.term}: definition`}
-      triggerClassName="cursor-help font-[inherit] underline decoration-indigo-400/70 decoration-dotted decoration-2 underline-offset-4 hover:decoration-indigo-500"
+      triggerClassName="cursor-help font-[inherit] underline decoration-claret-400/70 decoration-dotted decoration-2 underline-offset-4 hover:decoration-claret-500"
       trigger={children}
     >
       <p className="font-semibold">{concept.term}</p>

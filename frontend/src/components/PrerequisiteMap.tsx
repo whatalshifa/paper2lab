@@ -31,7 +31,7 @@ function Primer({ item, names }: { item: Prerequisite; names: Map<string, string
       <p className="font-semibold">{item.topic}</p>
       <p className="leading-relaxed">{item.primer}</p>
       {item.why && (
-        <p className="rounded-lg bg-accent-soft px-3 py-2 text-[0.8rem] leading-relaxed">
+        <p className="rounded-sm bg-accent-soft px-3 py-2 text-[0.8rem] leading-relaxed">
           <span className="font-semibold text-accent">In this paper: </span>
           {item.why}
         </p>
@@ -74,7 +74,7 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
       className="card scroll-mt-32 p-5 sm:p-6"
       aria-labelledby="before-you-read-title"
     >
-      <h2 id="before-you-read-title" className="text-lg font-semibold tracking-tight">
+      <h2 id="before-you-read-title" className="font-serif text-2xl font-semibold tracking-tight">
         Before you read
       </h2>
       <p className="mt-1 text-sm text-muted">
@@ -95,7 +95,7 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
                 <li key={item.id}>
                   <Hovercard
                     label={`${item.topic}: a quick primer`}
-                    triggerClassName="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium transition-colors hover:border-indigo-300 hover:bg-accent-soft aria-expanded:border-indigo-400 aria-expanded:bg-accent-soft dark:hover:border-indigo-800"
+                    triggerClassName="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium transition-colors hover:border-claret-300 hover:bg-accent-soft aria-expanded:border-claret-400 aria-expanded:bg-accent-soft dark:hover:border-claret-800"
                     trigger={item.topic}
                   >
                     <Primer item={item} names={names} />
@@ -106,7 +106,7 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
           </li>
         ))}
         <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-700 text-white" aria-hidden>
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-claret-700 text-white" aria-hidden>
             <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor">
               <path d="M5 3.5h7l3 3v10H5Zm2 5v1.5h6V8.5Zm0 3v1.5h6v-1.5Z" />
             </svg>
