@@ -1,13 +1,14 @@
 "use client";
 
+import { ArrowRight, BookOpen, FileUp, Quote, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { ApiError, api, type PaperSummary, type SiteConfig } from "@/lib/api";
 import { useSlow, WAKING_UP } from "@/lib/useSlow";
 
 import { AddPaper } from "./AddPaper";
-import { Tex } from "./Tex";
+import { ReaderPreview } from "./ReaderPreview";
 
 const STATUS: Record<PaperSummary["status"], { label: string; className: string }> = {
   queued: { label: "Waiting", className: "bg-sunken text-muted" },
@@ -27,79 +28,27 @@ function authorsLine(authors: string[] | null) {
   return authors.length > 2 ? `${authors[0]} and others` : authors.join(" and ");
 }
 
-/** A sample paper, listed like an entry in a journal's table of contents. */
-function SampleEntry({ paper, number }: { paper: PaperSummary; number: number }) {
+/** A sample paper, as one row of the library. */
+function SampleEntry({ paper }: { paper: PaperSummary }) {
   return (
     <li>
       <Link
         href={`/papers/${paper.id}`}
-        className="group grid gap-x-6 gap-y-1 border-b border-line py-6 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-baseline"
+        className="group grid gap-x-8 gap-y-2 border-b border-line py-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
       >
-        <span className="font-mono text-xs text-muted">No. {number}</span>
-        <span>
-          <span className="smallcaps block font-serif text-[0.95rem] text-accent">
-            {paper.field} · {paper.year}
-          </span>
-          <span className="mt-1 block font-serif text-2xl leading-snug font-semibold tracking-tight text-balance group-hover:text-accent sm:text-[1.75rem]">
+        <span className="min-w-0">
+          <span className="block text-[0.8125rem] text-muted">{[paper.field, paper.year].filter(Boolean).join(" · ")}</span>
+          <span className="mt-1 block font-serif text-[1.375rem] leading-snug font-semibold text-balance transition-colors group-hover:text-accent sm:text-2xl">
             {paper.title}
           </span>
-          <span className="mt-1 block font-serif text-lg text-muted italic">{authorsLine(paper.authors)}</span>
+          <span className="mt-1 block text-[0.9375rem] text-muted">{authorsLine(paper.authors)}</span>
         </span>
-        <span className="mt-2 text-sm font-semibold text-accent sm:mt-0">Read it at your level →</span>
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-accent">
+          Read it at your level
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </span>
       </Link>
     </li>
-  );
-}
-
-/** The same idea at all three reading levels: what the slider in the reader does, shown up front. */
-const SPECIMEN = [
-  {
-    level: "New to this",
-    text: (
-      <>For every word, the model works out which other words in the sentence matter most to it, and leans on those.</>
-    ),
-  },
-  {
-    level: "Student",
-    text: (
-      <>
-        Each word scores every other word for relevance, a softmax turns the scores into weights, and the word takes a
-        weighted mix of their information.
-      </>
-    ),
-  },
-  {
-    level: "Expert",
-    text: (
-      <>
-        Scaled dot-product attention, <Tex latex="\mathrm{softmax}(QK^{\top}/\sqrt{d_k})\,V" />, run in parallel across
-        several heads.
-      </>
-    ),
-  },
-];
-
-function Specimen() {
-  return (
-    <figure className="border-y border-rule py-8">
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="eyebrow">One idea, three readers</span>
-        <span className="font-serif text-sm text-muted italic">
-          Self-attention, from &ldquo;Attention Is All You Need&rdquo;
-        </span>
-      </figcaption>
-      <dl className="mt-5 grid gap-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-line">
-        {SPECIMEN.map((row, i) => (
-          <div key={row.level} className={i === 0 ? "md:pr-6" : i === SPECIMEN.length - 1 ? "md:pl-6" : "md:px-6"}>
-            <dt className="flex items-center gap-2 text-sm font-semibold">
-              <span className="font-mono text-xs text-muted">{["I", "II", "III"][i]}</span>
-              {row.level}
-            </dt>
-            <dd className="mt-2 font-serif text-[1.1rem] leading-relaxed">{row.text}</dd>
-          </div>
-        ))}
-      </dl>
-    </figure>
   );
 }
 
@@ -109,13 +58,13 @@ function MyPaperRow({ paper }: { paper: PaperSummary }) {
     <li>
       <Link
         href={`/papers/${paper.id}`}
-        className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-sunken sm:px-2"
+        className="flex items-center justify-between gap-4 py-4 transition-colors hover:bg-sunken sm:px-3"
       >
         <span className="min-w-0">
-          <span className="block font-serif text-lg font-medium break-words">
+          <span className="block font-serif text-lg font-semibold break-words">
             {paper.title ?? paper.filename ?? "Untitled paper"}
           </span>
-          <span className="block text-xs text-muted">
+          <span className="mt-0.5 block text-[0.8125rem] text-muted">
             {[authorsLine(paper.authors), paper.year, new Date(paper.created_at).toLocaleDateString()]
               .filter(Boolean)
               .join(" · ")}
@@ -129,23 +78,37 @@ function MyPaperRow({ paper }: { paper: PaperSummary }) {
 
 const HOW = [
   {
+    icon: FileUp,
     title: "Add a paper",
     text: "Upload a PDF or paste an arXiv link. Any field works.",
   },
   {
+    icon: BookOpen,
     title: "Claude reads all of it",
     text: "Every section, equation and result, in one careful pass.",
   },
   {
+    icon: SlidersHorizontal,
     title: "Read at your level",
     text: "Slide from beginner to expert. Hover any equation to see what it means.",
   },
   {
+    icon: Quote,
     title: "Check every claim",
     text: "Each explanation shows the quote it's based on, checked against the PDF.",
   },
 ];
 
+function SectionHeading({ id, title, children }: { id: string; title: string; children?: ReactNode }) {
+  return (
+    <div className="max-w-2xl">
+      <h2 id={id} className="text-2xl font-semibold tracking-tight sm:text-[1.75rem] sm:leading-tight">
+        {title}
+      </h2>
+      {children && <p className="mt-2 text-muted">{children}</p>}
+    </div>
+  );
+}
 export function Home() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [papers, setPapers] = useState<{
@@ -172,51 +135,30 @@ export function Home() {
   const slow = useSlow(!papers && !error);
 
   return (
-    <div className="space-y-14">
-      <section className="grid items-start gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
-        <div className="pt-2">
-          <p className="eyebrow">A reader&apos;s companion to research papers</p>
-          <h1 className="mt-3 font-serif text-5xl leading-[1.02] font-medium tracking-tight text-balance sm:text-6xl">
-            Read any research paper <em className="text-accent">at your level.</em>
+    <div className="space-y-20 sm:space-y-28">
+      <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+        <div>
+          <h1 className="text-[2.25rem] leading-[1.1] font-semibold tracking-[-0.025em] text-balance sm:text-5xl sm:leading-[1.08]">
+            Read any research paper at your level.
           </h1>
-          <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-pretty text-muted">
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-pretty text-muted">
             Paper2Lab explains every section in plain words, from &ldquo;new to this&rdquo; to expert. Hover an equation
             to see what each symbol means, and check every explanation against the paper&apos;s own words.
           </p>
-          {config && !config.ai_enabled && (
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#samples" className="btn btn-primary">
-                Try a sample paper
-              </a>
-              <Link href="/accuracy" className="btn btn-secondary">
-                How accurate is it?
-              </Link>
-            </div>
-          )}
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <a href="#samples" className="btn btn-primary btn-lg">
+              Try a sample paper
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </a>
+            <Link href="/accuracy" className="link text-[0.9375rem]">
+              How accurate is it?
+            </Link>
+          </div>
         </div>
-        <AddPaper config={config} />
+        <ReaderPreview />
       </section>
 
-      <Specimen />
-
-      <section aria-labelledby="how-heading">
-        <h2 id="how-heading" className="eyebrow">
-          How it works
-        </h2>
-        <ol className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {HOW.map((step, i) => (
-            <li key={step.title} className="border-t border-line pt-4">
-              <span className="font-serif text-3xl text-accent italic" aria-hidden>
-                {["i", "ii", "iii", "iv"][i]}.
-              </span>
-              <span className="mt-1 block font-semibold">{step.title}</span>
-              <span className="mt-1 block text-sm leading-relaxed text-muted">{step.text}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section id="library" className="scroll-mt-20 space-y-12" aria-label="Library">
+      <section id="library" className="scroll-mt-8 space-y-16" aria-label="Library">
         {error && (
           <div
             role="alert"
@@ -231,9 +173,10 @@ export function Home() {
 
         {papers && papers.mine.length > 0 && (
           <div>
-            <h2 className="font-serif text-3xl font-medium tracking-tight">Your papers</h2>
-            <p className="mt-1 text-sm text-muted">Saved in this browser.</p>
-            <ul className="mt-4 divide-y divide-line border-y border-rule">
+            <SectionHeading id="mine-heading" title="Your papers">
+              Saved in this browser.
+            </SectionHeading>
+            <ul className="mt-6 divide-y divide-line border-y border-line">
               {papers.mine.map((paper) => (
                 <MyPaperRow key={paper.id} paper={paper} />
               ))}
@@ -241,32 +184,56 @@ export function Home() {
           </div>
         )}
 
-        <div id="samples" className="scroll-mt-20">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-rule pb-3">
-            <h2 className="font-serif text-3xl font-medium tracking-tight">Try a sample paper</h2>
-            <p className="text-sm text-muted">Two famous papers, explained in advance so you can explore right away.</p>
-          </div>
+        <div id="samples" className="scroll-mt-8">
+          <SectionHeading id="samples-heading" title="Try a sample paper">
+            Two famous papers, explained in advance so you can explore right away.
+          </SectionHeading>
           {slow && (
-            <p role="status" className="mt-3 text-sm text-muted">
+            <p role="status" className="mt-4 text-sm text-muted">
               {WAKING_UP}
             </p>
           )}
           {papers ? (
-            <ol>
-              {papers.samples.map((paper, i) => (
-                <SampleEntry key={paper.id} paper={paper} number={i + 1} />
+            <ul className="mt-6 border-t border-line">
+              {papers.samples.map((paper) => (
+                <SampleEntry key={paper.id} paper={paper} />
               ))}
-            </ol>
+            </ul>
           ) : (
             !error && (
-              <div className="mt-4 space-y-4">
+              <div className="mt-6 space-y-4">
                 {[0, 1].map((i) => (
-                  <div key={i} className="skeleton h-28" />
+                  <div key={i} className="skeleton h-24" />
                 ))}
               </div>
             )
           )}
         </div>
+      </section>
+
+      <section aria-labelledby="how-heading">
+        <SectionHeading id="how-heading" title="How it works" />
+        <ol className="mt-8 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          {HOW.map((step) => (
+            <li key={step.title}>
+              <step.icon className="h-5 w-5 text-accent" strokeWidth={1.75} aria-hidden />
+              <span className="mt-3 block font-semibold">{step.title}</span>
+              <span className="mt-1 block text-[0.9375rem] leading-relaxed text-muted">{step.text}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section
+        id="add"
+        aria-labelledby="add-heading"
+        className="grid gap-8 border-t border-line pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16 sm:pt-20"
+      >
+        <SectionHeading id="add-heading" title="Add a paper">
+          Upload a PDF or paste an arXiv link, and Paper2Lab explains it at all three levels in a few minutes. Your
+          papers are saved in this browser.
+        </SectionHeading>
+        <AddPaper config={config} />
       </section>
     </div>
   );

@@ -166,7 +166,7 @@ export function AttentionDemo() {
         </p>
       </div>
 
-      <p className="rounded-sm bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="rounded-md bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
         {message}
       </p>
     </div>

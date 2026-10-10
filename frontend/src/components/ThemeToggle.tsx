@@ -1,5 +1,6 @@
 "use client";
 
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Theme = "system" | "light" | "dark";
@@ -57,21 +58,9 @@ export function ThemeToggle() {
       aria-label={`${LABEL[current]}. Click to change.`}
       className="icon-btn"
     >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-        {current === "light" && (
-          <>
-            <circle cx="12" cy="12" r="4" />
-            <path strokeLinecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-          </>
-        )}
-        {current === "dark" && <path strokeLinejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" />}
-        {current === "system" && (
-          <>
-            <rect x="3" y="4" width="18" height="12" rx="2" />
-            <path strokeLinecap="round" d="M8 20h8m-4-4v4" />
-          </>
-        )}
-      </svg>
+      {current === "light" && <Sun className="h-5 w-5" aria-hidden />}
+      {current === "dark" && <Moon className="h-5 w-5" aria-hidden />}
+      {current === "system" && <Monitor className="h-5 w-5" aria-hidden />}
     </button>
   );
 }

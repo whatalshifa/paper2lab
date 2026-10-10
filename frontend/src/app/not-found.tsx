@@ -2,10 +2,11 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-xl card p-8 text-center">
-      <h1 className="font-serif text-2xl font-semibold">Page not found</h1>
-      <p className="mt-2 text-muted">That address doesn&apos;t lead anywhere on Paper2Lab.</p>
-      <Link href="/" className="btn btn-primary mt-6">
+    <div className="mx-auto max-w-md py-12 text-center sm:py-20">
+      <p className="eyebrow">404</p>
+      <h1 className="mt-2 text-[1.75rem] leading-tight font-semibold tracking-tight">Page not found</h1>
+      <p className="mt-3 text-muted">That address doesn&apos;t lead anywhere on Paper2Lab.</p>
+      <Link href="/" className="btn btn-primary mt-8">
         Go to the library
       </Link>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { api, type Figure, type Level } from "@/lib/api";
@@ -34,14 +35,15 @@ export function FigureCard({
   const ratio = 1 / Math.max((figure.bottom - figure.top) * A4, 0.2);
 
   return (
-    <figure id={`fig-${figure.id}`} className="card scroll-mt-32 overflow-hidden">
+    <figure id={`fig-${figure.id}`} className="card scroll-mt-28 overflow-hidden">
       <div className="border-b border-line bg-white">
         {state === "failed" ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center text-sm text-muted">
             <p>This picture couldn&apos;t be loaded just now.</p>
             {pageHref && (
-              <a href={pageHref} target="_blank" rel="noopener noreferrer" className="font-medium text-claret-700 hover:underline">
-                See it on page {figure.page} of the PDF ↗
+              <a href={pageHref} target="_blank" rel="noopener noreferrer" className="link inline-flex items-center gap-1">
+                See it on page {figure.page} of the PDF
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
               </a>
             )}
           </div>
@@ -63,27 +65,25 @@ export function FigureCard({
           </a>
         )}
       </div>
-      <figcaption className="p-4 sm:p-5">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      <figcaption className="p-5 sm:p-6">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem]">
           <span className="font-semibold">{figure.label}</span>
           <span className="text-muted">page {figure.page}</span>
           {figure.caption_verified && (
-            <span className="badge bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-              Caption found in the PDF
-            </span>
+            <span className="text-emerald-800 dark:text-emerald-300">Caption found in the PDF</span>
           )}
         </p>
-        <p className="mt-1.5 font-serif text-[0.9rem] leading-relaxed text-muted italic">&ldquo;{figure.caption}&rdquo;</p>
-        <div className="prose-reading mt-3">
+        <p className="mt-2 font-serif text-[0.9375rem] leading-relaxed text-muted italic">&ldquo;{figure.caption}&rdquo;</p>
+        <div className="prose-reading mt-4">
           <RichText text={figure.explanation[level]} />
         </div>
-        <dl className="mt-4 grid gap-3 text-sm leading-relaxed sm:grid-cols-2">
-          <div className="rounded-sm bg-sunken px-4 py-3">
-            <dt className="text-xs font-semibold text-muted">How to read it</dt>
+        <dl className="mt-5 grid gap-x-8 gap-y-4 border-t border-line pt-5 text-[0.9375rem] leading-relaxed sm:grid-cols-2">
+          <div>
+            <dt className="text-[0.8125rem] font-semibold text-muted">How to read it</dt>
             <dd className="mt-1">{figure.how_to_read}</dd>
           </div>
-          <div className="rounded-sm bg-accent-soft px-4 py-3">
-            <dt className="text-xs font-semibold text-accent">The takeaway</dt>
+          <div>
+            <dt className="text-[0.8125rem] font-semibold text-accent">The takeaway</dt>
             <dd className="mt-1">{figure.takeaway}</dd>
           </div>
         </dl>

@@ -69,6 +69,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+
 /* One visible focus ring for everything you can tab to, in both themes. */
 @layer base {
   :where(a, button, summary, select, input[type="range"], [tabindex]):focus-visible {
@@ -90,15 +91,23 @@ body {
 }
 
 @layer components {
+  /* One radius scale: 6px for controls (rounded-md), 8px for cards and panels (rounded-lg),
+     a full pill only for small status badges. */
   .card {
-    @apply rounded-sm border border-line bg-surface;
+    @apply rounded-lg border border-line bg-surface;
   }
 
   /* Buttons: one height per size, so buttons side by side always line up. */
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-transparent px-4 py-2 text-sm
-      font-semibold whitespace-nowrap transition-colors select-none
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-transparent px-4 text-sm
+      font-medium whitespace-nowrap transition-colors select-none
       disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-lg {
+    @apply h-11 px-5 text-[0.9375rem];
+  }
+  .btn-sm {
+    @apply h-9 px-3;
   }
   /* White on claret-700 is 9.8:1, so it stays readable in both themes. */
   .btn-primary {
@@ -110,25 +119,22 @@ body {
   .btn-ghost {
     @apply text-muted hover:bg-sunken hover:text-foreground;
   }
+  /* Destructive actions stay quiet until you reach for them. */
   .btn-danger-quiet {
-    @apply border-line bg-surface text-rose-700 hover:border-rose-300 hover:bg-rose-50 dark:text-rose-300
-      dark:hover:border-rose-900 dark:hover:bg-rose-950/40;
-  }
-  .btn-sm {
-    @apply min-h-8 rounded-sm px-3 py-1;
+    @apply text-muted hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-300;
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm text-muted transition-colors
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted transition-colors
       hover:bg-sunken hover:text-foreground;
   }
 
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
   }
 
   .input {
-    @apply block min-h-11 w-full rounded-sm border border-line bg-surface px-3 py-2 text-foreground outline-none
+    @apply block h-11 w-full rounded-md border border-line bg-surface px-3 text-foreground outline-none
       transition placeholder:text-muted/70 focus:border-claret-500 focus:ring-4 focus:ring-claret-500/15
       focus-visible:outline-none;
   }
@@ -137,29 +143,18 @@ body {
     @apply font-medium text-accent underline-offset-4 hover:underline;
   }
 
-  /* Section labels in small capitals, like the running heads of a printed journal. */
+  /* A small label above a block, used sparingly. */
   .eyebrow {
-    @apply font-serif text-[0.95rem] font-semibold tracking-[0.08em] text-accent lowercase;
-    font-variant-caps: all-small-caps;
-  }
-  .smallcaps {
-    @apply tracking-[0.06em] lowercase;
-    font-variant-caps: all-small-caps;
-  }
-
-  /* A printed rule: the thick-over-thin line under a journal's masthead. */
-  .double-rule {
-    @apply border-t-[3px] border-rule;
-    box-shadow: 0 3px 0 0 var(--background), 0 4px 0 0 var(--rule);
+    @apply text-[0.8125rem] font-medium text-accent;
   }
 
   .skeleton {
-    @apply animate-pulse rounded-sm bg-sunken;
+    @apply animate-pulse rounded-md bg-sunken;
   }
 
   /* The explanations: a reading serif at a comfortable size and line length. */
   .prose-reading {
-    @apply font-serif text-[1.15rem] leading-[1.7] text-pretty;
+    @apply font-serif text-[1.0625rem] leading-[1.65] text-pretty sm:text-[1.125rem];
     font-optical-sizing: auto;
   }
   .prose-reading p + p {
@@ -189,7 +184,7 @@ body {
 
 /* The reading-level slider, drawn like a ruler: a hairline track with tick marks and a claret marker. */
 .level-range {
-  @apply h-8 w-full cursor-pointer appearance-none bg-transparent;
+  @apply h-7 w-full cursor-pointer appearance-none bg-transparent;
 }
 .level-range::-webkit-slider-runnable-track {
   @apply h-[3px] bg-transparent;
@@ -198,17 +193,19 @@ body {
   @apply h-[3px] bg-transparent;
 }
 .level-range::-webkit-slider-thumb {
-  @apply -mt-[11px] h-[25px] w-3.5 appearance-none rounded-[3px] border-2 border-background bg-claret-700 shadow-md;
+  @apply -mt-[7.5px] h-[18px] w-[18px] appearance-none rounded-full border-[3px] border-background bg-claret-700 shadow-[0_0_0_1px_var(--color-claret-700),0_1px_3px_rgb(0_0_0/0.2)];
 }
 .level-range::-moz-range-thumb {
-  @apply h-[25px] w-3.5 rounded-[3px] border-2 border-background bg-claret-700 shadow-md;
+  @apply h-[18px] w-[18px] rounded-full border-[3px] border-background bg-claret-700 shadow-[0_0_0_1px_var(--color-claret-700),0_1px_3px_rgb(0_0_0/0.2)];
 }
 /* In dark mode the marker turns light claret, so it stands out from the page (8:1). */
 .dark .level-range::-webkit-slider-thumb {
   background: var(--color-claret-300);
+  box-shadow: 0 0 0 1px var(--color-claret-300);
 }
 .dark .level-range::-moz-range-thumb {
   background: var(--color-claret-300);
+  box-shadow: 0 0 0 1px var(--color-claret-300);
 }
 
 @media print {

@@ -5,6 +5,9 @@ const ADAM = "/papers/00000000-0000-4000-8000-000000001412";
 
 test("the accuracy page shows how many quotes were found, and lists the samples", async ({ page }) => {
   await page.goto("/");
+  // On phones the header's links sit behind the menu button.
+  const menu = page.getByRole("button", { name: "Menu" });
+  if (await menu.isVisible()) await menu.click();
   await page.getByRole("link", { name: "Accuracy" }).click();
   await expect(page.getByRole("heading", { name: "How accurate is Paper2Lab?" })).toBeVisible();
   await expect(page.getByText("of quotes found word for word")).toBeVisible();
@@ -84,7 +87,7 @@ test("references and code links appear when the paper has them", async ({ page }
     }),
   );
   await page.goto(ATTENTION);
-  await expect(page.getByRole("link", { name: "Code ↗" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Code", exact: true })).toHaveAttribute(
     "href",
     "https://github.com/tensorflow/tensor2tensor",
   );

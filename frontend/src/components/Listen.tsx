@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play, SkipBack, SkipForward, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import type { Level, Reading } from "@/lib/api";
@@ -117,9 +118,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
           speak({ part: 0, line: 0 }, speed);
         }}
       >
-        <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden>
-          <path d="M3 8h3l4-3.5v11L6 12H3Zm10.5-1.6a5 5 0 0 1 0 7.2l-1-1a3.6 3.6 0 0 0 0-5.2Z" />
-        </svg>
+        <Volume2 className="h-4 w-4" aria-hidden />
         Listen
       </button>
     );
@@ -129,7 +128,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
     <div
       role="region"
       aria-label="Listening"
-      className="fixed bottom-20 left-4 z-30 flex sm:bottom-4 max-w-[calc(100vw-2rem)] items-center gap-1 rounded-md border border-line bg-surface py-1.5 pr-2 pl-1.5 shadow-lg shadow-black/10 sm:left-1/2 sm:-translate-x-1/2 print:hidden"
+      className="fixed bottom-20 left-4 z-30 flex sm:bottom-4 max-w-[calc(100vw-2rem)] items-center gap-1 rounded-lg border border-line bg-surface py-1.5 pr-2 pl-1.5 shadow-[0_4px_16px_rgb(0_0_0/0.12)] sm:left-1/2 sm:-translate-x-1/2 print:hidden"
     >
       <button
         type="button"
@@ -138,9 +137,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
         disabled={part === 0}
         onClick={() => speak({ part: Math.max(part - 1, 0), line: 0 }, speed)}
       >
-        <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden>
-          <path d="M5 4h2v12H5Zm11 0v12L8 10Z" />
-        </svg>
+        <SkipBack className="h-4 w-4" aria-hidden />
       </button>
       <button
         type="button"
@@ -149,13 +146,9 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
         onClick={() => (playing ? stop() : speak({ part: position.current.part, line: position.current.line }, speed))}
       >
         {playing ? (
-          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden>
-            <path d="M5 4h3.5v12H5Zm6.5 0H15v12h-3.5Z" />
-          </svg>
+          <Pause className="h-4 w-4" aria-hidden />
         ) : (
-          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden>
-            <path d="M6 4v12l10-6Z" />
-          </svg>
+          <Play className="h-4 w-4" aria-hidden />
         )}
       </button>
       <button
@@ -165,9 +158,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
         disabled={part >= parts.length - 1}
         onClick={() => speak({ part: Math.min(part + 1, parts.length - 1), line: 0 }, speed)}
       >
-        <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden>
-          <path d="M13 4h2v12h-2ZM4 4v12l8-6Z" />
-        </svg>
+        <SkipForward className="h-4 w-4" aria-hidden />
       </button>
       <a
         href={`#${current.id}`}
@@ -181,7 +172,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
       </a>
       <button
         type="button"
-        className="rounded-full px-2 py-1 text-xs font-semibold text-muted tabular-nums hover:bg-sunken hover:text-foreground"
+        className="rounded-md px-2 py-1 text-xs font-semibold text-muted tabular-nums hover:bg-sunken hover:text-foreground"
         aria-label={`Speed ${speed} times. Change speed`}
         onClick={() => {
           const faster = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
@@ -202,9 +193,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
           setOpen(false);
         }}
       >
-        <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-          <path strokeLinecap="round" d="m5 5 10 10M15 5 5 15" />
-        </svg>
+        <X className="h-4 w-4" aria-hidden />
       </button>
     </div>
   );

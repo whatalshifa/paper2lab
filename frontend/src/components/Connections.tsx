@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { api, type Connections, type HubItem, type Reference } from "@/lib/api";
@@ -28,7 +29,7 @@ export function hasLinks(connections: Connections | null) {
 function ReferenceItem({ reference }: { reference: Reference }) {
   const authors = reference.authors.join(", ") + (reference.more_authors ? " and others" : "");
   return (
-    <li className="space-y-1.5 py-4 first:pt-0 last:pb-0">
+    <li className="space-y-1.5 py-4">
       <p className="flex flex-wrap items-center gap-2">
         {reference.url ? (
           <a href={reference.url} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-accent hover:underline">
@@ -39,7 +40,7 @@ function ReferenceItem({ reference }: { reference: Reference }) {
         )}
         {reference.influential && <span className="badge bg-accent-soft text-accent">Key reference</span>}
       </p>
-      <p className="text-xs text-muted">{[authors, reference.year].filter(Boolean).join(" · ")}</p>
+      <p className="text-[0.8125rem] text-muted">{[authors, reference.year].filter(Boolean).join(" · ")}</p>
       {reference.tldr && <p className="text-sm leading-relaxed">{reference.tldr}</p>}
       {reference.context && (
         <p className="text-sm leading-relaxed text-muted">
@@ -59,7 +60,8 @@ function HubList({ title, items }: { title: string; items: HubItem[] }) {
         {items.map((item) => (
           <li key={item.id}>
             <a href={item.url} target="_blank" rel="noopener noreferrer" className="link break-all">
-              {item.id} ↗
+              {item.id}
+              <ExternalLink className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />
             </a>
           </li>
         ))}
@@ -73,13 +75,13 @@ export function ConnectionsSection({ connections }: { connections: Connections |
   const references = connections?.references?.items ?? [];
   if (!connections || (references.length === 0 && !hasLinks(connections))) return null;
   return (
-    <section id="builds-on" className="scroll-mt-32 space-y-8 border-t border-line pt-8" aria-labelledby="builds-on-title">
-      <h2 id="builds-on-title" className="font-serif text-[1.75rem] font-semibold tracking-tight">
+    <section id="builds-on" className="scroll-mt-28 space-y-8 border-t border-line pt-10" aria-labelledby="builds-on-title">
+      <h2 id="builds-on-title" className="text-[1.375rem] font-semibold tracking-tight">
         What this paper connects to
       </h2>
       {references.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold">Papers it builds on</h3>
+          <h3 className="font-semibold">Papers it builds on</h3>
           <p className="mt-1 text-sm text-muted">
             The most important of its {connections.references?.total} references first, each with a one-line summary.
             From{" "}
@@ -88,7 +90,7 @@ export function ConnectionsSection({ connections }: { connections: Connections |
             </a>
             .
           </p>
-          <ul className="card mt-4 divide-y divide-line px-4 py-4 sm:px-5">
+          <ul className="mt-4 divide-y divide-line border-y border-line">
             {references.map((reference) => (
               <ReferenceItem key={`${reference.title}-${reference.year}`} reference={reference} />
             ))}
@@ -104,7 +106,8 @@ export function ConnectionsSection({ connections }: { connections: Connections |
                 {connections.code.map((link) => (
                   <li key={link.url}>
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="link break-all">
-                      {link.label} ↗
+                      {link.label}
+                      <ExternalLink className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />
                     </a>
                   </li>
                 ))}
