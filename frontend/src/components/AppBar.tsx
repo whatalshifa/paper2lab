@@ -10,9 +10,9 @@ import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
-  { href: "/", label: "Library", match: (path: string) => path === "/" || path.startsWith("/papers") },
+  { href: "/library", label: "Library", match: (path: string) => path.startsWith("/library") || path.startsWith("/papers") },
   { href: "/accuracy", label: "Accuracy", match: (path: string) => path.startsWith("/accuracy") },
-  { href: "/about", label: "About", match: (path: string) => path.startsWith("/about") },
+  { href: "/", label: "About", match: (path: string) => path === "/" },
 ];
 
 /**
@@ -49,7 +49,7 @@ export function AppBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-background print:hidden">
       <div className="flex h-12 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <Link href="/" aria-label="Paper2Lab library" className="flex h-9 shrink-0 items-center rounded-md lg:w-[15.5rem]">
+        <Link href="/library" aria-label="Paper2Lab library" className="flex h-9 shrink-0 items-center rounded-md lg:w-[15.5rem]">
           <Logo compact />
         </Link>
         <div className="flex min-w-0 flex-1 justify-center">

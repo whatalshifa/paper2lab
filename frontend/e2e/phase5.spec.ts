@@ -4,7 +4,7 @@ const ATTENTION = "/papers/00000000-0000-4000-8000-000000001706";
 const ADAM = "/papers/00000000-0000-4000-8000-000000001412";
 
 test("the accuracy page shows how many quotes were found, and lists the samples", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/library");
   // On phones the header's links sit behind the menu button.
   const menu = page.getByRole("button", { name: "Menu" });
   if (await menu.isVisible()) await menu.click();
@@ -98,17 +98,18 @@ test("references and code links appear when the paper has them", async ({ page }
 });
 
 test("the site is ready to share: paper titles, a sitemap and a preview image", async ({ page, request }) => {
+  // The old pitch page now leads to the home page.
   await page.goto("/about");
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Read any research paper at your level." })).toBeVisible();
-  await page.getByRole("link", { name: "Try a sample paper" }).click();
-  await expect(page.getByRole("heading", { name: "Library", level: 1 })).toBeInViewport();
 
   await page.goto(ATTENTION);
   await expect(page).toHaveTitle("Attention Is All You Need · Paper2Lab");
 
   const sitemap = await (await request.get("/sitemap.xml")).text();
   expect(sitemap).toContain("/accuracy</loc>");
-  expect(sitemap).toContain("/about</loc>");
+  expect(sitemap).toContain("/library</loc>");
+  expect(sitemap).not.toContain("/about</loc>");
   expect(sitemap).toContain("/papers/00000000-0000-4000-8000-000000001706</loc>");
   expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /api/");
   const image = await request.get("/opengraph-image");

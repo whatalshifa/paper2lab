@@ -217,7 +217,7 @@ function Rail({
             </Link>
           </li>
           <li>
-            <Link href="/about" className="text-muted hover:text-foreground">
+            <Link href="/" className="text-muted hover:text-foreground">
               About Paper2Lab
             </Link>
           </li>
@@ -411,7 +411,7 @@ export function Library() {
     );
   }, [selectedId, details]);
 
-  const select = useCallback((id: string) => router.replace(`/?paper=${id}`, { scroll: false }), [router]);
+  const select = useCallback((id: string) => router.replace(`/library?paper=${id}`, { scroll: false }), [router]);
 
   return (
     <div className="lg:grid lg:min-h-[calc(100dvh-3rem)] lg:grid-cols-[16.5rem_minmax(0,1fr)_19rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_21rem]">
