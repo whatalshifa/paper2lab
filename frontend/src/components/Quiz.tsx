@@ -78,7 +78,7 @@ function Question({
         {question.choices.map((choice, index) => {
           const isAnswer = index === question.answer;
           const isChosen = index === chosen;
-          let tone = "border-line bg-surface hover:border-indigo-300 dark:hover:border-indigo-800";
+          let tone = "border-line bg-surface hover:border-claret-300 dark:hover:border-claret-800";
           if (answered && isAnswer)
             tone = "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200";
           else if (answered && isChosen)
@@ -91,7 +91,7 @@ function Question({
               disabled={answered}
               aria-pressed={isChosen}
               onClick={() => onChoose(index)}
-              className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:cursor-default ${tone}`}
+              className={`flex items-start gap-2 rounded-sm border px-3 py-2 text-left text-sm transition-colors disabled:cursor-default ${tone}`}
             >
               <span className="mt-px w-4 shrink-0 font-semibold" aria-hidden>
                 {answered && isAnswer ? "✓" : answered && isChosen ? "✗" : String.fromCharCode(65 + index)}
@@ -109,7 +109,7 @@ function Question({
       </div>
       <div aria-live="polite">
         {answered && (
-          <div className="space-y-2 rounded-xl bg-sunken/70 px-4 py-3 text-sm leading-relaxed">
+          <div className="space-y-2 rounded-sm bg-sunken/70 px-4 py-3 text-sm leading-relaxed">
             <p>
               <span className="font-semibold">{right ? "Right. " : "Not quite. "}</span>
               <RichText text={question.why} inline />

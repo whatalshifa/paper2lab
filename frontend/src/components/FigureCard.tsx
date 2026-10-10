@@ -37,10 +37,10 @@ export function FigureCard({
     <figure id={`fig-${figure.id}`} className="card scroll-mt-32 overflow-hidden">
       <div className="border-b border-line bg-white">
         {state === "failed" ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center text-sm text-slate-600">
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center text-sm text-muted">
             <p>This picture couldn&apos;t be loaded just now.</p>
             {pageHref && (
-              <a href={pageHref} target="_blank" rel="noopener noreferrer" className="font-medium text-indigo-700 hover:underline">
+              <a href={pageHref} target="_blank" rel="noopener noreferrer" className="font-medium text-claret-700 hover:underline">
                 See it on page {figure.page} of the PDF ↗
               </a>
             )}
@@ -48,7 +48,7 @@ export function FigureCard({
         ) : (
           <a href={src} target="_blank" rel="noopener noreferrer" className="relative block" aria-label={`Open ${figure.label} full size`}>
             {state === "loading" && (
-              <span className="block w-full animate-pulse bg-slate-100" style={{ aspectRatio: ratio }} aria-hidden />
+              <span className="block w-full animate-pulse bg-sunken" style={{ aspectRatio: ratio }} aria-hidden />
             )}
             {/* eslint-disable-next-line @next/next/no-img-element -- drawn by our API, already sized */}
             <img
@@ -78,11 +78,11 @@ export function FigureCard({
           <RichText text={figure.explanation[level]} />
         </div>
         <dl className="mt-4 grid gap-3 text-sm leading-relaxed sm:grid-cols-2">
-          <div className="rounded-xl bg-sunken px-4 py-3">
+          <div className="rounded-sm bg-sunken px-4 py-3">
             <dt className="text-xs font-semibold text-muted">How to read it</dt>
             <dd className="mt-1">{figure.how_to_read}</dd>
           </div>
-          <div className="rounded-xl bg-accent-soft px-4 py-3">
+          <div className="rounded-sm bg-accent-soft px-4 py-3">
             <dt className="text-xs font-semibold text-accent">The takeaway</dt>
             <dd className="mt-1">{figure.takeaway}</dd>
           </div>

@@ -16,7 +16,7 @@ function Meaning({ equation, level, showFormula }: { equation: Equation; level: 
     <div className="space-y-3">
       <p className="font-semibold">{equation.name}</p>
       {showFormula && (
-        <div className="tex-scroll overflow-x-auto rounded-lg bg-sunken px-3 py-2" tabIndex={0} role="group" aria-label="Formula">
+        <div className="tex-scroll overflow-x-auto rounded-sm bg-sunken px-3 py-2" tabIndex={0} role="group" aria-label="Formula">
           <Tex latex={equation.latex} display />
         </div>
       )}
@@ -48,7 +48,7 @@ export function EquationCard({ equation, index, level }: { equation: Equation; i
       <Hovercard
         label={`${label}, ${equation.name}: what it means`}
         block
-        triggerClassName="tex-scroll group w-full overflow-x-auto rounded-2xl border border-line bg-surface px-4 py-3 text-left transition-colors hover:border-indigo-300 hover:bg-accent-soft/40 aria-expanded:border-indigo-400 dark:hover:border-indigo-800"
+        triggerClassName="tex-scroll group w-full overflow-x-auto rounded-md border border-line bg-surface px-4 py-3 text-left transition-colors hover:border-claret-300 hover:bg-accent-soft/40 aria-expanded:border-claret-400 dark:hover:border-claret-800"
         trigger={
           <>
             <span className="mb-1 flex items-center justify-between gap-3 text-xs">
@@ -79,7 +79,7 @@ export function EquationChip({ equation, index, level }: { equation: Equation; i
   return (
     <Hovercard
       label={`${label}, ${equation.name}`}
-      triggerClassName="mx-0.5 inline-flex translate-y-[-1px] items-center rounded-md bg-accent-soft px-1.5 py-0 font-sans text-[0.8em] font-semibold text-accent hover:ring-1 hover:ring-indigo-300 aria-expanded:ring-1 aria-expanded:ring-indigo-400"
+      triggerClassName="mx-0.5 inline-flex translate-y-[-1px] items-center rounded-md bg-accent-soft px-1.5 py-0 font-sans text-[0.8em] font-semibold text-accent hover:ring-1 hover:ring-claret-300 aria-expanded:ring-1 aria-expanded:ring-claret-400"
       trigger={label}
     >
       <Meaning equation={equation} level={level} showFormula />

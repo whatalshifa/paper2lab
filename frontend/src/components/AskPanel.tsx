@@ -103,8 +103,8 @@ function EntryView({ entry, pdfUrl, onRetry }: { entry: Entry; pdfUrl: string | 
   const levelLabel = LEVELS.find((l) => l.id === entry.level)?.label;
   return (
     <li className="space-y-3">
-      <div className="ml-8 rounded-2xl rounded-br-md bg-indigo-700 px-4 py-2.5 text-sm text-white">{entry.text}</div>
-      <div className="mr-2 rounded-2xl rounded-bl-md border border-line bg-surface px-4 py-3">
+      <div className="ml-8 rounded-md rounded-br-md bg-claret-700 px-4 py-2.5 text-sm text-white">{entry.text}</div>
+      <div className="mr-2 rounded-md rounded-bl-md border border-line bg-surface px-4 py-3">
         {entry.status === "ready" && entry.answer ? (
           <AnswerView id={entry.id} parts={entry.answer.parts} pdfUrl={pdfUrl} prepared={!!entry.prepared} />
         ) : entry.status === "failed" ? (
@@ -116,7 +116,7 @@ function EntryView({ entry, pdfUrl, onRetry }: { entry: Entry; pdfUrl: string | 
           </div>
         ) : (
           <p className="flex items-center gap-2 text-sm text-muted" role="status">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-600" aria-hidden />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-claret-600" aria-hidden />
             Reading the paper to answer{levelLabel ? ` (${levelLabel.toLowerCase()} level)` : ""}…
           </p>
         )}
@@ -230,7 +230,7 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
       >
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 id="ask-title" className="text-lg font-semibold tracking-tight">
+            <h2 id="ask-title" className="font-serif text-2xl font-semibold tracking-tight">
               Ask the paper
             </h2>
             <p className="mt-0.5 text-xs text-muted">
@@ -272,7 +272,7 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
                       type="button"
                       onClick={() => send(q)}
                       disabled={sending}
-                      className="rounded-full border border-line bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-indigo-300 hover:bg-accent-soft"
+                      className="rounded-full border border-line bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-claret-300 hover:bg-accent-soft"
                     >
                       {q}
                     </button>

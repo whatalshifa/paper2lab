@@ -129,7 +129,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
     <div
       role="region"
       aria-label="Listening"
-      className="fixed bottom-20 left-4 z-30 flex sm:bottom-4 max-w-[calc(100vw-2rem)] items-center gap-1 rounded-full border border-line bg-surface py-1.5 pr-2 pl-1.5 shadow-lg shadow-indigo-900/10 sm:left-1/2 sm:-translate-x-1/2 print:hidden"
+      className="fixed bottom-20 left-4 z-30 flex sm:bottom-4 max-w-[calc(100vw-2rem)] items-center gap-1 rounded-md border border-line bg-surface py-1.5 pr-2 pl-1.5 shadow-lg shadow-black/10 sm:left-1/2 sm:-translate-x-1/2 print:hidden"
     >
       <button
         type="button"
@@ -144,7 +144,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
       </button>
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-700 text-white hover:bg-indigo-800"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-claret-700 text-white hover:bg-claret-800"
         aria-label={playing ? "Pause" : "Play"}
         onClick={() => (playing ? stop() : speak({ part: position.current.part, line: position.current.line }, speed))}
       >

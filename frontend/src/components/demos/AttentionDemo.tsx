@@ -126,7 +126,7 @@ export function AttentionDemo() {
           type="checkbox"
           checked={scaled}
           onChange={(event) => setScaled(event.target.checked)}
-          className="h-4 w-4 accent-indigo-700 dark:accent-indigo-300"
+          className="h-4 w-4 accent-claret-700 dark:accent-claret-300"
         />
         <label htmlFor={`${id}-scaled`} className="font-semibold">
           Divide by √d<sub>k</sub>
@@ -166,7 +166,7 @@ export function AttentionDemo() {
         </p>
       </div>
 
-      <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="rounded-sm bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
         {message}
       </p>
     </div>

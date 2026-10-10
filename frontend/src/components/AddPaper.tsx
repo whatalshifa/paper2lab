@@ -46,14 +46,14 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
   }
 
   const tabClass = (t: Tab) =>
-    `flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
-      tab === t ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground"
+    `-mb-px border-b-2 px-0.5 pb-2 text-sm font-semibold transition-colors ${
+      tab === t ? "border-claret-700 text-foreground dark:border-claret-300" : "border-transparent text-muted hover:text-foreground"
     }`;
 
   return (
     <div className="card p-5 sm:p-6">
-      <h2 className="text-lg font-semibold tracking-tight">Add a paper</h2>
-      <div role="tablist" aria-label="How to add a paper" className="mt-4 flex gap-1 rounded-xl bg-sunken p-1">
+      <h2 className="font-serif text-2xl font-semibold tracking-tight">Add a paper</h2>
+      <div role="tablist" aria-label="How to add a paper" className="mt-4 flex gap-6 border-b border-line">
         <button role="tab" type="button" aria-selected={tab === "upload"} className={tabClass("upload")} onClick={() => setTab("upload")}>
           Upload a PDF
         </button>
@@ -74,8 +74,8 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
             setDragging(false);
             if (!disabled) pick(event.dataTransfer.files[0]);
           }}
-          className={`mt-4 flex flex-col items-center rounded-2xl border-2 border-dashed px-4 py-8 text-center transition-colors ${
-            dragging ? "border-indigo-500 bg-accent-soft" : "border-line"
+          className={`mt-4 flex flex-col items-center rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors ${
+            dragging ? "border-claret-500 bg-accent-soft" : "border-line"
           }`}
         >
           <svg viewBox="0 0 24 24" className="h-8 w-8 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
@@ -127,12 +127,12 @@ export function AddPaper({ config }: { config: SiteConfig | null }) {
       )}
 
       {off && (
-        <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        <p className="mt-4 rounded-sm bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
           Explaining new papers is paused on this demo. Open one of the sample papers below to see how it works.
         </p>
       )}
       {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+        <p role="alert" className="mt-4 rounded-sm bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
           {error}
         </p>
       )}

@@ -4,30 +4,33 @@
    "System" (the default) copies the device setting; the switch in the header can pin light or dark. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Warm paper in light mode, deep ink in dark mode. The accent is indigo. */
+/* A journal: ink on paper-white in light mode, warm lamplight on near-black in dark mode.
+   The one colour is claret, the red of a journal's masthead and an editor's pen. */
 :root {
-  --background: #faf9f6;
-  --foreground: #1c1917;
+  --background: #fbfaf6;
+  --foreground: #1b1a17;
   --surface: #ffffff;
-  --sunken: #f3f1ec;
-  --muted: #6b6560;
-  --border: #e7e3dc;
-  --accent: #4338ca;
-  --accent-soft: #eef0ff;
-  --focus: #4f46e5;
+  --sunken: #f3f0e8;
+  --muted: #625d55;
+  --border: #e4dfd4;
+  --rule: #1b1a17;
+  --accent: #7d2230;
+  --accent-soft: #f7e9ea;
+  --focus: #7d2230;
   color-scheme: light;
 }
 
 .dark {
-  --background: #0d0c12;
-  --foreground: #e8e6ef;
-  --surface: #16151d;
-  --sunken: #1d1b26;
-  --muted: #a19eae;
-  --border: #2a2834;
-  --accent: #a5b4fc;
-  --accent-soft: #1e1b3a;
-  --focus: #a5b4fc;
+  --background: #121113;
+  --foreground: #ece8e1;
+  --surface: #1a191b;
+  --sunken: #222023;
+  --muted: #a8a198;
+  --border: #2e2b2d;
+  --rule: #ece8e1;
+  --accent: #eb9aa2;
+  --accent-soft: #2b1519;
+  --focus: #eb9aa2;
   color-scheme: dark;
 }
 
@@ -40,14 +43,29 @@
   --color-line: var(--border);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-serif: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  --color-rule: var(--rule);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Claret: the journal's one colour, in the same light-to-dark steps as Tailwind's own scales. */
+  --color-claret-50: #fbf3f3;
+  --color-claret-100: #f6e3e4;
+  --color-claret-200: #ecc5c8;
+  --color-claret-300: #dd9ca1;
+  --color-claret-400: #c86b73;
+  --color-claret-500: #b0444f;
+  --color-claret-600: #962e3a;
+  --color-claret-700: #7d2230;
+  --color-claret-800: #651b27;
+  --color-claret-900: #4e1520;
+  --color-claret-950: #2e0b12;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
@@ -73,18 +91,18 @@ body {
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgb(28_25_23/0.04)];
+    @apply rounded-sm border border-line bg-surface;
   }
 
   /* Buttons: one height per size, so buttons side by side always line up. */
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2 text-sm
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-transparent px-4 py-2 text-sm
       font-semibold whitespace-nowrap transition-colors select-none
       disabled:cursor-not-allowed disabled:opacity-60;
   }
-  /* White on indigo-700 is 7.6:1, so it stays readable in both themes. */
+  /* White on claret-700 is 9.8:1, so it stays readable in both themes. */
   .btn-primary {
-    @apply bg-indigo-700 text-white shadow-sm hover:bg-indigo-800;
+    @apply bg-claret-700 text-white hover:bg-claret-800;
   }
   .btn-secondary {
     @apply border-line bg-surface text-foreground hover:bg-sunken;
@@ -97,11 +115,11 @@ body {
       dark:hover:border-rose-900 dark:hover:bg-rose-950/40;
   }
   .btn-sm {
-    @apply min-h-8 rounded-lg px-3 py-1;
+    @apply min-h-8 rounded-sm px-3 py-1;
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition-colors
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-sm text-muted transition-colors
       hover:bg-sunken hover:text-foreground;
   }
 
@@ -110,8 +128,8 @@ body {
   }
 
   .input {
-    @apply block min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2 text-foreground outline-none
-      transition placeholder:text-muted/70 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15
+    @apply block min-h-11 w-full rounded-sm border border-line bg-surface px-3 py-2 text-foreground outline-none
+      transition placeholder:text-muted/70 focus:border-claret-500 focus:ring-4 focus:ring-claret-500/15
       focus-visible:outline-none;
   }
 
@@ -119,17 +137,30 @@ body {
     @apply font-medium text-accent underline-offset-4 hover:underline;
   }
 
+  /* Section labels in small capitals, like the running heads of a printed journal. */
   .eyebrow {
-    @apply text-xs font-semibold tracking-[0.14em] text-accent uppercase;
+    @apply font-serif text-[0.95rem] font-semibold tracking-[0.08em] text-accent lowercase;
+    font-variant-caps: all-small-caps;
+  }
+  .smallcaps {
+    @apply tracking-[0.06em] lowercase;
+    font-variant-caps: all-small-caps;
+  }
+
+  /* A printed rule: the thick-over-thin line under a journal's masthead. */
+  .double-rule {
+    @apply border-t-[3px] border-rule;
+    box-shadow: 0 3px 0 0 var(--background), 0 4px 0 0 var(--rule);
   }
 
   .skeleton {
-    @apply animate-pulse rounded-lg bg-sunken;
+    @apply animate-pulse rounded-sm bg-sunken;
   }
 
   /* The explanations: a reading serif at a comfortable size and line length. */
   .prose-reading {
-    @apply font-serif text-[1.075rem] leading-[1.75] text-pretty;
+    @apply font-serif text-[1.15rem] leading-[1.7] text-pretty;
+    font-optical-sizing: auto;
   }
   .prose-reading p + p {
     @apply mt-4;
@@ -156,15 +187,28 @@ body {
   padding: 0.25rem 0;
 }
 
-/* The reading-level slider. */
+/* The reading-level slider, drawn like a ruler: a hairline track with tick marks and a claret marker. */
 .level-range {
-  @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-sunken;
+  @apply h-8 w-full cursor-pointer appearance-none bg-transparent;
+}
+.level-range::-webkit-slider-runnable-track {
+  @apply h-[3px] bg-transparent;
+}
+.level-range::-moz-range-track {
+  @apply h-[3px] bg-transparent;
 }
 .level-range::-webkit-slider-thumb {
-  @apply h-5 w-5 appearance-none rounded-full border-2 border-white bg-indigo-700 shadow-md dark:border-[#16151d];
+  @apply -mt-[11px] h-[25px] w-3.5 appearance-none rounded-[3px] border-2 border-background bg-claret-700 shadow-md;
 }
 .level-range::-moz-range-thumb {
-  @apply h-5 w-5 rounded-full border-2 border-white bg-indigo-700 shadow-md dark:border-[#16151d];
+  @apply h-[25px] w-3.5 rounded-[3px] border-2 border-background bg-claret-700 shadow-md;
+}
+/* In dark mode the marker turns light claret, so it stands out from the page (8:1). */
+.dark .level-range::-webkit-slider-thumb {
+  background: var(--color-claret-300);
+}
+.dark .level-range::-moz-range-thumb {
+  background: var(--color-claret-300);
 }
 
 @media print {

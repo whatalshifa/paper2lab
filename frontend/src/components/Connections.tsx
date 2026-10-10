@@ -74,7 +74,7 @@ export function ConnectionsSection({ connections }: { connections: Connections |
   if (!connections || (references.length === 0 && !hasLinks(connections))) return null;
   return (
     <section id="builds-on" className="scroll-mt-32 space-y-8 border-t border-line pt-8" aria-labelledby="builds-on-title">
-      <h2 id="builds-on-title" className="text-xl font-semibold tracking-tight">
+      <h2 id="builds-on-title" className="font-serif text-[1.75rem] font-semibold tracking-tight">
         What this paper connects to
       </h2>
       {references.length > 0 && (
