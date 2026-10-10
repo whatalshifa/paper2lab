@@ -6,6 +6,16 @@ updates:
     schedule: { interval: weekly }
     groups:
       frontend: { patterns: ["*"] }
+    # Hold these back a major version until the tools that depend on them catch up:
+    # typescript-eslint (used by eslint-config-next) doesn't support TypeScript 7 yet,
+    # and @types/node should match the Node version CI and Vercel run (22).
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: pip
     directory: /backend
     schedule: { interval: weekly }
