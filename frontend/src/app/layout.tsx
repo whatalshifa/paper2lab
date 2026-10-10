@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
-import Link from "next/link";
 
-import { Logo } from "@/components/Logo";
-import { SiteHeader } from "@/components/SiteHeader";
+import { AppBar } from "@/components/AppBar";
 import { THEME_SCRIPT } from "@/components/ThemeToggle";
 import { SITE_URL } from "@/lib/site";
 import "katex/dist/katex.min.css";
@@ -52,57 +50,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <SiteHeader />
-        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+        <AppBar />
+        <main id="main" className="w-full flex-1">
           {children}
         </main>
-        <footer className="mt-16 border-t border-line print:hidden">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,1.6fr)_1fr_1fr]">
-            <div className="max-w-sm">
-              <Logo />
-              <p className="mt-3 text-sm leading-relaxed text-muted">
-                Research papers explained at three reading levels, with every explanation backed by a quote from the
-                paper.
-              </p>
-            </div>
-            <div>
-              <h2 className="text-[0.8125rem] font-semibold">Read</h2>
-              <ul className="mt-3 space-y-2 text-sm">
-                <li>
-                  <Link href="/#samples" className="text-muted hover:text-foreground">
-                    Sample papers
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/accuracy" className="text-muted hover:text-foreground">
-                    How quotes are checked
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h2 className="text-[0.8125rem] font-semibold">Project</h2>
-              <ul className="mt-3 space-y-2 text-sm">
-                <li>
-                  <a href="https://github.com/whatalshifa/paper2lab" className="text-muted hover:text-foreground">
-                    Source code
-                  </a>
-                </li>
-                <li>
-                  <a href="https://github.com/whatalshifa" className="text-muted hover:text-foreground">
-                    Built by Alshifa
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <p className="border-t border-line py-6 text-xs leading-relaxed text-muted">
-              Explanations are written by AI and can be wrong. Every one shows the quote it&apos;s based on, so you can
-              check.
-            </p>
-          </div>
-        </footer>
       </body>
     </html>
   );

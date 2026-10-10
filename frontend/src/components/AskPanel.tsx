@@ -18,7 +18,7 @@ function pageLabel(c: Citation) {
 }
 
 /** The answer's text with numbered citation marks, and below it the numbered passages from the paper. */
-function AnswerView({
+export function AnswerView({
   id,
   parts,
   pdfUrl,
@@ -136,7 +136,18 @@ function EntryView({ entry, pdfUrl, onRetry }: { entry: Entry; pdfUrl: string | 
  * "Ask the paper": a side panel (a full-screen sheet on phones) where questions about this paper are
  * answered from the paper alone, each sentence marked with the passages it rests on.
  */
-export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: boolean; onClose: () => void }) {
+export function AskPanel({
+  paper,
+  open,
+  onClose,
+  initialQuestion = null,
+}: {
+  paper: PaperDetail;
+  open: boolean;
+  onClose: () => void;
+  /** A question to ask as soon as the panel opens, e.g. a suggestion picked in the margin notes. */
+  initialQuestion?: string | null;
+}) {
   const level = useLevel();
   const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -153,7 +164,11 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
     if (!open || loaded.current) return;
     loaded.current = true;
     api.config().then((c) => setAiEnabled(c.ai_enabled), () => setAiEnabled(false));
-    api.questions(paper.id).then(setEntries, () => {});
+    // Merged with anything asked while this loads (a question picked in the margin notes).
+    api.questions(paper.id).then(
+      (list) => setEntries((current) => [...list, ...current.filter((e) => !list.some((l) => l.id === e.id))]),
+      () => {},
+    );
   }, [open, paper.id]);
 
   useEffect(() => {
@@ -217,6 +232,18 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
     }
   }
 
+  // A question picked elsewhere (the margin notes) is asked once, when the panel opens with it.
+  const asked = useRef<string | null>(null);
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  });
+  useEffect(() => {
+    if (!open || !initialQuestion || asked.current === initialQuestion) return;
+    asked.current = initialQuestion;
+    sendRef.current(initialQuestion);
+  }, [open, initialQuestion]);
+
   function submit(event: FormEvent) {
     event.preventDefault();
     send(text);
@@ -227,7 +254,7 @@ export function AskPanel({ paper, open, onClose }: { paper: PaperDetail; open: b
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 flex justify-end" role="presentation">
+    <div className="fixed inset-0 z-50 flex justify-end" role="presentation">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       <aside
         role="dialog"

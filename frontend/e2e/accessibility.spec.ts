@@ -32,6 +32,16 @@ for (const scheme of ["light", "dark"] as const) {
       await check(page, errors);
     });
 
+    test("the about page, and the command bar open, are accessible", async ({ page }) => {
+      const errors = watch(page);
+      await page.goto("/about");
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await check(page, errors);
+      await page.getByRole("textbox", { name: /arXiv link/ }).click();
+      await expect(page.getByRole("button", { name: "Choose a PDF" })).toBeVisible();
+      await check(page, errors);
+    });
+
     test("the accuracy page is accessible", async ({ page }) => {
       const errors = watch(page);
       await page.goto("/accuracy");
@@ -87,7 +97,11 @@ for (const scheme of ["light", "dark"] as const) {
       await page.keyboard.press("Escape");
 
       await page.getByRole("button", { name: "Ask the paper" }).first().click();
-      await page.getByRole("button", { name: "Why do they divide by the square root of d_k?" }).click();
+      // The same question is also offered in the margin notes, so pick it inside the panel.
+      await page
+        .getByRole("dialog", { name: "Ask the paper" })
+        .getByRole("button", { name: "Why do they divide by the square root of d_k?" })
+        .click();
       await expect(page.getByRole("link", { name: "Source 1" })).toBeVisible();
       await check(page, errors);
     });
