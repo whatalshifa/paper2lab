@@ -6,14 +6,17 @@ import {
   CircleAlert,
   CircleCheck,
   ExternalLink,
+  ListTree,
   MessageSquare,
+  NotebookPen,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Concept, PaperDetail, Quote, Reading, Section } from "@/lib/api";
 import { useLevel } from "@/lib/level";
+import { saveProgress } from "@/lib/progress";
 
 import { AskPanel } from "./AskPanel";
 import { ConnectionsSection, hasLinks, useConnections } from "./Connections";
@@ -25,6 +28,7 @@ import { Listen } from "./Listen";
 import { asPrerequisites, PrerequisiteMap } from "./PrerequisiteMap";
 import { type Answers, Quiz, quizScore, useQuizAnswers } from "./Quiz";
 import { ReadingContext, RichText } from "./RichText";
+import { Sheet } from "./Sheet";
 
 const SOURCE_LINK =
   "inline-flex items-center gap-1 rounded-md font-medium text-muted underline-offset-4 hover:text-foreground hover:underline";
@@ -81,45 +85,6 @@ function termsIn(text: string, concepts: Concept[]) {
     .map(({ concept }) => concept);
 }
 
-/**
- * Notes in the margin beside a section, like the pencil notes in an annotated paper: the terms it
- * uses and the equations it introduces. Only on wide screens, where there's a margin to write in;
- * on smaller ones the same terms are still underlined in the text, with a definition on hover.
- */
-function MarginNotes({
-  section,
-  terms,
-  equations,
-}: {
-  section: Section;
-  terms: Concept[];
-  equations: { equation: Reading["equations"][number]; index: number }[];
-}) {
-  if (terms.length === 0 && equations.length === 0) return null;
-  return (
-    <aside aria-label={`Notes on ${section.title}`} className="hidden xl:block">
-      <div className="space-y-4 border-l border-line pl-4 font-serif text-[0.9375rem] leading-snug">
-        {terms.slice(0, 4).map((concept) => (
-          <p key={concept.term}>
-            <span className="font-semibold text-accent">
-              {concept.term.charAt(0).toUpperCase() + concept.term.slice(1)}.
-            </span>{" "}
-            <span className="text-muted">{concept.meaning}</span>
-          </p>
-        ))}
-        {equations.map(({ equation, index }) => (
-          <p key={equation.id}>
-            <a href={`#eq-${equation.id}`} className="font-semibold text-accent hover:underline">
-              {equationLabel(equation, index)}
-            </a>{" "}
-            <span className="text-muted italic">{equation.name}</span>
-          </p>
-        ))}
-      </div>
-    </aside>
-  );
-}
-
 function SectionBlock({
   section,
   number,
@@ -140,11 +105,10 @@ function SectionBlock({
     .map((equation, index) => ({ equation, index }))
     .filter(({ equation }) => equation.section_id === section.id);
   const figures = (reading.figures ?? []).filter((figure) => figure.section_id === section.id);
-  const terms = termsIn(section.explanation[level], reading.concepts);
   return (
     <section
       id={section.id}
-      className="reading-section scroll-mt-28 border-t border-line pt-10 xl:grid xl:grid-cols-[minmax(0,40rem)_13rem] xl:gap-x-10"
+      className="scroll-mt-28 border-t border-line pt-10"
       aria-labelledby={`${section.id}-title`}
     >
       <div className="min-w-0">
@@ -193,25 +157,30 @@ function SectionBlock({
         )}
         <Quiz section={section} level={level} pdfUrl={paper.pdf_url} answers={answers} onChoose={onChoose} />
       </div>
-      <MarginNotes section={section} terms={terms} equations={equations} />
     </section>
   );
 }
 
-/** The section being read: the last one whose heading has scrolled past the top third of the screen. */
-function useActiveSection(ids: string[]) {
-  const [active, setActive] = useState<string | null>(null);
+
+/** Where the reader is: the section whose heading last scrolled past the top third of the screen,
+ * and how far down the paper they are (0 to 1). */
+function useReadingPosition(ids: string[]) {
+  const [position, setPosition] = useState<{ active: string | null; progress: number }>({ active: null, progress: 0 });
   useEffect(() => {
     let frame = 0;
     const update = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        let current: string | null = null;
+        let active: string | null = null;
         for (const id of ids) {
           const element = document.getElementById(id);
-          if (element && element.getBoundingClientRect().top <= window.innerHeight * 0.35) current = id;
+          if (element && element.getBoundingClientRect().top <= window.innerHeight * 0.35) active = id;
         }
-        setActive(current);
+        const room = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = room > 0 ? Math.min(Math.max(window.scrollY / room, 0), 1) : 0;
+        setPosition((current) =>
+          current.active === active && Math.abs(current.progress - progress) < 0.002 ? current : { active, progress },
+        );
       });
     };
     update();
@@ -223,9 +192,193 @@ function useActiveSection(ids: string[]) {
       window.removeEventListener("resize", update);
     };
   }, [ids]);
-  return active;
+  return position;
 }
 
+const CONTENTS_LINK = "-ml-px block border-l-2 py-1.5 pl-3 leading-snug transition-colors";
+
+/** The paper's table of contents, with the section being read marked. */
+function Contents({
+  reading,
+  active,
+  hasMap,
+  hasConnections,
+  onNavigate,
+}: {
+  reading: Reading;
+  active: string | null;
+  hasMap: boolean;
+  hasConnections: boolean;
+  onNavigate?: () => void;
+}) {
+  const quiet = `${CONTENTS_LINK} border-transparent text-muted hover:text-foreground`;
+  return (
+    <ol className="border-l border-line text-[0.8125rem]">
+      <li>
+        <a href="#nutshell" onClick={onNavigate} className={quiet}>
+          Overview
+        </a>
+      </li>
+      {hasMap && (
+        <li>
+          <a href="#before-you-read" onClick={onNavigate} className={quiet}>
+            Before you read
+          </a>
+        </li>
+      )}
+      {reading.sections.map((section, i) => (
+        <li key={section.id}>
+          <a
+            href={`#${section.id}`}
+            onClick={onNavigate}
+            aria-current={active === section.id ? "location" : undefined}
+            className={`${CONTENTS_LINK} flex gap-2 ${
+              active === section.id
+                ? "border-claret-700 font-medium text-foreground dark:border-claret-300"
+                : "border-transparent text-muted hover:text-foreground"
+            }`}
+          >
+            <span className="w-4 shrink-0 text-right tabular-nums">{i + 1}</span>
+            <span>{section.title}</span>
+          </a>
+        </li>
+      ))}
+      {hasConnections && (
+        <li>
+          <a href="#builds-on" onClick={onNavigate} className={quiet}>
+            What it connects to
+          </a>
+        </li>
+      )}
+      {reading.concepts.length > 0 && (
+        <li>
+          <a href="#glossary" onClick={onNavigate} className={quiet}>
+            Glossary
+          </a>
+        </li>
+      )}
+    </ol>
+  );
+}
+
+/**
+ * Notes in the margin for the section being read, like the pencil notes in an annotated paper: the
+ * terms it uses, the equations and figures it introduces, how its quotes checked out, and questions
+ * to ask. Before the first section, the paper's key terms.
+ */
+function SectionNotes({
+  reading,
+  active,
+  onAsk,
+  onNavigate,
+}: {
+  reading: Reading;
+  active: string | null;
+  onAsk: (question?: string) => void;
+  onNavigate?: () => void;
+}) {
+  const level = useLevel();
+  const index = reading.sections.findIndex((s) => s.id === active);
+  const section = index >= 0 ? reading.sections[index] : null;
+  const terms = section ? termsIn(section.explanation[level], reading.concepts) : reading.concepts.slice(0, 8);
+  const equations = reading.equations
+    .map((equation, i) => ({ equation, i }))
+    .filter(({ equation }) => section && equation.section_id === section.id);
+  const figures = (reading.figures ?? []).filter((figure) => section && figure.section_id === section.id);
+  const found = section?.quotes.filter((q) => q.verified).length ?? 0;
+  const label = "text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase";
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className={label}>{section ? `Section ${index + 1} · page ${section.page}` : "Overview"}</p>
+        <p className="mt-1 font-serif text-[1.0625rem] leading-snug font-semibold">
+          {section ? section.title : "Key terms in this paper"}
+        </p>
+      </div>
+
+      {terms.length > 0 && (
+        <div>
+          {section && <p className={label}>Terms</p>}
+          <dl className="mt-2 space-y-3">
+            {terms.map((concept) => (
+              <div key={concept.term}>
+                <dt className="font-serif text-[0.9375rem] font-semibold text-accent">
+                  {concept.term.charAt(0).toUpperCase() + concept.term.slice(1)}
+                </dt>
+                <dd className="text-[0.8125rem] leading-relaxed text-muted">{concept.meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {equations.length > 0 && (
+        <div>
+          <p className={label}>Equations</p>
+          <ul className="mt-2 space-y-2">
+            {equations.map(({ equation, i }) => (
+              <li key={equation.id} className="text-[0.8125rem] leading-snug">
+                <a href={`#eq-${equation.id}`} onClick={onNavigate} className="font-semibold text-accent hover:underline">
+                  {equationLabel(equation, i)}
+                </a>{" "}
+                <span className="text-muted">{equation.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {figures.length > 0 && (
+        <div>
+          <p className={label}>Figures</p>
+          <ul className="mt-2 space-y-2">
+            {figures.map((figure) => (
+              <li key={figure.id} className="text-[0.8125rem] leading-snug">
+                <a href={`#fig-${figure.id}`} onClick={onNavigate} className="font-semibold text-accent hover:underline">
+                  {figure.label}
+                </a>{" "}
+                <span className="text-muted">page {figure.page}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {section && section.quotes.length > 0 && found > 0 && (
+        <p className="flex items-start gap-1.5 text-[0.8125rem] leading-snug text-emerald-800 dark:text-emerald-300">
+          <CircleCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          {found} of {section.quotes.length} {section.quotes.length === 1 ? "quote" : "quotes"} found word for word in the PDF
+        </p>
+      )}
+
+      {(reading.suggested_questions?.length ?? 0) > 0 && (
+        <div className="border-t border-line pt-5">
+          <p className={label}>Ask this paper</p>
+          <ul className="mt-2 space-y-1.5">
+            {reading.suggested_questions!.map((question) => (
+              <li key={question}>
+                <button
+                  type="button"
+                  onClick={() => onAsk(question)}
+                  className="w-full rounded-md border border-line bg-surface px-3 py-2 text-left text-[0.8125rem] leading-snug font-medium hover:border-claret-300 hover:bg-accent-soft"
+                >
+                  {question}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The reader, laid out like a reading app: the contents and your progress on the left, the paper's
+ * explanation in the middle under a reading-level toolbar, and margin notes for the section you're
+ * on at the right. Phones get the paper alone, with contents, notes and questions in a bottom bar.
+ */
 export function ReadingView({
   paper,
   reading,
@@ -237,8 +390,11 @@ export function ReadingView({
 }) {
   const level = useLevel();
   const ids = useMemo(() => reading.sections.map((s) => s.id), [reading.sections]);
-  const active = useActiveSection(ids);
+  const { active, progress } = useReadingPosition(ids);
   const [asking, setAsking] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<"contents" | "notes" | null>(null);
+  const closeSheet = useCallback(() => setSheet(null), []);
   const context = useMemo(
     () => ({ equations: reading.equations, concepts: reading.concepts, level }),
     [reading.equations, reading.concepts, level],
@@ -252,120 +408,62 @@ export function ReadingView({
   const score = quizScore(reading.sections, level, answers);
   const connections = useConnections(paper.id);
   const hasConnections = (connections?.references?.items.length ?? 0) > 0 || hasLinks(connections);
+  const activeIndex = reading.sections.findIndex((s) => s.id === active);
+
+  useEffect(() => {
+    if (progress > 0) saveProgress(paper.id, progress);
+  }, [paper.id, progress]);
+
+  // "?ask=..." (from the library's margin notes) opens the ask panel, with that question if there is one.
+  useEffect(() => {
+    const ask = new URLSearchParams(window.location.search).get("ask");
+    if (ask === null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the address once, when the page opens
+    setQuestion(ask || null);
+    setAsking(true);
+  }, []);
+
+  const ask = useCallback((text?: string) => {
+    setSheet(null);
+    setQuestion(text ?? null);
+    setAsking(true);
+  }, []);
 
   return (
     <ReadingContext.Provider value={context}>
-      <article>
-        <header className="max-w-3xl">
-          <Link
-            href="/#library"
-            className="-ml-1 inline-flex items-center gap-1.5 rounded-md px-1 text-sm font-medium text-muted hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-            Library
-          </Link>
-          <p className="mt-8 text-[0.8125rem] font-medium text-accent">
-            {[paper.is_sample ? "Sample paper" : null, reading.field, reading.year].filter(Boolean).join(" · ")}
-          </p>
-          <h1 className="mt-2 font-serif text-[1.875rem] leading-[1.15] font-semibold tracking-[-0.01em] text-balance sm:text-[2.375rem]">
-            {reading.title}
-          </h1>
-          <p className="mt-3 text-[0.9375rem] text-muted">{authors}</p>
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setAsking(true)} className="btn btn-secondary btn-sm">
-              <MessageSquare className="h-4 w-4" aria-hidden />
-              Ask the paper
-            </button>
-            <Listen reading={reading} level={level} />
-            {onDelete && (
-              <button type="button" onClick={onDelete} className="btn btn-danger-quiet btn-sm ml-auto">
-                <Trash2 className="h-4 w-4" aria-hidden />
-                Delete
-              </button>
-            )}
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            {paper.pdf_url && (
-              <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className={SOURCE_LINK}>
-                Open the PDF
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-              </a>
-            )}
-            {paper.arxiv_id && (
-              <a
-                href={`https://arxiv.org/abs/${paper.arxiv_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={SOURCE_LINK}
-              >
-                arXiv:{paper.arxiv_id}
-              </a>
-            )}
-            {connections && connections.code.length > 0 && (
-              <a href={connections.code[0].url} target="_blank" rel="noopener noreferrer" className={SOURCE_LINK}>
-                Code
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-              </a>
-            )}
-          </div>
-          {paper.is_sample && (
-            <p className="mt-5 text-sm text-muted">
-              This sample was explained in advance, so you can try Paper2Lab without adding a paper.
-            </p>
-          )}
-        </header>
+      <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_19rem]">
+        <aside
+          aria-label="Contents and progress"
+          className="hidden lg:sticky lg:top-12 lg:block lg:h-[calc(100dvh-3rem)] lg:self-start lg:overflow-y-auto lg:border-r lg:border-line"
+        >
+          <div className="flex min-h-full flex-col px-4 py-5">
+            <Link
+              href="/"
+              className="-ml-1 inline-flex items-center gap-1.5 self-start rounded-md px-1 text-[0.8125rem] font-medium text-muted hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              Library
+            </Link>
+            <p className="mt-5 line-clamp-3 font-serif text-[0.9375rem] leading-snug font-semibold">{reading.title}</p>
+            <p className="mt-1 text-xs text-muted">{[reading.year, paper.page_count && `${paper.page_count} pages`].filter(Boolean).join(" · ")}</p>
 
-        <div className="sticky top-0 z-30 -mx-4 mt-10 border-b border-line bg-background/90 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
-          <LevelSlider level={level} />
-        </div>
+            <nav aria-label="Sections" className="mt-6">
+              <p className="mb-2 text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase">Contents</p>
+              <Contents reading={reading} active={active} hasMap={hasMap} hasConnections={hasConnections} />
+            </nav>
 
-        <div className="mt-10 lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12">
-          <nav aria-label="Sections" className="hidden lg:block">
-            <div className="sticky top-28">
-              <p className="text-[0.8125rem] font-semibold">Contents</p>
-              <ol className="mt-3 border-l border-line text-sm">
-                {hasMap && (
-                  <li>
-                    <a
-                      href="#before-you-read"
-                      className="-ml-px block border-l-2 border-transparent py-1.5 pl-3 text-muted hover:text-foreground"
-                    >
-                      Before you read
-                    </a>
-                  </li>
-                )}
-                {reading.sections.map((section, i) => (
-                  <li key={section.id}>
-                    <a
-                      href={`#${section.id}`}
-                      aria-current={active === section.id ? "location" : undefined}
-                      className={`-ml-px block border-l-2 py-1.5 pl-3 leading-snug transition-colors ${
-                        active === section.id
-                          ? "border-claret-700 font-medium text-foreground dark:border-claret-300"
-                          : "border-transparent text-muted hover:text-foreground"
-                      }`}
-                    >
-                      {i + 1}. {section.title}
-                    </a>
-                  </li>
-                ))}
-                {hasConnections && (
-                  <li>
-                    <a href="#builds-on" className="-ml-px block border-l-2 border-transparent py-1.5 pl-3 text-muted hover:text-foreground">
-                      What it connects to
-                    </a>
-                  </li>
-                )}
-                {reading.concepts.length > 0 && (
-                  <li>
-                    <a href="#glossary" className="-ml-px block border-l-2 border-transparent py-1.5 pl-3 text-muted hover:text-foreground">
-                      Glossary
-                    </a>
-                  </li>
-                )}
-              </ol>
+            <div className="mt-auto space-y-3 border-t border-line pt-4 text-xs leading-relaxed text-muted">
+              <div>
+                <div className="flex justify-between">
+                  <span>Read so far</span>
+                  <span className="tabular-nums">{Math.round(progress * 100)}%</span>
+                </div>
+                <div className="mt-1.5 h-1 rounded-full bg-line" aria-hidden>
+                  <div className="h-1 rounded-full bg-claret-700 dark:bg-claret-300" style={{ width: `${progress * 100}%` }} />
+                </div>
+              </div>
               {quotes > 0 && !(paper.is_sample && verified === 0) && (
-                <p className="mt-6 text-[0.8125rem] leading-relaxed text-muted">
+                <p>
                   {verified} of {quotes} quotes found word for word in the PDF.{" "}
                   <Link href="/accuracy" className="link">
                     How we check
@@ -373,21 +471,102 @@ export function ReadingView({
                 </p>
               )}
               {score.total > 0 && (
-                <p className="mt-3 text-[0.8125rem] leading-relaxed text-muted">
+                <p>
                   {score.answered === 0
                     ? `${score.total} check-yourself questions at this level.`
                     : `Check yourself: ${score.right} of ${score.answered} right so far, ${score.total - score.answered} to go.`}
                 </p>
               )}
             </div>
-          </nav>
+          </div>
+        </aside>
 
-          <div className="max-w-3xl space-y-12 xl:max-w-none xl:[&>*:not(.reading-section)]:max-w-[40rem]">
-            <section
-              aria-labelledby="nutshell"
-              className="border-l-2 border-claret-700 pl-5 dark:border-claret-300"
+        <article className="min-w-0 bg-surface lg:min-h-[calc(100dvh-3rem)]">
+          <header className="mx-auto max-w-[42rem] px-4 pt-5 sm:px-8 lg:pt-10">
+            <Link
+              href="/"
+              className="-ml-1 inline-flex items-center gap-1.5 rounded-md px-1 text-[0.8125rem] font-medium text-muted hover:text-foreground lg:hidden"
             >
-              <h2 id="nutshell" className="eyebrow">
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              Library
+            </Link>
+            <p className="mt-5 font-mono text-xs text-muted lg:mt-0">
+              {[
+                paper.is_sample ? "Sample paper" : null,
+                paper.arxiv_id ? `arXiv:${paper.arxiv_id}` : null,
+                reading.field,
+                reading.year,
+              ]
+                .filter(Boolean)
+                .join("  ·  ")}
+            </p>
+            <h1 className="mt-3 font-serif text-[1.875rem] leading-[1.15] font-semibold tracking-[-0.01em] text-balance sm:text-[2.375rem]">
+              {reading.title}
+            </h1>
+            <p className="mt-3 font-serif text-[1.0625rem] text-muted italic">{authors}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => ask()} className="btn btn-secondary btn-sm">
+                <MessageSquare className="h-4 w-4" aria-hidden />
+                Ask the paper
+              </button>
+              <Listen reading={reading} level={level} />
+              {paper.pdf_url && (
+                <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+                  Open the PDF
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                </a>
+              )}
+              {onDelete && (
+                <button type="button" onClick={onDelete} className="btn btn-danger-quiet btn-sm ml-auto">
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                  Delete
+                </button>
+              )}
+            </div>
+            {(paper.arxiv_id || (connections && connections.code.length > 0)) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.8125rem]">
+                {paper.arxiv_id && (
+                  <a
+                    href={`https://arxiv.org/abs/${paper.arxiv_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={SOURCE_LINK}
+                  >
+                    arxiv.org/abs/{paper.arxiv_id}
+                  </a>
+                )}
+                {connections && connections.code.length > 0 && (
+                  <a href={connections.code[0].url} target="_blank" rel="noopener noreferrer" className={SOURCE_LINK}>
+                    Code
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                  </a>
+                )}
+              </div>
+            )}
+            {paper.is_sample && (
+              <p className="mt-4 text-[0.8125rem] text-muted">
+                This sample was explained in advance, so you can try Paper2Lab without adding a paper.
+              </p>
+            )}
+          </header>
+
+          <div className="sticky top-12 z-30 mt-6 border-y border-line bg-surface">
+            <div className="mx-auto flex max-w-[42rem] items-center gap-6 px-4 py-1.5 sm:px-8">
+              <div className="min-w-0 flex-1">
+                <LevelSlider level={level} compact />
+              </div>
+              <p className="hidden w-44 truncate text-right text-xs text-muted md:block" aria-hidden>
+                {activeIndex >= 0 ? `§${activeIndex + 1} ${reading.sections[activeIndex].title}` : "Overview"}
+              </p>
+            </div>
+            <div className="absolute inset-x-0 -bottom-px h-[2px]" aria-hidden>
+              <div className="h-full bg-claret-700 dark:bg-claret-300" style={{ width: `${progress * 100}%` }} />
+            </div>
+          </div>
+
+          <div className="mx-auto max-w-[42rem] space-y-12 px-4 pt-10 pb-28 sm:px-8 lg:pb-20">
+            <section aria-labelledby="nutshell" className="scroll-mt-28 border-l-2 border-claret-700 pl-5 dark:border-claret-300">
+              <h2 id="nutshell" className="scroll-mt-32 text-[0.75rem] font-semibold tracking-[0.08em] text-accent uppercase">
                 In a nutshell
               </h2>
               <div className="prose-reading mt-2 sm:text-[1.1875rem]">
@@ -428,11 +607,7 @@ export function ReadingView({
             <ConnectionsSection connections={connections} />
 
             {reading.concepts.length > 0 && (
-              <section
-                id="glossary"
-                className="scroll-mt-28 border-t border-line pt-10"
-                aria-labelledby="glossary-title"
-              >
+              <section id="glossary" className="scroll-mt-28 border-t border-line pt-10" aria-labelledby="glossary-title">
                 <h2 id="glossary-title" className="text-[1.375rem] font-semibold tracking-tight">
                   Glossary
                 </h2>
@@ -447,20 +622,60 @@ export function ReadingView({
               </section>
             )}
           </div>
-        </div>
-      </article>
+        </article>
 
-      {!asking && (
-        <button
-          type="button"
-          onClick={() => setAsking(true)}
-          className="btn btn-primary fixed right-4 bottom-4 z-30 shadow-[0_4px_16px_rgb(0_0_0/0.18)] sm:right-6 sm:bottom-6 print:hidden"
+        <aside
+          aria-label="Margin notes"
+          className="hidden xl:sticky xl:top-12 xl:block xl:h-[calc(100dvh-3rem)] xl:self-start xl:overflow-y-auto xl:border-l xl:border-line"
         >
-          <MessageSquare className="h-4 w-4" aria-hidden />
-          Ask the paper
-        </button>
+          <div className="px-5 py-5">
+            <SectionNotes reading={reading} active={active} onAsk={ask} />
+          </div>
+        </aside>
+      </div>
+
+      {/* Phones and tablets: the reader's tools in a bar along the bottom, opening sheets. */}
+      <nav
+        aria-label="Reader tools"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-line bg-background pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden"
+      >
+        {[
+          { label: "Contents", icon: ListTree, onClick: () => setSheet("contents") },
+          { label: "Notes", icon: NotebookPen, onClick: () => setSheet("notes") },
+          { label: "Ask", icon: MessageSquare, onClick: () => ask() },
+        ].map((tool) => (
+          <button
+            key={tool.label}
+            type="button"
+            onClick={tool.onClick}
+            className="flex h-14 flex-col items-center justify-center gap-0.5 text-[0.75rem] font-medium text-muted hover:text-foreground"
+          >
+            <tool.icon className="h-5 w-5" aria-hidden />
+            {tool.label}
+          </button>
+        ))}
+      </nav>
+      {sheet === "contents" && (
+        <Sheet title="Contents" onClose={closeSheet}>
+          <Contents reading={reading} active={active} hasMap={hasMap} hasConnections={hasConnections} onNavigate={closeSheet} />
+          <p className="mt-4 text-xs text-muted">{Math.round(progress * 100)}% read</p>
+        </Sheet>
       )}
-      <AskPanel paper={paper} open={asking} onClose={() => setAsking(false)} />
+      {sheet === "notes" && (
+        <Sheet title="Notes" onClose={closeSheet}>
+          <SectionNotes reading={reading} active={active} onAsk={ask} onNavigate={closeSheet} />
+        </Sheet>
+      )}
+
+      <AskPanel
+        paper={paper}
+        open={asking}
+        initialQuestion={question}
+        onClose={() => {
+          setAsking(false);
+          setQuestion(null);
+        }}
+      />
     </ReadingContext.Provider>
   );
 }

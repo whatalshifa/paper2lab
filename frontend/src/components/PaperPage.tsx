@@ -19,7 +19,7 @@ const STEPS = [
 function Working({ paper }: { paper: PaperDetail }) {
   const current = paper.status === "queued" ? 0 : 1;
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-xl px-4 py-12 sm:py-16">
       <div className="card p-6 sm:p-8" role="status" aria-live="polite">
         <p className="eyebrow">Explaining your paper</p>
         <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
@@ -50,7 +50,7 @@ function Working({ paper }: { paper: PaperDetail }) {
 
 function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () => void; onDelete: () => void }) {
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-xl px-4 py-12 sm:py-16">
       <div className="card p-6 sm:p-8" role="alert">
         <p className="eyebrow text-rose-700 dark:text-rose-300">Couldn&apos;t explain this paper</p>
         <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
@@ -76,7 +76,7 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
 
 function Skeleton() {
   return (
-    <div className="max-w-3xl space-y-4" aria-busy="true" aria-label="Loading the paper">
+    <div className="mx-auto max-w-[42rem] space-y-4 px-4 py-10 sm:px-8 lg:py-14" aria-busy="true" aria-label="Loading the paper">
       <div className="skeleton h-4 w-24" />
       <div className="skeleton h-10 w-4/5" />
       <div className="skeleton h-4 w-1/2" />
@@ -133,7 +133,7 @@ export function PaperPage({ id }: { id: string }) {
     if (!confirm("Delete this paper and its explanation? This can't be undone.")) return;
     try {
       await api.remove(id);
-      router.push("/#library");
+      router.push("/");
     } catch (err) {
       if (err instanceof ApiError) alert(err.message);
     }
@@ -141,7 +141,7 @@ export function PaperPage({ id }: { id: string }) {
 
   if (error && !paper) {
     return (
-      <div className="mx-auto max-w-md py-12 text-center sm:py-20">
+      <div className="mx-auto max-w-md px-4 py-16 text-center sm:py-24">
         <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">
           {error.status === 404 ? "Paper not found" : "Couldn't load this paper"}
         </h1>
@@ -167,7 +167,7 @@ export function PaperPage({ id }: { id: string }) {
     return (
       <>
         {slow && (
-          <p role="status" className="mb-6 text-sm text-muted">
+          <p role="status" className="mx-auto max-w-[42rem] px-4 pt-6 text-sm text-muted sm:px-8">
             {WAKING_UP}
           </p>
         )}

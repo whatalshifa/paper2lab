@@ -1,12 +1,41 @@
 import { expect, test } from "@playwright/test";
 
-test("the home page offers the sample papers and explains that the demo can't read new ones", async ({ page }) => {
+test("the home page is the library, and the command bar explains that the demo can't read new ones", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Read any research paper at your level." })).toBeVisible();
-  await expect(page.getByText("Explaining new papers is paused on this demo")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Choose a PDF" })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Library", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: /Attention Is All You Need/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ })).toBeVisible();
+
+  // Adding a paper lives in the command bar at the top; "/" opens it from anywhere.
+  await page.keyboard.press("/");
+  await expect(page.getByRole("textbox", { name: /arXiv link/ })).toBeFocused();
+  await expect(page.getByText("Explaining new papers is paused on this demo")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Choose a PDF" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Choose a PDF" })).toBeHidden();
+});
+
+test("on a wide screen the library shows the selected paper's first page and its margin notes", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Phones show the library list alone; a tap opens the reader");
+  await page.goto("/");
+  await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
+  await expect(page).toHaveURL(/\?paper=00000000-0000-4000-8000-000000001412/);
+  await expect(page.getByRole("heading", { name: "Adam: A Method for Stochastic Optimization", level: 2 })).toBeVisible();
+  const notes = page.getByRole("complementary", { name: "Margin notes" });
+  await notes.getByRole("tab", { name: /Ask/ }).click();
+  await notes.getByRole("button", { name: "What default settings does Adam recommend?" }).click();
+  await expect(notes.getByRole("link", { name: /Page 2/ })).toHaveAttribute("href", "https://arxiv.org/pdf/1412.6980v9#page=2");
+  await page.getByRole("link", { name: "Open in reader" }).click();
+  await expect(page).toHaveURL(/\/papers\/00000000-0000-4000-8000-000000001412$/);
+});
+
+test("on a phone, tapping a paper in the library opens the reader", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Wide screens show the paper beside the list instead");
+  await page.goto("/");
+  await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
+  await expect(page).toHaveURL(/\/papers\/00000000-0000-4000-8000-000000001412$/);
+  await page.getByRole("button", { name: "Notes", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Notes" })).toContainText("Key terms in this paper");
 });
 
 test("the reading-level slider rewrites the explanations", async ({ page }) => {
@@ -150,5 +179,5 @@ test("pages carry a content security policy, and the API only answers the websit
   expect(response?.headers()["content-security-policy"]).toContain("object-src 'none'");
   // Through the website, the API answers; straight to the API, it refuses.
   expect((await request.get("/api/papers")).status()).toBe(200);
-  expect((await request.get("http://localhost:8000/api/papers")).status()).toBe(403);
+  expect((await request.get(`${process.env.E2E_API_URL ?? "http://localhost:8000"}/api/papers`)).status()).toBe(403);
 });

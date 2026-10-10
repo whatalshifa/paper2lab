@@ -18,11 +18,16 @@ export function LogoMark({ className = "h-7 w-7" }: { className?: string }) {
   );
 }
 
-export function Logo() {
+/** The mark and the name. `compact` (the app bar) draws it smaller, and keeps only the mark on phones. */
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2">
-      <LogoMark />
-      <span className="text-[1.0625rem] font-semibold tracking-tight">
+      <LogoMark className={compact ? "h-6 w-6" : undefined} />
+      <span
+        className={
+          compact ? "hidden text-[0.9375rem] font-semibold tracking-tight sm:inline" : "text-[1.0625rem] font-semibold tracking-tight"
+        }
+      >
         Paper<span className="text-accent">2</span>Lab
       </span>
     </span>
