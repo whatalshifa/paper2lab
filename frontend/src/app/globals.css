@@ -249,6 +249,17 @@ body {
 .level-range::-moz-range-thumb {
   @apply h-[20px] w-[10px] border-2 border-background bg-claret-700 outline outline-1 outline-claret-700;
 }
+/* The demos' sliders have no ruler drawn under them, so their track is a hairline of its own, in the same
+   half-strength rule as the reading-level ruler. */
+.level-range.with-track {
+  --track: color-mix(in srgb, var(--rule) 50%, transparent);
+}
+.level-range.with-track::-webkit-slider-runnable-track {
+  background: linear-gradient(var(--track), var(--track)) center / 100% 1px no-repeat;
+}
+.level-range.with-track::-moz-range-track {
+  background: linear-gradient(var(--track), var(--track)) center / 100% 1px no-repeat;
+}
 /* In dark mode the marker turns light claret, so it stands out from the page (8:1). */
 .dark .level-range::-webkit-slider-thumb {
   background: var(--color-claret-300);

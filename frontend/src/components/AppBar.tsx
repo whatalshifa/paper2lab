@@ -8,10 +8,12 @@ import { CommandBar } from "./CommandBar";
 import { PaperInkSwitch } from "./PaperInk";
 import { Wordmark } from "./Wordmark";
 
+// The home page is rarely where a reader goes next, and it is the heaviest page to fetch ahead (it carries
+// the sample papers), so the app doesn't prefetch it.
 const NAV = [
-  { href: "/library", label: "Library", match: (path: string) => path.startsWith("/library") || path.startsWith("/papers") },
-  { href: "/accuracy", label: "Accuracy", match: (path: string) => path.startsWith("/accuracy") },
-  { href: "/", label: "About", match: (path: string) => path === "/" },
+  { href: "/library", label: "Library", prefetch: true, match: (path: string) => path.startsWith("/library") || path.startsWith("/papers") },
+  { href: "/accuracy", label: "Accuracy", prefetch: true, match: (path: string) => path.startsWith("/accuracy") },
+  { href: "/", label: "About", prefetch: false, match: (path: string) => path === "/" },
 ];
 
 /**
@@ -61,6 +63,7 @@ export function AppBar() {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={item.prefetch ? undefined : false}
                 aria-current={active ? "page" : undefined}
                 className={`px-2 py-1.5 underline-offset-[6px] transition-colors ${
                   active ? "text-foreground underline decoration-accent decoration-2" : "text-muted hover:text-foreground hover:underline"
@@ -96,6 +99,7 @@ export function AppBar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    prefetch={item.prefetch ? undefined : false}
                     aria-current={active ? "page" : undefined}
                     onClick={() => setOpen(false)}
                     className={`flex h-12 items-baseline gap-3 border-b border-line px-1 pt-3 font-serif text-[1.25rem] ${

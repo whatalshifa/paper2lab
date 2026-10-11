@@ -88,14 +88,17 @@ export function PaperPage({ id }: { id: string }) {
   const [paper, setPaper] = useState<PaperDetail | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const load = useCallback(async () => {
+  const show = useCallback(async (request: Promise<PaperDetail>) => {
     try {
-      setPaper(await api.paper(id));
+      setPaper(await request);
       setError(null);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError("Something went wrong.", 0));
     }
-  }, [id]);
+  }, []);
+  // Opening the page waits for a sleeping server to wake; the checks while a paper is read are one quick look each.
+  const load = useCallback(() => show(api.paper(id)), [id, show]);
+  const check = useCallback(() => show(api.paperNow(id)), [id, show]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading data when the page opens
@@ -113,9 +116,9 @@ export function PaperPage({ id }: { id: string }) {
   const working = paper?.status === "queued" || paper?.status === "reading";
   useEffect(() => {
     if (!working) return;
-    const timer = window.setInterval(load, 3000);
+    const timer = window.setInterval(check, 3000);
     return () => window.clearInterval(timer);
-  }, [working, load]);
+  }, [working, check]);
 
   async function retry() {
     try {

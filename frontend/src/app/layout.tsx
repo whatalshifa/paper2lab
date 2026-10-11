@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Paper2Lab",
+    url: "/",
     title: "Paper2Lab: read any research paper at your level",
     description: DESCRIPTION,
   },

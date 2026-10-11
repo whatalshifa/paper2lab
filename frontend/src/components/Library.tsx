@@ -1,20 +1,36 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { ApiError, api, type PaperDetail, type PaperSummary, type SiteConfig } from "@/lib/api";
-import { useLevel } from "@/lib/level";
 import { useProgress } from "@/lib/progress";
 import { useSlow, WAKING_UP } from "@/lib/useSlow";
 
-import { Go, Mark, Out } from "./Glyphs";
-import { LevelSlider } from "./LevelSlider";
-import { PaperNotes } from "./PaperNotes";
-import { ReadingContext, RichText } from "./RichText";
+import { Go, Mark } from "./Glyphs";
 
 const WIDE = "(min-width: 1024px)";
+
+// The selected paper's panes only show on wide screens, so they (and KaTeX, which draws their maths) are
+// downloaded only there. Phones get the list, and a tap opens the reader.
+const Preview = dynamic(() => import("./LibraryPreview").then((module) => module.Preview), {
+  ssr: false,
+  loading: () => <PreviewSkeleton />,
+});
+const PaperNotes = dynamic(() => import("./PaperNotes").then((module) => module.PaperNotes), { ssr: false });
+
+function subscribeToWidth(onChange: () => void) {
+  const media = matchMedia(WIDE);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+/** True on screens wide enough for the library's three panes. */
+function useWide() {
+  return useSyncExternalStore(subscribeToWidth, () => matchMedia(WIDE).matches, () => false);
+}
 
 const STATUS: Record<PaperSummary["status"], { label: string; tone: string }> = {
   queued: { label: "Waiting", tone: "text-muted" },
@@ -214,7 +230,7 @@ function Rail({
             </Link>
           </li>
           <li>
-            <Link href="/" className="text-muted hover:text-foreground">
+            <Link href="/" prefetch={false} className="text-muted hover:text-foreground">
               About Paper2Lab
             </Link>
           </li>
@@ -244,123 +260,18 @@ function PreviewSkeleton() {
   );
 }
 
-/** The selected paper's first page: what it is, what it says in a nutshell, and what's in it. */
-function Preview({ paper }: { paper: PaperDetail }) {
-  const level = useLevel();
-  const reading = paper.reading;
-  const context = useMemo(
-    () => ({ equations: reading?.equations ?? [], concepts: reading?.concepts ?? [], level }),
-    [reading, level],
-  );
-  const title = reading?.title ?? paper.title ?? paper.filename ?? "Untitled paper";
-  const meta = [
-    paper.arxiv_id ? `arXiv:${paper.arxiv_id}` : paper.filename,
-    reading?.field ?? paper.field,
-    reading?.year ?? paper.year,
-    paper.page_count ? `${paper.page_count} pages` : null,
-  ].filter(Boolean);
-
+/** The middle pane when there is nothing to show yet: the library or the paper couldn't load. */
+function PreviewUnavailable({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <ReadingContext.Provider value={context}>
-      <div className="sticky top-0 z-20 flex h-11 items-center justify-between gap-4 border-b border-line bg-surface px-6">
-        <p className="flex min-w-0 items-center gap-1.5 font-mono text-[0.6875rem] text-muted">
-          <span className="shrink-0">Library</span>
-          <Mark className="shrink-0">/</Mark>
-          <span className="shrink-0">{paper.is_sample ? "Samples" : "Your papers"}</span>
-          <Mark className="shrink-0">/</Mark>
-          <span className="truncate font-serif text-[0.875rem] text-foreground italic">{title}</span>
-        </p>
-        <div className="flex shrink-0 items-center gap-3">
-          {paper.pdf_url && (
-            <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm h-8">
-              PDF
-              <Out />
-            </a>
-          )}
-          <Link href={`/papers/${paper.id}`} className="btn btn-primary btn-sm h-8 px-3">
-            Open in reader
-            <Go className="text-[0.9375rem]" />
-          </Link>
-        </div>
-      </div>
-
-      <article className="mx-auto max-w-[40rem] px-8 pt-10 pb-20">
-        <p className="border-b border-line pb-2 font-mono text-[0.6875rem] text-muted">{meta.join("  ·  ")}</p>
-        <h2 className="mt-5 font-serif text-[2.5rem] leading-[1.06] font-normal tracking-[-0.02em] text-balance">{title}</h2>
-        {reading && <p className="mt-3 font-serif text-[1.0625rem] leading-snug text-muted italic">{reading.authors.join(", ")}</p>}
-
-        {!reading ? (
-          <div className="mt-10 border border-line bg-background px-5 py-4 text-[0.9375rem]">
-            {paper.status === "failed" ? (
-              <p>Paper2Lab couldn&apos;t explain this paper. {paper.error}</p>
-            ) : (
-              <p role="status">Paper2Lab is still reading this paper. It usually takes one to three minutes.</p>
-            )}
-            <Link href={`/papers/${paper.id}`} className="link mt-2 inline-block">
-              Open it
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="mt-8 border-y border-rule bg-background px-1 py-2.5">
-              <LevelSlider level={level} compact />
-            </div>
-
-            <section aria-labelledby="preview-nutshell" className="mt-8">
-              <h3 id="preview-nutshell" className="eyebrow">
-                In a nutshell
-              </h3>
-              <div className="prose-reading mt-2">
-                <RichText text={reading.summary[level]} />
-              </div>
-            </section>
-
-            {reading.contributions.length > 0 && (
-              <div className="mt-8">
-                <h3 className="eyebrow">What&apos;s new</h3>
-                <ul className="mt-2 space-y-2 font-serif text-[1.0625rem] leading-relaxed">
-                  {reading.contributions.map((item) => (
-                    <li key={item} className="flex gap-3">
-                      <Mark className="shrink-0 text-accent">§</Mark>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <nav aria-label="Contents" className="mt-10">
-              <h3 className="eyebrow">Contents</h3>
-              <ol className="mt-2 border-t border-rule">
-                {reading.sections.map((section, i) => (
-                  <li key={section.id}>
-                    <Link
-                      href={`/papers/${paper.id}#${section.id}`}
-                      className="group flex items-baseline gap-3 border-b border-line py-2.5 text-[0.9375rem]"
-                    >
-                      <span className="w-6 shrink-0 text-right font-serif text-[0.9375rem] text-accent italic">{i + 1}.</span>
-                      <span className="font-serif text-[1.0625rem] group-hover:underline group-hover:underline-offset-4">{section.title}</span>
-                      <span className="mx-1 flex-1 translate-y-[-0.2em] border-b border-dotted border-muted/50" aria-hidden />
-                      <span className="shrink-0 font-mono text-[0.6875rem] text-muted">p. {section.page}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ol>
-            </nav>
-
-            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <Link href={`/papers/${paper.id}`} className="inline-flex items-center gap-1.5 font-mono text-[0.8125rem] text-accent underline underline-offset-[5px] hover:decoration-2">
-                Continue in the reader
-                <Go className="text-[1rem]" />
-              </Link>
-              {paper.is_sample && (
-                <span className="font-serif text-[0.9375rem] text-muted italic">Explained in advance, so every feature works on this demo.</span>
-              )}
-            </div>
-          </>
-        )}
-      </article>
-    </ReadingContext.Provider>
+    <div role="status" className="mx-auto max-w-[30rem] px-8 pt-24 text-center">
+      <p className="eyebrow">Nothing open yet</p>
+      <p className="mt-3 font-serif text-[1.25rem] leading-snug text-pretty italic">{message}</p>
+      {onRetry && (
+        <button type="button" onClick={onRetry} className="btn btn-secondary btn-sm mt-6">
+          Try again
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -377,6 +288,8 @@ export function Library() {
   const [lists, setLists] = useState<{ samples: PaperSummary[]; mine: PaperSummary[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<Record<string, PaperDetail>>({});
+  const [unavailable, setUnavailable] = useState<string | null>(null);
+  const wide = useWide();
 
   const load = useCallback(async () => {
     try {
@@ -401,13 +314,16 @@ export function Library() {
     all.find((p) => p.id === requested)?.id ?? lists?.mine.find((p) => p.status === "ready")?.id ?? lists?.samples[0]?.id ?? null;
   const selected = selectedId ? details[selectedId] : undefined;
 
-  useEffect(() => {
-    if (!selectedId || details[selectedId]) return;
-    api.paper(selectedId).then(
-      (paper) => setDetails((current) => ({ ...current, [selectedId]: paper })),
-      () => {},
+  const loadDetail = useCallback((id: string) => {
+    api.paper(id).then(
+      (paper) => setDetails((current) => ({ ...current, [id]: paper })),
+      () => setUnavailable(id),
     );
-  }, [selectedId, details]);
+  }, []);
+  useEffect(() => {
+    if (!wide || !selectedId || details[selectedId]) return;
+    loadDetail(selectedId);
+  }, [wide, selectedId, details, loadDetail]);
 
   const select = useCallback((id: string) => router.replace(`/library?paper=${id}`, { scroll: false }), [router]);
 
@@ -422,14 +338,27 @@ export function Library() {
         onSelect={select}
         onRetry={load}
       />
-      <div className="hidden min-w-0 bg-surface lg:block lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto">{selected ? <Preview paper={selected} /> : !error && <PreviewSkeleton />}</div>
+      <div className="hidden min-w-0 bg-surface lg:block lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto">
+        {!wide ? null : selected ? (
+          <Preview paper={selected} />
+        ) : error ? (
+          <PreviewUnavailable message="The papers will open here once the library loads." />
+        ) : selectedId && unavailable === selectedId ? (
+          <PreviewUnavailable message="This paper didn't load just now." onRetry={() => {
+              setUnavailable(null);
+              loadDetail(selectedId);
+            }} />
+        ) : (
+          <PreviewSkeleton />
+        )}
+      </div>
       <aside
         aria-label="Margin notes"
         className="hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100dvh-3.5rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-line"
       >
-        {selected?.reading ? (
+        {!wide ? null : selected?.reading ? (
           <PaperNotes paper={selected} reading={selected.reading} aiEnabled={config?.ai_enabled ?? false} />
-        ) : (
+        ) : error || selected || unavailable === selectedId ? null : (
           <div className="space-y-3 px-5 py-6">
             <div className="skeleton h-4 w-1/2" />
             <div className="skeleton h-24" />

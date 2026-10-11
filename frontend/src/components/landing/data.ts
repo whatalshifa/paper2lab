@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { type AccuracyReport, api, type PaperDetail, type SiteConfig } from "@/lib/api";
 import { SAMPLE_IDS } from "@/lib/site";
 
 export const [ATTENTION_ID, ADAM_ID] = SAMPLE_IDS;
+
+/**
+ * What the server already fetched when it built the page (see lib/server-api.ts), by request key. A
+ * section whose data is here draws straight away, in the page's HTML, even while the API sleeps.
+ */
+const Prefetched = createContext<Record<string, unknown>>({});
+export const PrefetchedData = Prefetched.Provider;
 
 // Several sections of the home page show the same sample papers, so each request is made once.
 const requests = new Map<string, Promise<unknown>>();
@@ -24,8 +31,10 @@ function once<T>(key: string, load: () => Promise<T>): Promise<T> {
 type State<T> = { data: T | null; failed: boolean };
 
 function useOnce<T>(key: string, load: () => Promise<T>): State<T> {
-  const [state, setState] = useState<State<T>>({ data: null, failed: false });
+  const prefetched = (useContext(Prefetched)[key] as T | undefined) ?? null;
+  const [state, setState] = useState<State<T>>({ data: prefetched, failed: false });
   useEffect(() => {
+    if (prefetched) return;
     let live = true;
     once(key, load).then(
       (data) => live && setState({ data, failed: false }),
@@ -34,8 +43,7 @@ function useOnce<T>(key: string, load: () => Promise<T>): State<T> {
     return () => {
       live = false;
     };
-    // `load` is a fresh arrow each render; the key names the request.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `load` is a fresh arrow each render; the key names the request
   }, [key]);
   return state;
 }

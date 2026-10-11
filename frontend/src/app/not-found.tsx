@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AppBar } from "@/components/AppBar";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
@@ -11,9 +14,14 @@ export default function NotFound() {
           <p className="eyebrow">Erratum · 404</p>
           <h1 className="mt-2 font-serif text-[2.5rem] leading-tight font-normal italic">Page not found</h1>
           <p className="mt-3 text-muted">That address doesn&apos;t lead anywhere on Paper2Lab.</p>
-          <Link href="/library" className="btn btn-primary mt-8">
-            Go to the library
-          </Link>
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            <Link href="/library" className="btn btn-primary">
+              Go to the library
+            </Link>
+            <Link href="/" className="btn btn-secondary">
+              Front page
+            </Link>
+          </div>
         </div>
       </main>
     </>

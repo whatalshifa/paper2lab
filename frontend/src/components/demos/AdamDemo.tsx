@@ -111,7 +111,7 @@ function Slider(props: {
         value={props.index}
         onChange={(event) => props.onChange(Number(event.target.value))}
         aria-valuetext={props.value}
-        className="level-range mt-2"
+        className="level-range with-track mt-2"
       />
     </div>
   );

@@ -93,7 +93,7 @@ export function AttentionDemo() {
             value={dimIndex}
             onChange={(event) => setDimIndex(Number(event.target.value))}
             aria-valuetext={`d_k = ${dk}`}
-            className="level-range mt-2"
+            className="level-range with-track mt-2"
           />
         </div>
         <div>
@@ -144,7 +144,8 @@ export function AttentionDemo() {
               <span className="h-2.5 overflow-hidden border-b border-line" aria-hidden>
                 <span
                   className="block h-full bg-accent transition-[width] duration-300"
-                  style={{ width: `${Math.max(weights[i] * 100, 0.5)}%` }}
+                  // Rounded, so the server's and the browser's last-digit float differences can't disagree on hydration.
+                  style={{ width: `${Math.max(weights[i] * 100, 0.5).toFixed(2)}%` }}
                 />
               </span>
               <span className="text-right font-mono tabular-nums">{percent(weights[i])}%</span>

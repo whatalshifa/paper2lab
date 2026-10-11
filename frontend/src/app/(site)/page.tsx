@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Go } from "@/components/Glyphs";
 import { AnnotatedPage } from "@/components/landing/AnnotatedPage";
 import { ArticleHead } from "@/components/landing/ArticleHead";
+import { PrefetchedData } from "@/components/landing/data";
 import { ATTENTION_PATH, SiteFooter } from "@/components/landing/SiteFooter";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { Playground } from "@/components/landing/Playground";
 import { Shelf } from "@/components/landing/Shelf";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { Trust } from "@/components/landing/Trust";
+import { landingData } from "@/lib/server-api";
 
 export const metadata: Metadata = {
   title: { absolute: "Paper2Lab: read any research paper at your level" },
@@ -26,10 +28,15 @@ const CONTENTS = [
   { numeral: "IV", href: "#play", title: "Equations you can push on", folio: "two demos" },
 ];
 
+// Built ahead of time with the sample papers in it, and rebuilt in the background every ten minutes (see
+// lib/server-api.ts), so the first screen never waits for the API to wake up.
+export const revalidate = 600;
+
 /** The home page: an issue of a small journal about one product, with the product working on a real paper. */
-export default function Page() {
+export default async function Page() {
+  const prefetched = await landingData();
   return (
-    <>
+    <PrefetchedData value={prefetched}>
       <SiteHeader />
       <main id="main" className="w-full flex-1 overflow-x-clip">
         {/* The lead: the promise in the main column, the working reader as Plate I beside it. */}
@@ -204,6 +211,6 @@ export default function Page() {
         </section>
       </main>
       <SiteFooter />
-    </>
+    </PrefetchedData>
   );
 }

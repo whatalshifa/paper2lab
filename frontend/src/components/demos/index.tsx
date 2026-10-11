@@ -6,8 +6,6 @@ import { Mark } from "../Glyphs";
 import { AdamDemo } from "./AdamDemo";
 import { AttentionDemo } from "./AttentionDemo";
 
-export const DEMO_KINDS = ["attention-scaling", "adam-optimizer"];
-
 const DEMOS: Record<string, { title: string; note: ReactNode; body: () => ReactNode }> = {
   "attention-scaling": {
     title: "Why divide by the square root of the key size?",

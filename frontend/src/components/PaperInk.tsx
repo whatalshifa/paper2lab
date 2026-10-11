@@ -35,8 +35,7 @@ export function PaperInkSwitch() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    // Read after mounting: the server can't know what the browser saved.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read after mounting: the server can't know what the browser saved
     setTheme(readTheme());
     setDark(document.documentElement.classList.contains("dark"));
     const media = matchMedia("(prefers-color-scheme: dark)");

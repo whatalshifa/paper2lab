@@ -24,7 +24,7 @@ function Figure({ found, total, label }: { found: number; total: number; label: 
  */
 export function Trust() {
   const { data: report, failed } = useAccuracy();
-  const updated = report ? new Date(report.updated_at).toLocaleDateString("en-GB", { dateStyle: "long" }) : null;
+  const updated = report ? new Date(report.updated_at).toLocaleDateString("en-GB", { dateStyle: "long", timeZone: "UTC" }) : null;
 
   return (
     <section

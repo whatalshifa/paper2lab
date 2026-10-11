@@ -1,0 +1,24 @@
+name: Keep the API warm
+
+# The API runs on Render's free plan, which sleeps after 15 quiet minutes and takes about 50 seconds
+# to wake. This pings its health check every 10 minutes while recruiters are most likely to look:
+# Monday to Friday, 09:30 to 18:30 IST (04:00 to 12:59 UTC; IST is UTC+5:30).
+#
+# Render's free tier allows 750 instance hours a month per workspace, and three apps share it
+# (ReportSaathi, Paper2Lab and CivicLens). This window keeps each app awake for about 200 hours a
+# month, so all three fit.
+
+on:
+  schedule:
+    - cron: "*/10 4-12 * * 1-5"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # A cold start can take most of a minute; never fail the run because of it.
+      - run: curl -fsS --max-time 90 https://paper2lab-api.onrender.com/api/health || true

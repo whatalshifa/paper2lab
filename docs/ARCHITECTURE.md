@@ -15,7 +15,8 @@ means the browser treats the library cookie as the site's own, and there is no c
 
 ## 1. Adding a paper
 
-`frontend/src/components/AddPaper.tsx` has two tabs: upload a PDF, or paste an arXiv link.
+The command bar at the top of the app (`frontend/src/components/CommandBar.tsx`, opened with `/` from
+anywhere) takes a PDF (chosen or dropped) or a pasted arXiv link, and also finds papers already in the library.
 
 **Upload.** The file goes to `POST /api/papers` (`backend/app/api/papers.py`). Before anything else:
 
@@ -97,7 +98,15 @@ back (`app/main.py`).
 ## 4. Reading the paper
 
 `frontend/src/components/PaperPage.tsx` loads the paper. While it is `queued` or `reading`, it shows
-the steps and asks again every 3 seconds. Once `ready`, `ReadingView.tsx` draws it.
+the steps and asks again every 3 seconds. Once `ready`, `ReadingView.tsx` draws it, one page at a time:
+the overview, each section (`reader/SectionBlock.tsx`), what it connects to and the glossary, with the
+contents (`reader/Contents.tsx`), margin notes (`reader/SectionNotes.tsx`) and page turning
+(`reader/pages.tsx`) beside it.
+
+While the free API server wakes up (about 50 seconds after a quiet spell), reads the page needs are
+tried again with growing pauses for up to 75 seconds (`lib/api.ts`, `patiently`), and the page says it
+is waking the server (`lib/useSlow.ts`) instead of showing an error. The home page doesn't wait at all:
+it is built with the sample papers already in it and refreshed every ten minutes (`lib/server-api.ts`).
 
 - **The slider** (`LevelSlider.tsx`) is a normal range input, so it works with a mouse, a finger and
   the arrow keys. The chosen level lives in `localStorage` (`lib/level.ts`), shared by every component
@@ -206,7 +215,7 @@ Sample papers are rows with no library and `is_sample = true`, loaded at startup
   written by hand (`tests/pdfs.py`). They cover uploading, quote checking, arXiv parsing and download
   (including redirects away from arXiv), privacy between browsers, spending limits, demo mode,
   failures and retries, asking questions and their limits, figure cutting and the prerequisite map, and that the hand-written samples hang together.
-- `frontend/e2e` (Playwright, 48 tests, plus axe accessibility checks): the real website and API in Chromium, on a desktop and a
+- `frontend/e2e` (Playwright, 41 tests, plus axe accessibility checks): the real website and API in Chromium, on a desktop and a
   phone screen. They check the slider rewrites the text, equations explain themselves, quotes link to
   the right page, a sample's prepared answer shows its source,
   the prerequisite map opens primers, figures follow the slider, quiz answers survive a reload, the

@@ -1,13 +1,20 @@
 "use client";
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+import Link from "next/link";
+
+import { ErrorNotice } from "@/components/ErrorNotice";
+import { Wordmark } from "@/components/Wordmark";
+
+/** An error outside the app's pages (the home page): the notice under the wordmark. */
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="mx-auto max-w-md px-4 py-16 text-center sm:py-24" role="alert">
-      <h1 className="font-serif text-[2.5rem] leading-tight font-normal italic">Something went wrong</h1>
-      <p className="mt-3 text-muted">This page hit an error. Trying again usually fixes it.</p>
-      <button type="button" onClick={reset} className="btn btn-primary mt-8">
-        Try again
-      </button>
-    </div>
+    <main id="main" className="w-full flex-1">
+      <div className="border-b-[3px] border-double border-rule py-4 text-center">
+        <Link href="/" aria-label="Paper2Lab home">
+          <Wordmark size="running" />
+        </Link>
+      </div>
+      <ErrorNotice onRetry={reset} digest={error.digest} />
+    </main>
   );
 }

@@ -10,7 +10,9 @@ RUN npm run build
 
 FROM node:22-alpine
 WORKDIR /app
-ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+# The server also reads the API itself, to refresh the sample papers on the home page.
+ARG API_URL=http://localhost:8000
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 API_URL=$API_URL
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
