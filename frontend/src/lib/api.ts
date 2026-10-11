@@ -281,6 +281,9 @@ export const api = {
   question: (id: string) => call<Question>(`/api/questions/${encodeURIComponent(id)}`),
   figureUrl: (paperId: string, figureId: string) =>
     `/api/papers/${encodeURIComponent(paperId)}/figures/${encodeURIComponent(figureId)}.png`,
+  /** A sample paper's figure, shipped with the website (see public/figures/README.md). */
+  sampleFigureUrl: (paperId: string, figureId: string) =>
+    `/figures/${encodeURIComponent(paperId)}/${encodeURIComponent(figureId)}.png`,
   connections: (paperId: string) => call<Connections>(`/api/papers/${encodeURIComponent(paperId)}/connections`),
   accuracy: () => patiently<AccuracyReport>("/api/accuracy"),
   remove: (id: string) => call<void>(`/api/papers/${encodeURIComponent(id)}`, { method: "DELETE" }),

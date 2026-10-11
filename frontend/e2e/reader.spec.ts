@@ -131,6 +131,10 @@ test("a figure is explained at the chosen level", async ({ page }) => {
   await expect(figure).toContainText("How to read it");
   await expect(figure).toContainText("The whole model is built from attention");
   await expect(figure).toContainText("stack of N = 6 identical layers");
+  // The sample's picture ships with the website, so it shows even when the API is asleep.
+  const picture = figure.getByRole("img", { name: /Figure 1/ });
+  await expect(picture).toHaveAttribute("src", "/figures/00000000-0000-4000-8000-000000001706/f1.png");
+  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 
   const slider = page.getByRole("slider", { name: "Reading level" });
   await slider.focus();
