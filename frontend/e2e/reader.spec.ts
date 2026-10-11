@@ -57,9 +57,10 @@ test("the reading-level slider rewrites the explanations", async ({ page }) => {
 });
 
 test("an equation explains itself, symbol by symbol", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  // A link to the equation opens the section it is in.
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706#eq-e1");
   const equation = page.getByRole("button", { name: /Eq\. 1, Scaled dot-product attention: what it means/ });
-  await equation.scrollIntoViewIfNeeded();
+  await expect(equation).toBeInViewport();
   await equation.click();
   const card = page.getByRole("dialog", { name: /Scaled dot-product attention/ });
   await expect(card).toBeVisible();
@@ -69,7 +70,7 @@ test("an equation explains itself, symbol by symbol", async ({ page }) => {
 });
 
 test("each section shows the quote it is based on, with its page", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001412");
+  await page.goto("/papers/00000000-0000-4000-8000-000000001412#s1");
   const section = page.locator("#s1");
   await expect(section.getByText(/The name Adam is derived from adaptive moment estimation/)).toBeVisible();
   await expect(section.getByRole("link", { name: /Page 1 of the paper/ }).first()).toHaveAttribute(
@@ -123,9 +124,9 @@ test("the prerequisite map opens a primer for each idea", async ({ page }) => {
 });
 
 test("a figure is explained at the chosen level", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706#fig-f1");
   const figure = page.locator("#fig-f1");
-  await figure.scrollIntoViewIfNeeded();
+  await expect(figure).toBeInViewport();
   await expect(figure).toContainText("The Transformer - model architecture.");
   await expect(figure).toContainText("How to read it");
   await expect(figure).toContainText("The whole model is built from attention");

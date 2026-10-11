@@ -262,7 +262,7 @@ function Preview({ paper }: { paper: PaperDetail }) {
 
   return (
     <ReadingContext.Provider value={context}>
-      <div className="sticky top-14 z-20 flex h-11 items-center justify-between gap-4 border-b border-line bg-surface px-6">
+      <div className="sticky top-0 z-20 flex h-11 items-center justify-between gap-4 border-b border-line bg-surface px-6">
         <p className="flex min-w-0 items-center gap-1.5 font-mono text-[0.6875rem] text-muted">
           <span className="shrink-0">Library</span>
           <Mark className="shrink-0">/</Mark>
@@ -367,7 +367,8 @@ function Preview({ paper }: { paper: PaperDetail }) {
 /**
  * The home page is the library, laid out like a reading app. Wide screens get three panes: the
  * library list, the selected paper's first page, and its margin notes (terms, equations, questions).
- * Phones get the list on its own; a tap opens the reader.
+ * The window doesn't scroll there; each pane scrolls on its own. Phones get the list on its own; a tap
+ * opens the reader.
  */
 export function Library() {
   const router = useRouter();
@@ -411,7 +412,7 @@ export function Library() {
   const select = useCallback((id: string) => router.replace(`/library?paper=${id}`, { scroll: false }), [router]);
 
   return (
-    <div className="lg:grid lg:min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[16.5rem_minmax(0,1fr)_19rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_21rem]">
+    <div className="lg:grid lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-[16.5rem_minmax(0,1fr)_19rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_21rem]">
       <Rail
         lists={lists}
         config={config}
@@ -421,7 +422,7 @@ export function Library() {
         onSelect={select}
         onRetry={load}
       />
-      <div className="hidden min-w-0 bg-surface lg:block">{selected ? <Preview paper={selected} /> : !error && <PreviewSkeleton />}</div>
+      <div className="hidden min-w-0 bg-surface lg:block lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto">{selected ? <Preview paper={selected} /> : !error && <PreviewSkeleton />}</div>
       <aside
         aria-label="Margin notes"
         className="hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100dvh-3.5rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-line"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { Concept, PaperDetail, Quote, Reading, Section } from "@/lib/api";
 import { useLevel } from "@/lib/level";
@@ -12,7 +12,7 @@ import { ConnectionsSection, hasLinks, useConnections } from "./Connections";
 import { Demo } from "./demos";
 import { EquationCard, equationLabel } from "./Equations";
 import { FigureCard } from "./FigureCard";
-import { Back, Mark, Out } from "./Glyphs";
+import { Back, Go, Mark, Out } from "./Glyphs";
 import { LevelSlider } from "./LevelSlider";
 import { Listen } from "./Listen";
 import { asPrerequisites, PrerequisiteMap } from "./PrerequisiteMap";
@@ -153,25 +153,94 @@ function SectionBlock({
 }
 
 
-/** Where the reader is: the section whose heading last scrolled past the top third of the screen,
- * and how far down the paper they are (0 to 1). */
-function useReadingPosition(ids: string[]) {
-  const [position, setPosition] = useState<{ active: string | null; progress: number }>({ active: null, progress: 0 });
+const OVERVIEW = "overview";
+
+/** One page of the reader: the overview, a section, what the paper connects to, or the glossary. */
+type ReaderPage = { key: string; href: string; label: string };
+
+/** The reader page that holds the element with this id, if any. */
+function pageHolding(id: string) {
+  if (!id) return null;
+  return document.getElementById(id)?.closest<HTMLElement>("[data-page]")?.dataset.page ?? null;
+}
+
+/**
+ * The reader shows one page of the paper at a time, like turning the pages of a journal: the overview,
+ * one section, what the paper connects to, or the glossary. The address picks the page. Any id inside it
+ * works, so #s3, #eq-… and #fig-… all open the right page and scroll to that spot, and the back button
+ * turns back a page. Pages not shown are hidden "until found", so the browser's find in page still
+ * searches the whole paper and opens the page with the match. Also says how far through the paper the
+ * reader is (0 to 1).
+ */
+function useReaderPage(pages: ReaderPage[]) {
+  const [page, setPage] = useState(OVERVIEW);
+  const [jump, setJump] = useState<{ id: string } | null>(null);
+  const [within, setWithin] = useState(0);
+  const keys = pages.map((p) => p.key).join(" ");
+  const waiting = useRef(false);
+  const pagesRef = useRef(pages);
+  useEffect(() => {
+    pagesRef.current = pages;
+  }, [pages]);
+
+  // Follow the address now and whenever its #hash changes. A hash for a page that isn't there yet
+  // (what the paper connects to is looked up after the page opens) is followed once it appears.
+  const follow = useCallback(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const key = id ? pageHolding(id) : OVERVIEW;
+    waiting.current = !key;
+    if (!key) return;
+    setPage(key);
+    setJump({ id });
+  }, []);
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the address when the page opens, before it paints
+    follow();
+    window.addEventListener("hashchange", follow);
+    return () => window.removeEventListener("hashchange", follow);
+  }, [follow]);
+  useEffect(() => {
+    if (waiting.current) follow();
+  }, [keys, follow]);
+
+  // Show the current page only.
+  useLayoutEffect(() => {
+    for (const element of document.querySelectorAll<HTMLElement>("[data-page]")) {
+      if (element.dataset.page === page) element.removeAttribute("hidden");
+      else element.setAttribute("hidden", "until-found");
+    }
+  }, [page, keys]);
+
+  // Then scroll to the spot the address names, or to the top for the overview.
+  useLayoutEffect(() => {
+    if (!jump) return;
+    const target = jump.id && jump.id !== "nutshell" ? document.getElementById(jump.id) : null;
+    if (target) target.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }, [jump]);
+
+  // Find in page found a match on a hidden page: the browser shows it; keep the address in step.
+  useEffect(() => {
+    const found = (event: Event) => {
+      const key = (event.target as HTMLElement).closest<HTMLElement>("[data-page]")?.dataset.page;
+      const href = pagesRef.current.find((p) => p.key === key)?.href;
+      if (!key || !href) return;
+      setPage(key);
+      window.history.replaceState(window.history.state, "", href);
+    };
+    document.addEventListener("beforematch", found);
+    return () => document.removeEventListener("beforematch", found);
+  }, []);
+
+  // How far down the current page the reader has scrolled.
   useEffect(() => {
     let frame = 0;
     const update = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        let active: string | null = null;
-        for (const id of ids) {
-          const element = document.getElementById(id);
-          if (element && element.getBoundingClientRect().top <= window.innerHeight * 0.35) active = id;
-        }
         const room = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = room > 0 ? Math.min(Math.max(window.scrollY / room, 0), 1) : 0;
-        setPosition((current) =>
-          current.active === active && Math.abs(current.progress - progress) < 0.002 ? current : { active, progress },
-        );
+        const value = room > 0 ? Math.min(Math.max(window.scrollY / room, 0), 1) : page === OVERVIEW ? 0 : 1;
+        setWithin((current) => (Math.abs(current - value) < 0.002 ? current : value));
       });
     };
     update();
@@ -182,13 +251,53 @@ function useReadingPosition(ids: string[]) {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, [ids]);
-  return position;
+  }, [page]);
+
+  const index = Math.max(
+    0,
+    pages.findIndex((p) => p.key === page),
+  );
+  return { page, index, progress: pages.length > 0 ? Math.min((index + within) / pages.length, 1) : 0 };
+}
+
+/** The previous and next pages of the reader, at the foot of the page. */
+function Pager({ pages, index }: { pages: ReaderPage[]; index: number }) {
+  const previous = pages[index - 1];
+  const next = pages[index + 1];
+  if (!previous && !next) return null;
+  return (
+    <nav aria-label="Pages" className="mt-12 grid grid-cols-2 gap-4 border-t-[3px] border-double border-rule pt-4">
+      {previous ? (
+        <a href={previous.href} className="group min-w-0 py-1">
+          <span className="flex items-center gap-1.5 font-mono text-[0.6875rem] text-muted">
+            <Back />
+            Previous
+          </span>
+          <span className="mt-1 block font-serif text-[1.0625rem] leading-snug group-hover:text-accent group-hover:underline group-hover:underline-offset-4">
+            {previous.label}
+          </span>
+        </a>
+      ) : (
+        <span />
+      )}
+      {next && (
+        <a href={next.href} className="group col-start-2 min-w-0 py-1 text-right">
+          <span className="flex items-center justify-end gap-1.5 font-mono text-[0.6875rem] text-muted">
+            Next
+            <Go />
+          </span>
+          <span className="mt-1 block font-serif text-[1.0625rem] leading-snug group-hover:text-accent group-hover:underline group-hover:underline-offset-4">
+            {next.label}
+          </span>
+        </a>
+      )}
+    </nav>
+  );
 }
 
 const CONTENTS_LINK = "block py-1.5 leading-snug transition-colors";
 
-/** The paper's table of contents, with the section being read marked. */
+/** The paper's table of contents, with the page being read marked. Each entry opens its page. */
 function Contents({
   reading,
   active,
@@ -203,10 +312,15 @@ function Contents({
   onNavigate?: () => void;
 }) {
   const quiet = `${CONTENTS_LINK} pl-6 text-muted hover:text-foreground`;
+  // The overview, what it connects to and the glossary are pages of their own too.
+  const pageLink = (key: string) => ({
+    "aria-current": active === key ? ("page" as const) : undefined,
+    className: active === key ? `${CONTENTS_LINK} pl-6 text-foreground italic` : quiet,
+  });
   return (
     <ol className="border-t border-rule font-serif text-[0.9375rem]">
       <li>
-        <a href="#nutshell" onClick={onNavigate} className={quiet}>
+        <a href="#nutshell" onClick={onNavigate} {...pageLink(OVERVIEW)}>
           Overview
         </a>
       </li>
@@ -222,7 +336,7 @@ function Contents({
           <a
             href={`#${section.id}`}
             onClick={onNavigate}
-            aria-current={active === section.id ? "location" : undefined}
+            aria-current={active === section.id ? "page" : undefined}
             className={`${CONTENTS_LINK} flex gap-2 ${
               active === section.id
                 ? "text-foreground italic"
@@ -236,14 +350,14 @@ function Contents({
       ))}
       {hasConnections && (
         <li>
-          <a href="#builds-on" onClick={onNavigate} className={quiet}>
+          <a href="#builds-on" onClick={onNavigate} {...pageLink("builds-on")}>
             What it connects to
           </a>
         </li>
       )}
       {reading.concepts.length > 0 && (
         <li>
-          <a href="#glossary" onClick={onNavigate} className={quiet}>
+          <a href="#glossary" onClick={onNavigate} {...pageLink("glossary")}>
             Glossary
           </a>
         </li>
@@ -380,8 +494,6 @@ export function ReadingView({
   onDelete?: () => void;
 }) {
   const level = useLevel();
-  const ids = useMemo(() => reading.sections.map((s) => s.id), [reading.sections]);
-  const { active, progress } = useReadingPosition(ids);
   const [asking, setAsking] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"contents" | "notes" | null>(null);
@@ -399,7 +511,19 @@ export function ReadingView({
   const score = quizScore(reading.sections, level, answers);
   const connections = useConnections(paper.id);
   const hasConnections = (connections?.references?.items.length ?? 0) > 0 || hasLinks(connections);
-  const activeIndex = reading.sections.findIndex((s) => s.id === active);
+  const pages = useMemo<ReaderPage[]>(
+    () => [
+      { key: OVERVIEW, href: "#nutshell", label: "Overview" },
+      ...reading.sections.map((section, i) => ({ key: section.id, href: `#${section.id}`, label: `${i + 1}. ${section.title}` })),
+      ...(hasConnections ? [{ key: "builds-on", href: "#builds-on", label: "What it connects to" }] : []),
+      ...(reading.concepts.length > 0 ? [{ key: "glossary", href: "#glossary", label: "Glossary" }] : []),
+    ],
+    [reading.sections, reading.concepts.length, hasConnections],
+  );
+  const { page, index, progress } = useReaderPage(pages);
+  const activeIndex = reading.sections.findIndex((s) => s.id === page);
+  const active = activeIndex >= 0 ? page : null;
+  const overview = page === OVERVIEW;
 
   useEffect(() => {
     if (progress > 0) saveProgress(paper.id, progress);
@@ -440,7 +564,7 @@ export function ReadingView({
 
             <nav aria-label="Sections" className="mt-6">
               <p className="eyebrow mb-1.5">Contents</p>
-              <Contents reading={reading} active={active} hasMap={hasMap} hasConnections={hasConnections} />
+              <Contents reading={reading} active={page} hasMap={hasMap} hasConnections={hasConnections} />
             </nav>
 
             <div className="mt-auto space-y-3 border-t border-line pt-4 text-[0.875rem] leading-relaxed text-muted">
@@ -491,11 +615,18 @@ export function ReadingView({
                 .filter(Boolean)
                 .join("  ·  ")}
             </p>
-            <h1 className="mt-5 font-serif text-[2.125rem] leading-[1.08] font-normal tracking-[-0.02em] text-balance sm:text-[2.875rem]">
+            {/* Past the overview the title block shrinks to a running head, so the section starts higher. */}
+            <h1
+              className={`font-serif font-normal tracking-[-0.02em] text-balance ${
+                overview
+                  ? "mt-5 text-[2.125rem] leading-[1.08] sm:text-[2.875rem]"
+                  : "mt-3 text-[1.5rem] leading-[1.15] sm:text-[1.75rem]"
+              }`}
+            >
               {reading.title}
             </h1>
-            <p className="mt-3 font-serif text-[1.0625rem] text-muted italic">{authors}</p>
-            <div className="mt-6 flex flex-wrap items-center gap-2">
+            {overview && <p className="mt-3 font-serif text-[1.0625rem] text-muted italic">{authors}</p>}
+            <div className={`${overview ? "mt-6" : "mt-3"} flex flex-wrap items-center gap-2`}>
               <button type="button" onClick={() => ask()} className="btn btn-secondary btn-sm">
                 Ask the paper
               </button>
@@ -512,7 +643,7 @@ export function ReadingView({
                 </button>
               )}
             </div>
-            {(paper.arxiv_id || (connections && connections.code.length > 0)) && (
+            {overview && (paper.arxiv_id || (connections && connections.code.length > 0)) && (
               <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                 {paper.arxiv_id && (
                   <a
@@ -532,14 +663,14 @@ export function ReadingView({
                 )}
               </div>
             )}
-            {paper.is_sample && (
+            {overview && paper.is_sample && (
               <p className="mt-4 font-serif text-[0.9375rem] text-muted italic">
                 This sample was explained in advance, so you can try Paper2Lab without adding a paper.
               </p>
             )}
           </header>
 
-          <div className="sticky top-14 z-30 mt-6 border-b border-line bg-surface">
+          <div className={`sticky top-14 z-30 ${overview ? "mt-6" : "mt-4"} border-b border-line bg-surface`}>
             <div className="mx-auto flex max-w-[42rem] items-center gap-6 px-4 py-1.5 sm:px-8">
               <div className="min-w-0 flex-1">
                 <LevelSlider level={level} compact />
@@ -553,63 +684,75 @@ export function ReadingView({
             </div>
           </div>
 
-          <div className="mx-auto max-w-[42rem] space-y-12 px-4 pt-10 pb-28 sm:px-8 lg:pb-20">
-            <section aria-labelledby="nutshell" className="scroll-mt-32">
-              <h2 id="nutshell" className="eyebrow scroll-mt-32">
-                In a nutshell
-              </h2>
-              <div className="prose-reading mt-2 first-letter:float-left first-letter:mt-1 first-letter:mr-1.5 first-letter:font-serif first-letter:text-[3.6em] first-letter:leading-[0.8] first-letter:text-accent sm:text-[1.1875rem]">
-                <RichText text={reading.summary[level]} />
-              </div>
-            </section>
-
-            {reading.contributions.length > 0 && (
-              <section aria-labelledby="new">
-                <h2 id="new" className="eyebrow">
-                  What&apos;s new in this paper
+          {/* One page at a time (see useReaderPage). The pages are plain boxes, so hidden ones take no room. */}
+          <div className={`mx-auto max-w-[42rem] px-4 ${overview ? "pt-10" : "pt-6"} pb-28 sm:px-8 lg:pb-20`}>
+            <div data-page={OVERVIEW} className="space-y-12">
+              <section aria-labelledby="nutshell" className="scroll-mt-32">
+                <h2 id="nutshell" className="eyebrow scroll-mt-32">
+                  In a nutshell
                 </h2>
-                <ul className="mt-3 space-y-2.5 font-serif text-[1.0625rem] leading-relaxed sm:text-[1.125rem]">
-                  {reading.contributions.map((item) => (
-                    <li key={item} className="flex gap-3">
-                      <Mark className="shrink-0 text-accent">§</Mark>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                <div className="prose-reading mt-2 first-letter:float-left first-letter:mt-1 first-letter:mr-1.5 first-letter:font-serif first-letter:text-[3.6em] first-letter:leading-[0.8] first-letter:text-accent sm:text-[1.1875rem]">
+                  <RichText text={reading.summary[level]} />
+                </div>
               </section>
-            )}
 
-            {reading.prerequisites.length > 0 && <PrerequisiteMap items={reading.prerequisites} />}
+              {reading.contributions.length > 0 && (
+                <section aria-labelledby="new">
+                  <h2 id="new" className="eyebrow">
+                    What&apos;s new in this paper
+                  </h2>
+                  <ul className="mt-3 space-y-2.5 font-serif text-[1.0625rem] leading-relaxed sm:text-[1.125rem]">
+                    {reading.contributions.map((item) => (
+                      <li key={item} className="flex gap-3">
+                        <Mark className="shrink-0 text-accent">§</Mark>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {reading.prerequisites.length > 0 && <PrerequisiteMap items={reading.prerequisites} />}
+            </div>
 
             {reading.sections.map((section, i) => (
-              <SectionBlock
-                key={section.id}
-                section={section}
-                number={i + 1}
-                paper={paper}
-                reading={reading}
-                answers={answers}
-                onChoose={choose}
-              />
+              <div key={section.id} data-page={section.id}>
+                <SectionBlock
+                  section={section}
+                  number={i + 1}
+                  paper={paper}
+                  reading={reading}
+                  answers={answers}
+                  onChoose={choose}
+                />
+              </div>
             ))}
 
-            <ConnectionsSection connections={connections} />
+            {hasConnections && (
+              <div data-page="builds-on">
+                <ConnectionsSection connections={connections} />
+              </div>
+            )}
 
             {reading.concepts.length > 0 && (
-              <section id="glossary" className="scroll-mt-32 border-t border-rule pt-8" aria-labelledby="glossary-title">
-                <h2 id="glossary-title" className="font-serif text-[1.875rem] font-normal tracking-[-0.01em] italic">
-                  Glossary
-                </h2>
-                <dl className="mt-6 grid gap-x-10 gap-y-5 sm:grid-cols-2">
-                  {reading.concepts.map((concept) => (
-                    <div key={concept.term}>
-                      <dt className="font-serif text-[1.0625rem] font-medium italic">{concept.term}</dt>
-                      <dd className="mt-1 text-[0.9375rem] leading-relaxed text-muted">{concept.meaning}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
+              <div data-page="glossary">
+                <section id="glossary" className="scroll-mt-32 border-t border-rule pt-8" aria-labelledby="glossary-title">
+                  <h2 id="glossary-title" className="font-serif text-[1.875rem] font-normal tracking-[-0.01em] italic">
+                    Glossary
+                  </h2>
+                  <dl className="mt-6 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+                    {reading.concepts.map((concept) => (
+                      <div key={concept.term}>
+                        <dt className="font-serif text-[1.0625rem] font-medium italic">{concept.term}</dt>
+                        <dd className="mt-1 text-[0.9375rem] leading-relaxed text-muted">{concept.meaning}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              </div>
             )}
+
+            <Pager pages={pages} index={index} />
           </div>
         </article>
 
@@ -646,7 +789,7 @@ export function ReadingView({
       </nav>
       {sheet === "contents" && (
         <Sheet title="Contents" onClose={closeSheet}>
-          <Contents reading={reading} active={active} hasMap={hasMap} hasConnections={hasConnections} onNavigate={closeSheet} />
+          <Contents reading={reading} active={page} hasMap={hasMap} hasConnections={hasConnections} onNavigate={closeSheet} />
           <p className="mt-4 font-mono text-[0.6875rem] text-muted">{Math.round(progress * 100)}% read</p>
         </Sheet>
       )}

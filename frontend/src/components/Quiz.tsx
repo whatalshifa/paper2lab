@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 
 import type { Level, QuizQuestion, Quote, Section } from "@/lib/api";
 
-import { Out } from "./Glyphs";
+import { Mark, Out } from "./Glyphs";
 import { RichText } from "./RichText";
 
 /** Answers are kept in this browser only: { questionId: chosen choice }. */
@@ -76,7 +76,8 @@ export function Question({
         <span className="mr-2 text-accent italic">{number}.</span>
         <RichText text={question.question} inline />
       </legend>
-      <div className="grid gap-2">
+      {/* Short choices sit side by side on wider screens, so a question takes one row of cards. */}
+      <div className={`grid gap-2 ${question.choices.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {question.choices.map((choice, index) => {
           const isAnswer = index === question.answer;
           const isChosen = index === chosen;
@@ -167,34 +168,41 @@ export function Quiz({
   onChoose: (questionId: string, choice: number | null) => void;
 }) {
   const questions = section.quiz?.[level] ?? [];
+  const started = questions.some((q) => q.id in answers);
+  // Folded shut until the reader opens it, unless they have already answered here.
+  const [open, setOpen] = useState(started);
   if (questions.length === 0) return null;
   const right = questions.filter((q) => answers[q.id] === q.answer).length;
   const done = questions.every((q) => q.id in answers);
   return (
-    <section className="card mt-8 p-5 sm:p-6" aria-labelledby={`${section.id}-quiz`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 id={`${section.id}-quiz`} className="eyebrow">
-          Check yourself
-        </h3>
-        {done && (
+    <section className="card mt-8" aria-labelledby={`${section.id}-quiz`}>
+      <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group">
+        <summary className="flex cursor-pointer list-none items-baseline justify-between gap-3 px-5 py-4 select-none hover:bg-sunken sm:px-6 [&::-webkit-details-marker]:hidden">
+          <h3 id={`${section.id}-quiz`} className="eyebrow">
+            Check yourself
+          </h3>
           <span className="font-mono text-[0.6875rem] text-muted">
-            {right} of {questions.length} right
+            {done
+              ? `${right} of ${questions.length} right`
+              : `${questions.length} ${questions.length === 1 ? "question" : "questions"}`}
+            <Mark className="ml-2 text-[0.875rem] text-accent group-open:hidden">+</Mark>
+            <Mark className="ml-2 hidden text-[0.875rem] text-accent group-open:inline">−</Mark>
           </span>
-        )}
-      </div>
-      <div className="mt-5 space-y-6">
-        {questions.map((question, index) => (
-          <Question
-            key={question.id}
-            question={question}
-            number={index + 1}
-            quote={question.quote === null ? null : (section.quotes[question.quote] ?? null)}
-            pdfUrl={pdfUrl}
-            chosen={answers[question.id]}
-            onChoose={(choice) => onChoose(question.id, choice)}
-          />
-        ))}
-      </div>
+        </summary>
+        <div className="space-y-6 px-5 pt-1 pb-5 sm:px-6 sm:pb-6">
+          {questions.map((question, index) => (
+            <Question
+              key={question.id}
+              question={question}
+              number={index + 1}
+              quote={question.quote === null ? null : (section.quotes[question.quote] ?? null)}
+              pdfUrl={pdfUrl}
+              chosen={answers[question.id]}
+              onChoose={(choice) => onChoose(question.id, choice)}
+            />
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

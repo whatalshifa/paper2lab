@@ -81,9 +81,16 @@ for (const scheme of ["light", "dark"] as const) {
           },
         }),
       );
-      await page.goto("/papers/00000000-0000-4000-8000-000000001412");
+      // The reader shows one page at a time: check the references' page, then the section with the demo,
+      // with the demo and the questions opened and one answered.
+      await page.goto("/papers/00000000-0000-4000-8000-000000001412#builds-on");
       await expect(page.getByText("What this paper connects to")).toBeVisible();
-      const first = page.locator("fieldset").first();
+      await check(page, errors);
+      await page.goto("/papers/00000000-0000-4000-8000-000000001412#s2");
+      await page.locator("summary", { hasText: "Play with it" }).click();
+      await expect(page.getByRole("region", { name: /Play with it/ })).toBeVisible();
+      await page.locator("#s2").getByRole("heading", { name: "Check yourself" }).click();
+      const first = page.locator("#s2 fieldset").first();
       await first.getByRole("button").nth(1).click();
       await expect(first.getByText(/^(Right|Not quite)\./)).toBeVisible();
       await check(page, errors);

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { Mark } from "../Glyphs";
 import { AdamDemo } from "./AdamDemo";
 import { AttentionDemo } from "./AttentionDemo";
 
@@ -25,16 +26,31 @@ const DEMOS: Record<string, { title: string; note: ReactNode; body: () => ReactN
   },
 };
 
-/** A small hands-on demo that sits under an equation. Unknown kinds draw nothing. */
+/**
+ * A small hands-on demo that sits under an equation, folded shut until the reader opens it so the
+ * section reads straight through. Unknown kinds draw nothing.
+ */
 export function Demo({ kind }: { kind: string }) {
   const demo = DEMOS[kind];
   if (!demo) return null;
   return (
-    <section className="border border-rule bg-surface p-5 sm:p-6" aria-label={`Play with it: ${demo.title}`}>
-      <p className="eyebrow">Play with it</p>
-      <h3 className="mt-1 font-serif text-[1.375rem] leading-snug font-normal">{demo.title}</h3>
-      <div className="mt-4">{demo.body()}</div>
-      <p className="mt-4 border-t border-line pt-3 font-serif text-[0.875rem] leading-relaxed text-muted italic">{demo.note}</p>
-    </section>
+    <details className="group border border-rule bg-surface">
+      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 px-5 py-4 select-none hover:bg-sunken sm:px-6 [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">
+          <span className="eyebrow block">Play with it</span>
+          <span className="mt-1 block font-serif text-[1.375rem] leading-snug font-normal">{demo.title}</span>
+        </span>
+        <span className="shrink-0 font-mono text-[0.75rem] text-muted" aria-hidden>
+          <Mark className="mr-1.5 text-accent group-open:hidden">+</Mark>
+          <Mark className="mr-1.5 hidden text-accent group-open:inline">−</Mark>
+          <span className="group-open:hidden">Open</span>
+          <span className="hidden group-open:inline">Close</span>
+        </span>
+      </summary>
+      <section className="border-t border-line px-5 pt-4 pb-5 sm:px-6 sm:pb-6" aria-label={`Play with it: ${demo.title}`}>
+        <div>{demo.body()}</div>
+        <p className="mt-4 border-t border-line pt-3 font-serif text-[0.875rem] leading-relaxed text-muted italic">{demo.note}</p>
+      </section>
+    </details>
   );
 }

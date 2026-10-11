@@ -50,7 +50,7 @@ export function FigureCard({
         ) : (
           <a href={src} target="_blank" rel="noopener noreferrer" className="relative block" aria-label={`Open ${figure.label} full size`}>
             {state === "loading" && (
-              <span className="block w-full animate-pulse bg-sunken" style={{ aspectRatio: ratio }} aria-hidden />
+              <span className="block max-h-[24rem] w-full animate-pulse bg-sunken" style={{ aspectRatio: ratio }} aria-hidden />
             )}
             {/* eslint-disable-next-line @next/next/no-img-element -- drawn by our API, already sized */}
             <img
@@ -60,7 +60,7 @@ export function FigureCard({
               loading="lazy"
               onLoad={() => setState("ready")}
               onError={() => setState("failed")}
-              className={state === "ready" ? "mx-auto block max-h-[32rem] w-auto max-w-full" : "absolute h-px w-px opacity-0"}
+              className={state === "ready" ? "mx-auto block max-h-[24rem] w-auto max-w-full" : "absolute h-px w-px opacity-0"}
             />
           </a>
         )}
