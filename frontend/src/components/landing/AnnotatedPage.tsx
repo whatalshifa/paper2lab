@@ -1,26 +1,23 @@
 "use client";
 
-import { CircleCheck, ExternalLink, MousePointerClick } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 
 import type { Equation, PaperDetail, Quote } from "@/lib/api";
 import { useLevel } from "@/lib/level";
 
+import { Mark, Out } from "../Glyphs";
 import { Hovercard } from "../Hovercard";
 import { Question } from "../Quiz";
 import { ReadingContext, RichText } from "../RichText";
 import { Tex } from "../Tex";
 import { ATTENTION_ID, useSample } from "./data";
 
-/** The numbered dot that ties a passage on the page to its note in the margin. */
+/** The footnote reference that ties a passage on the page to its note in the margin: a superior numeral in claret. */
 function Marker({ n }: { n: number }) {
   return (
-    <span
-      className="mx-0.5 inline-flex h-[1.15rem] w-[1.15rem] -translate-y-[0.35em] items-center justify-center rounded-full bg-claret-700 align-baseline font-sans text-[0.6875rem] leading-none font-semibold text-white not-italic dark:bg-claret-300 dark:text-claret-950"
-      aria-hidden
-    >
+    <sup className="ml-0.5 font-serif text-[0.75em] font-semibold text-accent not-italic [font-variant-numeric:lining-nums]" aria-hidden>
       {n}
-    </span>
+    </sup>
   );
 }
 
@@ -64,12 +61,9 @@ function Gap() {
 function Note({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
     <aside aria-label={`Note ${n}: ${title}`} className="relative">
-      <p className="flex items-center gap-2 text-[0.8125rem] font-semibold">
-        <span
-          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-claret-700 text-[0.6875rem] text-white dark:bg-claret-300 dark:text-claret-950"
-          aria-hidden
-        >
-          {n}
+      <p className="flex items-baseline gap-2 border-t border-rule pt-2 font-serif text-[1rem] font-medium">
+        <span className="font-serif text-[0.9375rem] text-accent [font-variant-numeric:lining-nums]" aria-hidden>
+          {n}.
         </span>
         {title}
       </p>
@@ -83,7 +77,7 @@ function PageLink({ pdfUrl, page, children }: { pdfUrl: string | null; page: num
   return (
     <a href={`${pdfUrl}#page=${page}`} target="_blank" rel="noopener noreferrer" className="link inline-flex items-center gap-1">
       {children}
-      <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+      <Out />
     </a>
   );
 }
@@ -95,7 +89,7 @@ function PaperEquation({ equation }: { equation: Equation }) {
     <Hovercard
       label={`Equation ${equation.number ?? ""} ${equation.name}: what it means`}
       block
-      triggerClassName="tex-scroll group relative my-3 w-full overflow-x-auto rounded-md px-2 py-3 text-center outline-offset-2 transition-colors hover:bg-accent-soft/60 aria-expanded:bg-accent-soft/60"
+      triggerClassName="tex-scroll group relative my-3 w-full overflow-x-auto px-2 py-3 text-center outline-offset-2 transition-colors hover:bg-accent-soft/60 aria-expanded:bg-accent-soft/60"
       trigger={
         <span className="flex items-center justify-center gap-3">
           <span className="min-w-0 flex-1">
@@ -137,15 +131,15 @@ function Rows({ paper }: { paper: PaperDetail }) {
 
   // On phones each passage is its own small sheet with its note under it; on wide screens the
   // passages join into one page (drawn once behind them) with the notes beside it.
-  const sheet = "relative rounded-lg border border-line bg-surface px-5 py-6 sm:px-14 lg:flex lg:flex-col lg:rounded-none lg:border-0 lg:bg-transparent lg:py-0";
-  const note = "mb-8 ml-4 mt-0 border-l-2 border-claret-200 pt-4 pl-4 sm:ml-8 lg:m-0 lg:border-0 lg:p-0 dark:border-claret-900";
+  const sheet = "relative border border-line bg-surface px-5 py-6 sm:px-14 lg:flex lg:flex-col lg:border-0 lg:bg-transparent lg:py-0";
+  const note = "mb-8 ml-4 mt-0 border-l border-claret-300 pt-4 pl-4 sm:ml-8 lg:m-0 lg:border-0 lg:p-0 dark:border-claret-800";
 
   return (
     <ReadingContext.Provider value={context}>
       <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,40rem)_minmax(0,1fr)] lg:grid-rows-[auto_auto_auto_auto] lg:gap-x-14 xl:gap-x-20">
         {/* The sheet's shadow and edges, drawn once behind all of its rows. */}
         <div
-          className="pointer-events-none hidden rounded-lg border border-line bg-surface shadow-[0_30px_60px_-30px_rgb(46_11_18/0.35)] lg:col-start-1 lg:row-[1/-1] lg:block dark:shadow-[0_30px_60px_-30px_rgb(0_0_0/0.8)]"
+          className="paper-lift pointer-events-none hidden border border-line bg-surface lg:col-start-1 lg:row-[1/-1] lg:block"
           aria-hidden
         />
 
@@ -174,7 +168,7 @@ function Rows({ paper }: { paper: PaperDetail }) {
             <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.8125rem]">
               {definition.verified && (
                 <span className="inline-flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
-                  <CircleCheck className="h-3.5 w-3.5" aria-hidden />
+                  <Mark>✓</Mark>
                   Found word for word
                 </span>
               )}
@@ -194,8 +188,7 @@ function Rows({ paper }: { paper: PaperDetail }) {
         </div>
         <div className={`${note} lg:col-start-2 lg:row-start-2 lg:self-start lg:pb-10`}>
           <Note n={2} title="Equations, in words">
-            <p className="flex items-start gap-1.5">
-              <MousePointerClick className="mt-1 h-4 w-4 shrink-0 text-accent" aria-hidden />
+            <p>
               <span>Hover or tap the equation for what it says. Every symbol comes with its meaning:</span>
             </p>
             <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1 text-[0.875rem]">

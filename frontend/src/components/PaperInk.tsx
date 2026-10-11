@@ -1,10 +1,10 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Theme = "system" | "light" | "dark";
 const KEY = "p2l-theme";
+const CHANGED = "p2l-theme-change";
 const NEXT: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
 const LABEL: Record<Theme, string> = { system: "Theme: same as device", light: "Theme: light", dark: "Theme: dark" };
 
@@ -26,17 +26,36 @@ function readTheme(): Theme {
   }
 }
 
-export function ThemeToggle() {
+/**
+ * The theme switch, set as type: "Paper / Ink". The one in use is inked and underlined; while it follows the
+ * device, the word in use is underlined with dots and marked "auto". Each press goes Auto, Paper, Ink, Auto.
+ */
+export function PaperInkSwitch() {
   const [theme, setTheme] = useState<Theme | null>(null);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     // Read after mounting: the server can't know what the browser saved.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(readTheme());
+    setDark(document.documentElement.classList.contains("dark"));
     const media = matchMedia("(prefers-color-scheme: dark)");
-    const follow = () => readTheme() === "system" && apply("system");
+    const follow = () => {
+      if (readTheme() !== "system") return;
+      apply("system");
+      setDark(media.matches);
+    };
+    // Another switch on the page (the app has one in its phone menu too) changed the theme.
+    const sync = () => {
+      setTheme(readTheme());
+      setDark(document.documentElement.classList.contains("dark"));
+    };
     media.addEventListener("change", follow);
-    return () => media.removeEventListener("change", follow);
+    window.addEventListener(CHANGED, sync);
+    return () => {
+      media.removeEventListener("change", follow);
+      window.removeEventListener(CHANGED, sync);
+    };
   }, []);
 
   function cycle() {
@@ -46,21 +65,36 @@ export function ThemeToggle() {
       else localStorage.setItem(KEY, next);
     } catch {}
     apply(next);
-    setTheme(next);
+    window.dispatchEvent(new Event(CHANGED));
   }
 
   const current = theme ?? "system";
+  const auto = current === "system";
+  const word = (on: boolean, text: string) => (
+    <span
+      className={
+        on
+          ? `text-foreground underline underline-offset-[5px] ${auto ? "decoration-dotted" : "decoration-1"}`
+          : "text-muted"
+      }
+    >
+      {text}
+    </span>
+  );
   return (
     <button
       type="button"
       onClick={cycle}
       title={LABEL[current]}
       aria-label={`${LABEL[current]}. Click to change.`}
-      className="icon-btn"
+      className="inline-flex h-9 shrink-0 items-center gap-1.5 px-1.5 font-mono text-[0.75rem] whitespace-nowrap transition-colors hover:text-foreground"
     >
-      {current === "light" && <Sun className="h-5 w-5" aria-hidden />}
-      {current === "dark" && <Moon className="h-5 w-5" aria-hidden />}
-      {current === "system" && <Monitor className="h-5 w-5" aria-hidden />}
+      {word(!dark, "Paper")}
+      <span className="text-muted" aria-hidden>
+        /
+      </span>
+      {word(dark, "Ink")}
+      {auto && <sup className="-ml-0.5 text-[0.625rem] text-muted">auto</sup>}
     </button>
   );
 }

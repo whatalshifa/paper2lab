@@ -1,9 +1,10 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { api, type Connections, type HubItem, type Reference } from "@/lib/api";
+
+import { Out } from "./Glyphs";
 
 /** What the paper connects to (references, code, models, datasets). Looked up by the API the
  * first time anyone opens the paper; missing parts simply aren't shown. */
@@ -32,15 +33,15 @@ function ReferenceItem({ reference }: { reference: Reference }) {
     <li className="space-y-1.5 py-4">
       <p className="flex flex-wrap items-center gap-2">
         {reference.url ? (
-          <a href={reference.url} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-accent hover:underline">
+          <a href={reference.url} target="_blank" rel="noopener noreferrer" className="font-serif text-[1.0625rem] font-medium italic hover:text-accent hover:underline">
             {reference.title}
           </a>
         ) : (
-          <span className="font-semibold">{reference.title}</span>
+          <span className="font-serif text-[1.0625rem] font-medium italic">{reference.title}</span>
         )}
-        {reference.influential && <span className="badge bg-accent-soft text-accent">Key reference</span>}
+        {reference.influential && <span className="badge text-accent">Key reference</span>}
       </p>
-      <p className="text-[0.8125rem] text-muted">{[authors, reference.year].filter(Boolean).join(" · ")}</p>
+      <p className="font-mono text-[0.6875rem] text-muted">{[authors, reference.year].filter(Boolean).join(" · ")}</p>
       {reference.tldr && <p className="text-sm leading-relaxed">{reference.tldr}</p>}
       {reference.context && (
         <p className="text-sm leading-relaxed text-muted">
@@ -55,13 +56,13 @@ function HubList({ title, items }: { title: string; items: HubItem[] }) {
   if (items.length === 0) return null;
   return (
     <div>
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <ul className="mt-2 space-y-1 text-sm">
+      <h3 className="eyebrow">{title}</h3>
+      <ul className="mt-2 space-y-1 font-mono text-[0.75rem]">
         {items.map((item) => (
           <li key={item.id}>
             <a href={item.url} target="_blank" rel="noopener noreferrer" className="link break-all">
               {item.id}
-              <ExternalLink className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />
+              <Out className="ml-1" />
             </a>
           </li>
         ))}
@@ -75,13 +76,13 @@ export function ConnectionsSection({ connections }: { connections: Connections |
   const references = connections?.references?.items ?? [];
   if (!connections || (references.length === 0 && !hasLinks(connections))) return null;
   return (
-    <section id="builds-on" className="scroll-mt-28 space-y-8 border-t border-line pt-10" aria-labelledby="builds-on-title">
-      <h2 id="builds-on-title" className="text-[1.375rem] font-semibold tracking-tight">
+    <section id="builds-on" className="scroll-mt-32 space-y-8 border-t border-rule pt-8" aria-labelledby="builds-on-title">
+      <h2 id="builds-on-title" className="font-serif text-[1.875rem] font-normal tracking-[-0.01em] italic">
         What this paper connects to
       </h2>
       {references.length > 0 && (
         <div>
-          <h3 className="font-semibold">Papers it builds on</h3>
+          <h3 className="eyebrow">Papers it builds on</h3>
           <p className="mt-1 text-sm text-muted">
             The most important of its {connections.references?.total} references first, each with a one-line summary.
             From{" "}
@@ -101,18 +102,18 @@ export function ConnectionsSection({ connections }: { connections: Connections |
         <div className="grid gap-6 sm:grid-cols-3">
           {connections.code.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold">Code</h3>
-              <ul className="mt-2 space-y-1 text-sm">
+              <h3 className="eyebrow">Code</h3>
+              <ul className="mt-2 space-y-1 font-mono text-[0.75rem]">
                 {connections.code.map((link) => (
                   <li key={link.url}>
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="link break-all">
                       {link.label}
-                      <ExternalLink className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />
+                      <Out className="ml-1" />
                     </a>
                   </li>
                 ))}
               </ul>
-              <p className="mt-1 text-xs text-muted">Linked in the paper itself.</p>
+              <p className="mt-1 font-serif text-[0.875rem] text-muted italic">Linked in the paper itself.</p>
             </div>
           )}
           <HubList title="Models on Hugging Face" items={connections.models} />

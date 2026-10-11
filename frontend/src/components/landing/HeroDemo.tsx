@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowRight, CircleCheck, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
 import { LEVELS, useLevel } from "@/lib/level";
 
+import { Go, Mark, Out } from "../Glyphs";
 import { LevelSlider } from "../LevelSlider";
-import { LogoMark } from "../Logo";
+import { Monogram } from "../Wordmark";
 import { ReadingContext, RichText } from "../RichText";
 import { ATTENTION_ID, useSample } from "./data";
 
@@ -58,15 +58,15 @@ export function HeroDemo() {
   return (
     <figure
       aria-label="Try it: one passage of Attention Is All You Need, explained at three levels"
-      className="relative overflow-hidden rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-24px_rgb(46_11_18/0.28)] dark:shadow-[0_24px_48px_-24px_rgb(0_0_0/0.7)]"
+      className="relative overflow-hidden border border-rule bg-surface"
     >
       {/* The paper: its own sentence, set like a printed page. */}
-      <div className="border-b border-line bg-sunken/60 px-5 pt-4 pb-5 sm:px-7 sm:pt-5 sm:pb-6">
-        <p className="flex items-center justify-between gap-3 font-mono text-[0.6875rem] text-muted">
-          <span className="truncate">Vaswani et al. · Attention Is All You Need</span>
-          <span className="shrink-0">§3.2{quote ? ` · p. ${quote.page}` : ""}</span>
+      <div className="border-b border-line px-4 pt-3 pb-4 sm:px-7 sm:pt-5 sm:pb-6">
+        <p className="flex items-center justify-between gap-3 border-b border-line pb-2 font-serif text-[0.8125rem] text-muted italic">
+          <span className="truncate">Vaswani et al., Attention Is All You Need</span>
+          <span className="shrink-0 not-italic">§&thinsp;3.2{quote ? ` · p. ${quote.page}` : ""}</span>
         </p>
-        <blockquote className="mt-3 font-serif text-[1.0625rem] leading-[1.6] sm:text-[1.1875rem]">
+        <blockquote className="mt-3 font-serif text-[1rem] leading-[1.55] sm:text-[1.1875rem] sm:leading-[1.6]">
           {quote ? (
             <span className="bg-claret-100/70 box-decoration-clone px-0.5 dark:bg-claret-900/60">{quote.text}</span>
           ) : (
@@ -79,15 +79,15 @@ export function HeroDemo() {
       </div>
 
       {/* The control. */}
-      <div className="border-b border-line px-5 py-3.5 sm:px-7">
+      <div className="border-b border-line bg-sunken px-5 py-3.5 sm:px-7">
         <LevelSlider level={level} />
       </div>
 
       {/* Paper2Lab's explanation of that section, at the chosen level. */}
       <div className="px-5 pt-5 pb-6 sm:px-7 sm:pt-6 sm:pb-7">
-        <p className="flex items-center gap-2 text-[0.75rem] font-semibold tracking-[0.08em] text-accent uppercase">
-          <LogoMark className="h-4 w-4" />
-          Paper2Lab explains{section ? `: ${section.title}` : ""}
+        <p className="flex items-baseline gap-2 font-serif text-[0.9375rem] text-accent italic">
+          <Monogram className="text-[1.125rem] not-italic" />
+          <span className="smallcaps">Paper2Lab explains{section ? `: ${section.title}` : ""}</span>
         </p>
         <div className="mt-3">
           {section ? (
@@ -112,10 +112,10 @@ export function HeroDemo() {
               </div>
               <Link
                 href={`/papers/${ATTENTION_ID}#${SECTION}`}
-                className="link mt-3 inline-flex items-center gap-1 text-[0.875rem]"
+                className="mt-4 inline-flex items-center gap-1.5 font-mono text-[0.75rem] text-accent underline underline-offset-[5px] hover:decoration-2"
               >
                 Keep reading this section
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                <Go className="text-[0.9375rem]" />
               </Link>
               <p className="sr-only" aria-live="polite">
                 Showing the {current.label} explanation.
@@ -130,15 +130,15 @@ export function HeroDemo() {
       </div>
 
       {quote?.verified && (
-      <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line bg-background/60 px-5 py-3 text-[0.8125rem] sm:px-7">
+      <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-5 py-3 font-mono text-[0.6875rem] sm:px-7">
         <span className="inline-flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
-          <CircleCheck className="h-3.5 w-3.5" aria-hidden />
+          <Mark className="text-[0.875rem]">✓</Mark>
           Quote found word for word in the PDF
         </span>
         {pageHref && quote && (
           <a href={pageHref} target="_blank" rel="noopener noreferrer" className="link inline-flex items-center gap-1">
             Page {quote.page} of the paper
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            <Out />
           </a>
         )}
       </figcaption>

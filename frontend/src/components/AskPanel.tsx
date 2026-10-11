@@ -1,11 +1,11 @@
 "use client";
 
-import { ExternalLink, X } from "lucide-react";
 import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { type AnswerPart, ApiError, api, type Citation, type Level, type PaperDetail, type Question } from "@/lib/api";
 import { LEVELS, useLevel } from "@/lib/level";
 
+import { Out } from "./Glyphs";
 import { RichText } from "./RichText";
 
 /** A question shown in the panel: one asked through the API, or a sample's prepared answer. */
@@ -53,7 +53,7 @@ export function AnswerView({
           for (const match of paragraph.matchAll(CITE)) {
             nodes.push(<RichText key={`t${match.index}`} text={paragraph.slice(last, match.index)} inline />);
             nodes.push(
-              <sup key={`c${match.index}`} className="ml-0.5 font-sans text-[0.7em] font-semibold text-accent">
+              <sup key={`c${match.index}`} className="ml-0.5 font-mono text-[0.7em] text-accent">
                 {match[1].split(",").map((n, i) => (
                   <a key={n} href={`#${id}-src-${n}`} className="hover:underline" aria-label={`Source ${n}`}>
                     {i > 0 ? "," : ""}[{n}]
@@ -72,8 +72,8 @@ export function AnswerView({
           {sources.map((source, i) => {
             const href = pdfUrl ? `${pdfUrl}#page=${source.start_page}` : null;
             return (
-              <li key={i} id={`${id}-src-${i + 1}`} className="flex gap-2 text-xs">
-                <span className="font-semibold text-accent">[{i + 1}]</span>
+              <li key={i} id={`${id}-src-${i + 1}`} className="flex gap-2 text-[0.875rem]">
+                <span className="font-mono text-[0.75rem] text-accent">[{i + 1}]</span>
                 <span>
                   <span className="font-serif text-[0.85rem] italic">&ldquo;{source.quote}&rdquo;</span>{" "}
                   {href ? (
@@ -84,7 +84,7 @@ export function AnswerView({
                       className="link inline-flex items-center gap-1 whitespace-nowrap"
                     >
                       {pageLabel(source)}
-                      <ExternalLink className="h-3 w-3" aria-hidden />
+                      <Out />
                     </a>
                   ) : (
                     <span className="text-muted">{pageLabel(source)}</span>
@@ -95,7 +95,7 @@ export function AnswerView({
           })}
         </ol>
       )}
-      <p className="mt-3 text-xs text-muted">
+      <p className="mt-3 font-serif text-[0.875rem] text-muted italic">
         {!prepared
           ? "Every marked passage was copied out of the PDF by the AI service itself."
           : sources.length > 0 && sources.every((s) => s.verified)
@@ -110,20 +110,20 @@ function EntryView({ entry, pdfUrl, onRetry }: { entry: Entry; pdfUrl: string | 
   const levelLabel = LEVELS.find((l) => l.id === entry.level)?.label;
   return (
     <li className="space-y-3">
-      <div className="ml-8 rounded-lg bg-claret-700 px-4 py-2.5 text-sm text-white">{entry.text}</div>
-      <div className="mr-2 rounded-lg border border-line bg-surface px-4 py-3">
+      <div className="ml-8 border-l-2 border-accent pl-4 font-serif text-[1.0625rem] italic">{entry.text}</div>
+      <div className="border-t border-line pt-3">
         {entry.status === "ready" && entry.answer ? (
           <AnswerView id={entry.id} parts={entry.answer.parts} pdfUrl={pdfUrl} prepared={!!entry.prepared} />
         ) : entry.status === "failed" ? (
-          <div role="alert" className="text-sm">
+          <div role="alert" className="text-[0.9375rem]">
             <p>{entry.error}</p>
             <button type="button" onClick={() => onRetry(entry.text)} className="btn btn-secondary btn-sm mt-3">
               Ask again
             </button>
           </div>
         ) : (
-          <p className="flex items-center gap-2 text-sm text-muted" role="status">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-claret-600" aria-hidden />
+          <p className="flex items-center gap-2 text-[0.9375rem] text-muted italic" role="status">
+            <span className="animate-pulse font-serif text-accent not-italic" aria-hidden>¶</span>
             Reading the paper to answer{levelLabel ? ` (${levelLabel.toLowerCase()} level)` : ""}…
           </p>
         )}
@@ -260,25 +260,25 @@ export function AskPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="ask-title"
-        className="relative flex h-full w-full flex-col border-l border-line bg-background shadow-2xl sm:max-w-md"
+        className="relative flex h-full w-full flex-col border-l border-rule bg-background sm:max-w-md"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <header className="flex items-start justify-between gap-4 border-b-[3px] border-double border-rule px-5 py-4">
           <div>
-            <h2 id="ask-title" className="text-lg font-semibold tracking-tight">
+            <h2 id="ask-title" className="font-serif text-[1.75rem] leading-tight font-normal italic">
               Ask the paper
             </h2>
-            <p className="mt-0.5 text-[0.8125rem] text-muted">
+            <p className="mt-1 text-[0.9375rem] text-muted">
               Answers come only from this paper, with the passages they rest on.
             </p>
           </div>
-          <button type="button" onClick={onClose} className="icon-btn" aria-label="Close the panel">
-            <X className="h-5 w-5" aria-hidden />
+          <button type="button" onClick={onClose} className="icon-btn border-line" aria-label="Close the panel">
+            <span aria-hidden>Close</span>
           </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {entries.length === 0 && (
-            <p className="text-sm text-muted">
+            <p className="text-[1rem] text-muted">
               Ask anything this paper covers: why a step works, what a result means, how it compares. Answers
               follow your reading level ({LEVELS.find((l) => l.id === level)?.label.toLowerCase()}).
             </p>
@@ -294,8 +294,8 @@ export function AskPanel({
         <div className="border-t border-line px-5 py-4">
           {suggestions.length > 0 && (aiEnabled || prepared.length > 0) && (
             <div className="mb-3">
-              <p className="mb-2 text-xs font-semibold text-muted">Try asking</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="eyebrow mb-1 text-muted">Try asking</p>
+              <div className="flex flex-col border-t border-line">
                 {suggestions
                   .filter((q) => aiEnabled || prepared.some((p) => p.question === q))
                   .map((q) => (
@@ -304,7 +304,7 @@ export function AskPanel({
                       type="button"
                       onClick={() => send(q)}
                       disabled={sending}
-                      className="rounded-md border border-line bg-surface px-3 py-1.5 text-left text-[0.8125rem] font-medium hover:border-claret-300 hover:bg-accent-soft"
+                      className="border-b border-line px-1 py-2 text-left font-serif text-[1rem] italic hover:bg-accent-soft"
                     >
                       {q}
                     </button>
@@ -331,21 +331,21 @@ export function AskPanel({
                 }
               }}
               placeholder={canType ? "Ask a question about this paper…" : "Questions are paused on this demo"}
-              className="input min-h-0 resize-none py-2.5 text-sm"
+              className="input min-h-0 resize-none py-2.5 font-serif text-[1rem]"
             />
             <button type="submit" className="btn btn-primary" disabled={!canType || sending || text.trim().length < 3}>
               Ask
             </button>
           </form>
           {aiEnabled === false && (
-            <p className="mt-2 text-xs text-muted">
+            <p className="mt-2 font-serif text-[0.875rem] text-muted italic">
               {prepared.length > 0
                 ? "The AI is off on this demo, so only the suggested questions above have answers, prepared in advance."
                 : "The AI is off on this demo, so new questions can't be answered."}
             </p>
           )}
           {error && (
-            <p role="alert" className="mt-2 text-sm text-rose-700 dark:text-rose-300">
+            <p role="alert" className="mt-2 text-[0.9375rem] text-rose-700 dark:text-rose-300">
               {error}
             </p>
           )}

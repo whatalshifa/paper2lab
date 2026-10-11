@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
+import { IBM_Plex_Mono, Newsreader } from "next/font/google";
 
-import { THEME_SCRIPT } from "@/components/ThemeToggle";
+import { THEME_SCRIPT } from "@/components/PaperInk";
 import { SITE_URL } from "@/lib/site";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 
-// IBM Plex Sans is the voice of the site: headings, controls and labels. Newsreader, a serif drawn for
-// long reading on screens, has one job: the papers' titles and every explanation.
+// Set like a small press: Newsreader, a serif drawn for long reading on screens, carries every word, from the
+// masthead to the footnotes. IBM Plex Mono is the press's typewriter, for the controls, labels and metadata.
+// There is no sans-serif anywhere.
 const serif = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], variable: "--font-newsreader" });
-const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans" });
 const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
 
 const DESCRIPTION =
@@ -31,21 +31,21 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfaf6" },
-    { media: "(prefers-color-scheme: dark)", color: "#121113" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f1e7" },
+    { media: "(prefers-color-scheme: dark)", color: "#15110e" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${serif.variable} ${mono.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:border focus:border-rule focus:bg-surface focus:px-3 focus:py-2 focus:font-mono focus:text-[0.8125rem]"
         >
           Skip to content
         </a>

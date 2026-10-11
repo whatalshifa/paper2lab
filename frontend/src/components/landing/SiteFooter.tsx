@@ -2,45 +2,58 @@ import Link from "next/link";
 
 import { SAMPLE_IDS } from "@/lib/site";
 
-import { Logo } from "../Logo";
+import { Out } from "../Glyphs";
+import { Wordmark } from "../Wordmark";
 
 export const ATTENTION_PATH = `/papers/${SAMPLE_IDS[0]}`;
 
-/** The home page's footer. */
+/** The home page's footer, set as a colophon: centred, in small serif, saying how the thing was made. */
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-sunken print:hidden">
-      <div className="mx-auto flex max-w-[76rem] flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-        <div className="flex flex-col gap-2">
-          <Logo />
-          <p className="max-w-md text-[0.8125rem] leading-relaxed text-muted">
-            Explanations are written by AI and can be wrong. Each one shows the quote it&apos;s based on, so you can check.
+    <footer className="print:hidden">
+      <div className="mx-auto max-w-[76rem] px-4 sm:px-6 lg:px-8">
+        <div className="double-rule" />
+        <div className="mx-auto flex max-w-[36rem] flex-col items-center py-14 text-center sm:py-16">
+          <p className="font-serif text-[1.125rem] text-accent" aria-hidden>
+            ❦
           </p>
+          <div className="mt-4">
+            <Wordmark size="colophon" />
+          </div>
+          <p className="mt-5 font-serif text-[0.9375rem] leading-relaxed text-muted italic">
+            Set in Newsreader, a serif drawn by Production Type for reading on screens, with IBM Plex Mono for the
+            controls. Papers are quoted from arXiv. Explanations are written by AI and can be wrong; each one shows
+            the quote it&apos;s based on, so you can check.
+          </p>
+          <nav aria-label="Footer" className="mt-7">
+            <ul className="flex flex-wrap justify-center gap-x-1 gap-y-1 font-mono text-[0.75rem]">
+              {[
+                { href: "/library", label: "Library" },
+                { href: ATTENTION_PATH, label: "Sample paper" },
+                { href: "/accuracy", label: "Accuracy" },
+              ].map((item) => (
+                <li key={item.href} className="flex items-center">
+                  <Link href={item.href} className="px-1.5 py-1.5 text-muted underline-offset-[5px] hover:text-foreground hover:underline">
+                    {item.label}
+                  </Link>
+                  <span aria-hidden className="font-serif text-muted">
+                    ·
+                  </span>
+                </li>
+              ))}
+              <li>
+                <a
+                  href="https://github.com/whatalshifa/paper2lab"
+                  className="inline-flex items-center gap-1 px-1.5 py-1.5 text-muted underline-offset-[5px] hover:text-foreground hover:underline"
+                >
+                  Source code
+                  <Out />
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <p className="mt-6 font-mono text-[0.6875rem] text-muted">Open source · no accounts · made by Alshifa</p>
         </div>
-        <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[0.875rem]">
-            <li>
-              <Link href="/library" className="text-muted hover:text-foreground">
-                Library
-              </Link>
-            </li>
-            <li>
-              <Link href={ATTENTION_PATH} className="text-muted hover:text-foreground">
-                Sample paper
-              </Link>
-            </li>
-            <li>
-              <Link href="/accuracy" className="text-muted hover:text-foreground">
-                Accuracy
-              </Link>
-            </li>
-            <li>
-              <a href="https://github.com/whatalshifa/paper2lab" className="text-muted hover:text-foreground">
-                Source code
-              </a>
-            </li>
-          </ul>
-        </nav>
       </div>
     </footer>
   );

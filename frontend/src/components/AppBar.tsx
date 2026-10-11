@@ -1,13 +1,12 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CommandBar } from "./CommandBar";
-import { Logo } from "./Logo";
-import { ThemeToggle } from "./ThemeToggle";
+import { PaperInkSwitch } from "./PaperInk";
+import { Wordmark } from "./Wordmark";
 
 const NAV = [
   { href: "/library", label: "Library", match: (path: string) => path.startsWith("/library") || path.startsWith("/papers") },
@@ -16,9 +15,9 @@ const NAV = [
 ];
 
 /**
- * The app bar: one thin row across the top of every page, like a reading app's toolbar. The mark,
- * the command bar (add a paper or find one in the library), three places to go and the theme switch.
- * On phones the places fold into a menu.
+ * The app's masthead, folded to one line: the wordmark as a running head, the command bar (add a paper or
+ * find one in the library), three places to go in the typewriter face and the Paper / Ink switch, over a
+ * double rule. On phones the places fold into a menu.
  */
 export function AppBar() {
   const path = usePathname() ?? "/";
@@ -47,15 +46,15 @@ export function AppBar() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background print:hidden">
-      <div className="flex h-12 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <Link href="/library" aria-label="Paper2Lab library" className="flex h-9 shrink-0 items-center rounded-md lg:w-[15.5rem]">
-          <Logo compact />
+    <header className="sticky top-0 z-40 border-b-[3px] border-double border-rule bg-background print:hidden">
+      <div className="flex h-[calc(3.5rem-3px)] items-center gap-2 px-3 sm:gap-4 sm:px-5">
+        <Link href="/library" aria-label="Paper2Lab library" className="flex h-10 shrink-0 items-center lg:w-[15rem]">
+          <Wordmark size="running" />
         </Link>
         <div className="flex min-w-0 flex-1 justify-center">
           <CommandBar />
         </div>
-        <nav aria-label="Main" className="hidden items-center md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 font-mono text-[0.75rem] md:flex">
           {NAV.map((item) => {
             const active = item.match(path);
             return (
@@ -63,8 +62,8 @@ export function AppBar() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-2.5 py-1.5 text-[0.8125rem] font-medium transition-colors ${
-                  active ? "text-foreground" : "text-muted hover:text-foreground"
+                className={`px-2 py-1.5 underline-offset-[6px] transition-colors ${
+                  active ? "text-foreground underline decoration-accent decoration-2" : "text-muted hover:text-foreground hover:underline"
                 }`}
               >
                 {item.label}
@@ -72,20 +71,23 @@ export function AppBar() {
             );
           })}
         </nav>
-        <ThemeToggle />
+        <span aria-hidden className="hidden h-5 w-px bg-line md:block" />
+        <div className="hidden md:block">
+          <PaperInkSwitch />
+        </div>
         <button
           ref={button}
           type="button"
-          className="icon-btn -mr-1 md:hidden"
+          className="icon-btn -mr-1 w-14 border-line md:hidden"
           aria-expanded={open}
           aria-controls="site-menu"
           aria-label="Menu"
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+          <span aria-hidden>{open ? "Close" : "Menu"}</span>
         </button>
       </div>
-      <div id="site-menu" ref={panel} hidden={!open} className="border-t border-line md:hidden">
+      <div id="site-menu" ref={panel} hidden={!open} className="border-t border-rule md:hidden">
         <nav aria-label="Main" className="px-3 py-2">
           <ul>
             {NAV.map((item) => {
@@ -96,8 +98,8 @@ export function AppBar() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     onClick={() => setOpen(false)}
-                    className={`flex h-11 items-center rounded-md px-3 text-[0.9375rem] font-medium ${
-                      active ? "bg-sunken text-foreground" : "text-muted hover:bg-sunken hover:text-foreground"
+                    className={`flex h-12 items-baseline gap-3 border-b border-line px-1 pt-3 font-serif text-[1.25rem] ${
+                      active ? "text-foreground italic" : "text-muted hover:text-foreground"
                     }`}
                   >
                     {item.label}
@@ -107,6 +109,10 @@ export function AppBar() {
             })}
           </ul>
         </nav>
+        <div className="flex items-center justify-between px-4 pb-3 font-mono text-[0.75rem] text-muted">
+          <span>Theme</span>
+          <PaperInkSwitch />
+        </div>
       </div>
     </header>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { FileText } from "lucide-react";
 
 import type { Prerequisite } from "@/lib/api";
 
@@ -30,15 +29,15 @@ function Primer({ item, names }: { item: Prerequisite; names: Map<string, string
   const after = item.builds_on.map((id) => names.get(id)).filter(Boolean);
   return (
     <div className="space-y-2">
-      <p className="font-semibold">{item.topic}</p>
+      <p className="font-serif text-[1.0625rem] font-medium">{item.topic}</p>
       <p className="leading-relaxed">{item.primer}</p>
       {item.why && (
-        <p className="rounded-md bg-accent-soft px-3 py-2 text-[0.8125rem] leading-relaxed">
-          <span className="font-semibold text-accent">In this paper: </span>
+        <p className="border-l-2 border-accent bg-accent-soft px-3 py-2 text-[0.9375rem] leading-relaxed">
+          <span className="font-medium text-accent italic">In this paper: </span>
           {item.why}
         </p>
       )}
-      {after.length > 0 && <p className="text-xs text-muted">Builds on {after.join(" and ")}.</p>}
+      {after.length > 0 && <p className="font-mono text-[0.6875rem] text-muted">Builds on {after.join(" and ")}.</p>}
     </div>
   );
 }
@@ -55,12 +54,12 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
   if (!hasPrimers) {
     return (
       <section className="card p-5 sm:p-6" aria-labelledby="before-you-read-title" id="before-you-read">
-        <h2 id="before-you-read-title" className="text-lg font-semibold tracking-tight">
+        <h2 id="before-you-read-title" className="eyebrow">
           Helps to know
         </h2>
         <ul className="mt-3 flex flex-wrap gap-2">
           {prerequisites.map((item) => (
-            <li key={item.id} className="rounded-md bg-sunken px-2.5 py-1 text-sm font-medium">
+            <li key={item.id} className="border border-line px-2.5 py-1 font-serif text-[1rem] italic">
               {item.topic}
             </li>
           ))}
@@ -73,13 +72,13 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
   return (
     <section
       id="before-you-read"
-      className="card scroll-mt-28 p-5 sm:p-6"
+      className="card scroll-mt-32 p-5 sm:p-6"
       aria-labelledby="before-you-read-title"
     >
-      <h2 id="before-you-read-title" className="text-lg font-semibold tracking-tight">
+      <h2 id="before-you-read-title" className="font-serif text-[1.5rem] font-normal italic">
         Before you read
       </h2>
-      <p className="mt-1 text-sm text-muted">
+      <p className="mt-1 text-[0.9375rem] text-muted">
         New to the field? Start at the top. Each step builds on the one above it. Hover or tap an idea for a
         quick primer.
       </p>
@@ -87,8 +86,8 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
         {steps.map((step, i) => (
           <li key={i} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3">
             <div className="flex flex-col items-center">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-line bg-surface text-xs font-semibold text-muted tabular-nums">
-                {i + 1}
+              <span className="flex h-7 w-7 items-center justify-center font-serif text-[1rem] text-accent italic">
+                {["i", "ii", "iii", "iv", "v", "vi", "vii", "viii"][i] ?? i + 1}.
               </span>
               <span className="w-px flex-1 bg-line" aria-hidden />
             </div>
@@ -97,7 +96,7 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
                 <li key={item.id}>
                   <Hovercard
                     label={`${item.topic}: a quick primer`}
-                    triggerClassName="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium transition-colors hover:border-claret-300 hover:bg-accent-soft aria-expanded:border-claret-400 aria-expanded:bg-accent-soft dark:hover:border-claret-800"
+                    triggerClassName="border border-line bg-surface px-3 py-1.5 font-serif text-[1rem] transition-colors hover:border-rule hover:bg-accent-soft aria-expanded:border-rule aria-expanded:bg-accent-soft"
                     trigger={item.topic}
                   >
                     <Primer item={item} names={names} />
@@ -108,10 +107,10 @@ export function PrerequisiteMap({ items }: { items: (string | Prerequisite)[] })
           </li>
         ))}
         <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-claret-700 text-white" aria-hidden>
-            <FileText className="h-3.5 w-3.5" />
+          <span className="flex h-7 w-7 items-center justify-center font-serif text-[1.125rem] text-accent" aria-hidden>
+            ¶
           </span>
-          <p className="pt-1 text-sm font-semibold">Then this paper</p>
+          <p className="pt-1 font-serif text-[1rem] font-medium italic">Then this paper</p>
         </li>
       </ol>
     </section>

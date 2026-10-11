@@ -79,7 +79,7 @@ export function AttentionDemo() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <div className="flex items-baseline justify-between gap-3 text-sm">
-            <label htmlFor={`${id}-dk`} className="font-semibold">
+            <label htmlFor={`${id}-dk`} className="font-mono text-[0.75rem]">
               Key size d<sub>k</sub>
             </label>
             <span className="font-mono text-muted">{dk}</span>
@@ -97,7 +97,7 @@ export function AttentionDemo() {
           />
         </div>
         <div>
-          <label htmlFor={`${id}-query`} className="text-sm font-semibold">
+          <label htmlFor={`${id}-query`} className="font-mono text-[0.75rem]">
             Query word
           </label>
           <div className="mt-1 flex gap-2">
@@ -128,22 +128,22 @@ export function AttentionDemo() {
           onChange={(event) => setScaled(event.target.checked)}
           className="h-4 w-4 accent-claret-700 dark:accent-claret-300"
         />
-        <label htmlFor={`${id}-scaled`} className="font-semibold">
+        <label htmlFor={`${id}-scaled`} className="font-mono text-[0.75rem]">
           Divide by √d<sub>k</sub>
         </label>
       </div>
 
       <div>
-        <p className="text-xs font-semibold text-muted">
+        <p className="eyebrow text-muted">
           How much “{WORDS[query]}” attends to each word
         </p>
         <ul className="mt-2 space-y-2">
           {WORDS.map((word, i) => (
             <li key={word} className="grid grid-cols-[4.5rem_1fr_3.75rem] items-center gap-2 text-sm">
               <span className={i === top ? "font-semibold" : undefined}>{word}</span>
-              <span className="h-3 overflow-hidden rounded-full bg-sunken" aria-hidden>
+              <span className="h-2.5 overflow-hidden border-b border-line" aria-hidden>
                 <span
-                  className="block h-full rounded-full bg-accent transition-[width] duration-300"
+                  className="block h-full bg-accent transition-[width] duration-300"
                   style={{ width: `${Math.max(weights[i] * 100, 0.5)}%` }}
                 />
               </span>
@@ -166,7 +166,7 @@ export function AttentionDemo() {
         </p>
       </div>
 
-      <p className="rounded-md bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="border-l-2 border-accent bg-accent-soft px-4 py-3 font-serif text-[1rem] leading-relaxed italic" aria-live="polite">
         {message}
       </p>
     </div>
