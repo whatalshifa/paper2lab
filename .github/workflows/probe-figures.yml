@@ -9,16 +9,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Fetch sample figures from the live site
         run: |
-          mkdir -p out
+          mkdir -p probe-out
           for pair in 00000000-0000-4000-8000-000000001412:f1 00000000-0000-4000-8000-000000001412:f2 00000000-0000-4000-8000-000000001706:f1 00000000-0000-4000-8000-000000001706:f2 00000000-0000-4000-8000-000000001706:f3; do
             id=${pair%%:*}; fig=${pair##*:}
-            for base in https://paper2lab-psi.vercel.app https://paper2lab-api.onrender.com; do
-              curl -sS -o out/tmp.png -w "$base $id $fig %{http_code} %{time_total}s %{size_download}B %{content_type}\n" --max-time 120 "$base/api/papers/$id/figures/$fig.png" || echo "$base $id $fig curl failed"
+            for base in https://paper2lab-psi.vercel.app; do
+              curl -sS -o probe-out/tmp.png -w "$base $id $fig %{http_code} %{time_total}s %{size_download}B %{content_type}\n" --max-time 120 "$base/api/papers/$id/figures/$fig.png" || echo "$base $id $fig curl failed"
             done
-            mkdir -p out/$id && mv out/tmp.png out/$id/$fig.png
+            mkdir -p probe-probe-out/$id && mv probe-out/tmp.png probe-out/$id/$fig.png
           done
-          file out/*/*.png
+          file probe-out/*/*.png
       - name: Save them to this branch
         run: |
           git config user.name probe && git config user.email probe@users.noreply.github.com
-          git add out && git commit -m "probe output" && git push
+          git add -f probe-out && git commit -m "probe output" && git push
