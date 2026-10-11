@@ -15,7 +15,7 @@ jobs:
             for base in https://paper2lab-psi.vercel.app; do
               curl -sS -o probe-out/tmp.png -w "$base $id $fig %{http_code} %{time_total}s %{size_download}B %{content_type}\n" --max-time 120 "$base/api/papers/$id/figures/$fig.png" || echo "$base $id $fig curl failed"
             done
-            mkdir -p probe-probe-out/$id && mv probe-out/tmp.png probe-out/$id/$fig.png
+            mkdir -p probe-out/$id && mv probe-out/tmp.png probe-out/$id/$fig.png
           done
           file probe-out/*/*.png
       - name: Save them to this branch
