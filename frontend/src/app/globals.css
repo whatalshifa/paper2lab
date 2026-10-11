@@ -4,33 +4,40 @@
    "System" (the default) copies the device setting; the switch in the header can pin light or dark. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* A journal: ink on paper-white in light mode, warm lamplight on near-black in dark mode.
-   The one colour is claret, the red of a journal's masthead and an editor's pen. */
+/* A small press. Light is "Paper": ink on a warm laid stock. Dark is "Ink": a warm black like a
+   letterpress forme, with the type in parchment. One colour, claret, used the way a journal uses its
+   second ink: for the masthead, numerals, rules that matter and the one thing to press. */
 :root {
-  --background: #fbfaf6;
-  --foreground: #1b1a17;
-  --surface: #ffffff;
-  --sunken: #f3f0e8;
-  --muted: #625d55;
-  --border: #e4dfd4;
-  --rule: #1b1a17;
+  --background: #f6f1e7;
+  --foreground: #1c1814;
+  --surface: #fcf9f3;
+  --sunken: #ede6d8;
+  --muted: #5b5349;
+  --border: #d8cfbe;
+  --rule: #1c1814;
   --accent: #7d2230;
-  --accent-soft: #f7e9ea;
+  --accent-soft: #f3e3e1;
   --focus: #7d2230;
+  --press: #7d2230;
+  --press-ink: #fcf9f3;
+  --press-hover: #5f1824;
   color-scheme: light;
 }
 
 .dark {
-  --background: #121113;
-  --foreground: #ece8e1;
-  --surface: #1a191b;
-  --sunken: #222023;
-  --muted: #a8a198;
-  --border: #2e2b2d;
-  --rule: #ece8e1;
-  --accent: #eb9aa2;
-  --accent-soft: #2b1519;
-  --focus: #eb9aa2;
+  --background: #15110e;
+  --foreground: #ede3d1;
+  --surface: #1c1713;
+  --sunken: #241e19;
+  --muted: #ab9f8f;
+  --border: #3b332b;
+  --rule: #ede3d1;
+  --accent: #eda3a4;
+  --accent-soft: #2e1a1a;
+  --focus: #eda3a4;
+  --press: #eda3a4;
+  --press-ink: #1c1210;
+  --press-hover: #f6c4c3;
   color-scheme: dark;
 }
 
@@ -44,9 +51,23 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-rule: var(--rule);
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  /* There is no sans in this press: anything asking for one gets the serif. */
+  --font-sans: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Square corners everywhere: a page has no rounded edges. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+
+  /* The serif's small sizes need a touch more room than a sans would. */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
 
   /* Claret: the journal's one colour, in the same light-to-dark steps as Tailwind's own scales. */
   --color-claret-50: #fbf3f3;
@@ -65,16 +86,21 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
   text-rendering: optimizeLegibility;
 }
 
-
-/* One visible focus ring for everything you can tab to, in both themes. */
+/* One visible focus mark for everything you can tab to: a claret hairline box, square like the rest. */
 @layer base {
   :where(a, button, summary, select, input[type="range"], [tabindex]):focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
+    outline: 1.5px solid var(--focus);
+    outline-offset: 3px;
+  }
+  /* Figures in tables and data line up; prose keeps its old-style numerals. */
+  :where(table, .font-mono, kbd, code) {
+    font-variant-numeric: lining-nums tabular-nums;
   }
 }
 
@@ -91,65 +117,90 @@ body {
 }
 
 @layer components {
-  /* One radius scale: 6px for controls (rounded-md), 8px for cards and panels (rounded-lg),
-     a full pill only for small status badges. */
+  /* A card is a ruled box on the page: a hairline, square, no shadow. */
   .card {
-    @apply rounded-lg border border-line bg-surface;
+    @apply border border-line bg-surface;
   }
 
-  /* Buttons: one height per size, so buttons side by side always line up. */
+  /* Controls are set in the typewriter face: lower-case mono, a hairline box or an underline, never a pill. */
   .btn {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-transparent px-4 text-sm
-      font-medium whitespace-nowrap transition-colors select-none
+    @apply inline-flex h-10 items-center justify-center gap-2 border border-transparent px-4 font-mono text-[0.8125rem]
+      font-medium tracking-[0.01em] whitespace-nowrap transition-colors select-none
       disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-lg {
-    @apply h-11 px-5 text-[0.9375rem];
+    @apply h-12 px-6 text-[0.875rem];
   }
   .btn-sm {
-    @apply h-9 px-3;
+    @apply h-9 px-3 text-[0.75rem];
   }
-  /* White on claret-700 is 9.8:1, so it stays readable in both themes. */
+  /* The one pressed-ink control: claret on paper, rose on ink. */
   .btn-primary {
-    @apply bg-claret-700 text-white hover:bg-claret-800;
+    @apply border-[var(--press)] bg-[var(--press)] text-[var(--press-ink)] hover:border-[var(--press-hover)] hover:bg-[var(--press-hover)];
   }
+  /* A ruled box in ink. */
   .btn-secondary {
-    @apply border-line bg-surface text-foreground hover:bg-sunken;
+    @apply border-rule bg-transparent text-foreground hover:bg-foreground hover:text-background;
   }
+  /* Just a word, underlined. */
   .btn-ghost {
-    @apply text-muted hover:bg-sunken hover:text-foreground;
+    @apply px-1 text-muted underline decoration-line decoration-1 underline-offset-[5px] hover:text-foreground
+      hover:decoration-current;
   }
   /* Destructive actions stay quiet until you reach for them. */
   .btn-danger-quiet {
-    @apply text-muted hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-300;
+    @apply text-muted underline decoration-transparent underline-offset-[5px] hover:text-rose-800 hover:decoration-current
+      dark:hover:text-rose-300;
   }
 
+  /* A small control that would be an icon elsewhere: here it is a word in mono. */
   .icon-btn {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted transition-colors
-      hover:bg-sunken hover:text-foreground;
+    @apply inline-flex h-9 min-w-9 shrink-0 items-center justify-center border border-transparent px-2 font-mono text-[0.75rem]
+      text-muted transition-colors hover:border-line hover:text-foreground;
   }
 
+  /* A label in a hairline box, like a catalogue tag. */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+    @apply inline-flex items-center gap-1 border border-current px-1.5 py-px font-mono text-[0.6875rem] font-medium whitespace-nowrap;
   }
 
   .input {
-    @apply block h-11 w-full rounded-md border border-line bg-surface px-3 text-foreground outline-none
-      transition placeholder:text-muted/70 focus:border-claret-500 focus:ring-4 focus:ring-claret-500/15
-      focus-visible:outline-none;
+    @apply block h-11 w-full border border-line bg-surface px-3 text-foreground outline-none transition-colors
+      placeholder:text-muted/80 focus:border-rule focus-visible:outline-none;
   }
 
   .link {
-    @apply font-medium text-accent underline-offset-4 hover:underline;
+    @apply text-accent underline decoration-1 underline-offset-4 hover:decoration-2;
   }
 
-  /* A small label above a block, used sparingly. */
+  /* A small label above a block: italic small capitals in the second ink, the way a journal sets a running head. */
   .eyebrow {
-    @apply text-[0.8125rem] font-medium text-accent;
+    @apply font-serif text-[0.9375rem] text-accent italic;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  /* Small capitals for running heads and labels. */
+  .smallcaps {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.07em;
+  }
+
+  /* The double rule under a masthead or above a colophon. */
+  .double-rule {
+    @apply border-t-[3px] border-double border-rule;
   }
 
   .skeleton {
-    @apply animate-pulse rounded-md bg-sunken;
+    @apply animate-pulse bg-sunken;
+  }
+
+  /* The one lift in the whole press: the paper on the reader's desk. */
+  .paper-lift {
+    box-shadow: 0 1px 0 var(--border), 0 18px 36px -24px rgb(60 30 20 / 0.35);
+  }
+  .dark .paper-lift {
+    box-shadow: 0 1px 0 var(--border), 0 18px 36px -24px rgb(0 0 0 / 0.8);
   }
 
   /* The explanations: a reading serif at a comfortable size and line length. */
@@ -182,7 +233,7 @@ body {
   padding: 0.25rem 0;
 }
 
-/* The reading-level slider, drawn like a ruler: a hairline track with tick marks and a claret marker. */
+/* The reading-level slider, drawn like a ruler: a hairline track with tick marks and a square claret cursor. */
 .level-range {
   @apply h-7 w-full cursor-pointer appearance-none bg-transparent;
 }
@@ -193,19 +244,30 @@ body {
   @apply h-[3px] bg-transparent;
 }
 .level-range::-webkit-slider-thumb {
-  @apply -mt-[7.5px] h-[18px] w-[18px] appearance-none rounded-full border-[3px] border-background bg-claret-700 shadow-[0_0_0_1px_var(--color-claret-700),0_1px_3px_rgb(0_0_0/0.2)];
+  @apply -mt-[8.5px] h-[20px] w-[10px] appearance-none border-2 border-background bg-claret-700 outline outline-1 outline-claret-700;
 }
 .level-range::-moz-range-thumb {
-  @apply h-[18px] w-[18px] rounded-full border-[3px] border-background bg-claret-700 shadow-[0_0_0_1px_var(--color-claret-700),0_1px_3px_rgb(0_0_0/0.2)];
+  @apply h-[20px] w-[10px] border-2 border-background bg-claret-700 outline outline-1 outline-claret-700;
+}
+/* The demos' sliders have no ruler drawn under them, so their track is a hairline of its own, in the same
+   half-strength rule as the reading-level ruler. */
+.level-range.with-track {
+  --track: color-mix(in srgb, var(--rule) 50%, transparent);
+}
+.level-range.with-track::-webkit-slider-runnable-track {
+  background: linear-gradient(var(--track), var(--track)) center / 100% 1px no-repeat;
+}
+.level-range.with-track::-moz-range-track {
+  background: linear-gradient(var(--track), var(--track)) center / 100% 1px no-repeat;
 }
 /* In dark mode the marker turns light claret, so it stands out from the page (8:1). */
 .dark .level-range::-webkit-slider-thumb {
   background: var(--color-claret-300);
-  box-shadow: 0 0 0 1px var(--color-claret-300);
+  outline-color: var(--color-claret-300);
 }
 .dark .level-range::-moz-range-thumb {
   background: var(--color-claret-300);
-  box-shadow: 0 0 0 1px var(--color-claret-300);
+  outline-color: var(--color-claret-300);
 }
 
 @media print {

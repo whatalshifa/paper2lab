@@ -1,7 +1,5 @@
 "use client";
 
-import { Info } from "lucide-react";
-
 import type { Equation, Level } from "@/lib/api";
 
 import { Hovercard } from "./Hovercard";
@@ -16,9 +14,9 @@ export function equationLabel(equation: Equation, index: number) {
 function Meaning({ equation, level, showFormula }: { equation: Equation; level: Level; showFormula: boolean }) {
   return (
     <div className="space-y-3">
-      <p className="font-semibold">{equation.name}</p>
+      <p className="font-serif text-[1.0625rem] font-medium">{equation.name}</p>
       {showFormula && (
-        <div className="tex-scroll overflow-x-auto rounded-md bg-sunken px-3 py-2" tabIndex={0} role="group" aria-label="Formula">
+        <div className="tex-scroll overflow-x-auto border-y border-line px-3 py-2" tabIndex={0} role="group" aria-label="Formula">
           <Tex latex={equation.latex} display />
         </div>
       )}
@@ -37,7 +35,7 @@ function Meaning({ equation, level, showFormula }: { equation: Equation; level: 
           ))}
         </dl>
       )}
-      <p className="text-xs text-muted">From page {equation.page} of the paper</p>
+      <p className="font-mono text-[0.6875rem] text-muted">From page {equation.page} of the paper</p>
     </div>
   );
 }
@@ -46,19 +44,18 @@ function Meaning({ equation, level, showFormula }: { equation: Equation; level: 
 export function EquationCard({ equation, index, level }: { equation: Equation; index: number; level: Level }) {
   const label = equationLabel(equation, index);
   return (
-    <figure id={`eq-${equation.id}`} className="scroll-mt-28">
+    <figure id={`eq-${equation.id}`} className="scroll-mt-32">
       <Hovercard
         label={`${label}, ${equation.name}: what it means`}
         block
-        triggerClassName="tex-scroll group w-full overflow-x-auto rounded-lg border border-line bg-surface px-5 py-4 text-left transition-colors hover:border-claret-300 hover:bg-accent-soft/40 aria-expanded:border-claret-400 dark:hover:border-claret-800"
+        triggerClassName="tex-scroll group w-full overflow-x-auto border-y border-rule px-1 py-4 text-left transition-colors hover:bg-accent-soft/50 aria-expanded:bg-accent-soft/50"
         trigger={
           <>
-            <span className="mb-2 flex items-center justify-between gap-3 text-[0.8125rem]">
-              <span className="font-medium text-muted">
+            <span className="mb-2 flex items-center justify-between gap-3 font-mono text-[0.6875rem]">
+              <span className="text-muted">
                 {label} · {equation.name}
               </span>
-              <span className="flex items-center gap-1 font-medium text-accent">
-                <Info className="h-3.5 w-3.5" aria-hidden />
+              <span className="flex items-center gap-1 text-accent">
                 <span className="hidden sm:inline">Hover to explain</span>
                 <span className="sm:hidden">Tap to explain</span>
               </span>
@@ -79,7 +76,7 @@ export function EquationChip({ equation, index, level }: { equation: Equation; i
   return (
     <Hovercard
       label={`${label}, ${equation.name}`}
-      triggerClassName="mx-0.5 inline-flex translate-y-[-1px] items-center rounded bg-accent-soft px-1.5 py-0 font-sans text-[0.8em] font-semibold text-accent hover:ring-1 hover:ring-claret-300 aria-expanded:ring-1 aria-expanded:ring-claret-400"
+      triggerClassName="mx-0.5 inline-flex translate-y-[-1px] items-center border-b border-accent px-0.5 py-0 font-mono text-[0.75em] text-accent hover:bg-accent-soft aria-expanded:bg-accent-soft"
       trigger={label}
     >
       <Meaning equation={equation} level={level} showFormula />

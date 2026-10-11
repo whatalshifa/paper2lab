@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowRight, CornerDownLeft, FileText, FileUp, Info, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { ApiError, api, type PaperSummary, type SiteConfig } from "@/lib/api";
+
+import { Go, Mark } from "./Glyphs";
 
 /** An arXiv link or id: "https://arxiv.org/abs/1706.03762", "1706.03762v7" or an old-style "hep-th/9901001". */
 const ARXIV = /^(?:https?:\/\/)?(?:www\.)?(?:arxiv\.org\/(?:abs|pdf)\/)?(\d{4}\.\d{4,5}(?:v\d+)?|[a-z-]+(?:\.[a-z]{2})?\/\d{7}(?:v\d+)?)(?:\.pdf)?\/?$/i;
@@ -148,13 +149,13 @@ export function CommandBar() {
         role="search"
         aria-label="Add or find a paper"
         onSubmit={submit}
-        className={`flex h-9 items-center gap-2 rounded-md border bg-surface pr-1.5 pl-2.5 transition-[border-color,box-shadow] ${
-          open || dragging
-            ? "border-claret-500 ring-4 ring-claret-500/15"
-            : "border-line hover:border-muted/50"
+        className={`flex h-9 items-center gap-2.5 border-b pr-0.5 pl-0.5 transition-colors ${
+          open || dragging ? "border-accent" : "border-rule/40 hover:border-rule"
         }`}
       >
-        <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+        <span aria-hidden className="hidden shrink-0 font-mono text-[0.6875rem] text-muted sm:inline">
+          Find
+        </span>
         <label htmlFor="command" className="sr-only">
           Paste an arXiv link, or search your library
         </label>
@@ -172,15 +173,15 @@ export function CommandBar() {
           aria-controls="command-panel"
           autoComplete="off"
           spellCheck={false}
-          className="h-full min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
+          className="h-full min-w-0 flex-1 bg-transparent font-serif text-[0.9375rem] text-foreground italic outline-none placeholder:text-muted"
         />
         {off && (
-          <span className="hidden shrink-0 items-center gap-1 text-xs whitespace-nowrap text-muted lg:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+          <span className="hidden shrink-0 items-center gap-1 font-mono text-[0.6875rem] whitespace-nowrap text-muted lg:inline-flex">
+            <Mark className="text-amber-700 dark:text-amber-300">†</Mark>
             Adding paused on this demo
           </span>
         )}
-        <kbd className="hidden h-5 min-w-5 shrink-0 items-center justify-center rounded border border-line bg-background px-1 font-mono text-[0.6875rem] text-muted sm:inline-flex">
+        <kbd className="hidden h-5 min-w-5 shrink-0 items-center justify-center border border-line px-1 font-mono text-[0.6875rem] text-muted sm:inline-flex">
           /
         </kbd>
       </form>
@@ -188,11 +189,11 @@ export function CommandBar() {
       <div
         id="command-panel"
         hidden={!open}
-        className="fixed inset-x-0 top-12 z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-line bg-surface shadow-xl shadow-black/10 sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:left-0 sm:mt-1.5 sm:min-w-[30rem] sm:rounded-lg sm:border dark:shadow-black/40"
+        className="fixed inset-x-0 top-14 z-50 max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-b border-rule bg-surface sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:left-0 sm:mt-2 sm:min-w-[30rem] sm:border"
       >
         {off && (
-          <p className="flex gap-2.5 border-b border-line bg-sunken/60 px-4 py-3 text-[0.8125rem] leading-relaxed text-muted">
-            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <p className="flex gap-2.5 border-b border-line bg-sunken px-4 py-3 text-[0.9375rem] leading-relaxed text-muted">
+            <Mark className="text-amber-800 dark:text-amber-300">†</Mark>
             <span>
               Explaining new papers is paused on this demo, so adding a paper is switched off. The two sample papers
               show everything Paper2Lab does.
@@ -206,39 +207,39 @@ export function CommandBar() {
               type="button"
               disabled={disabled}
               onClick={() => send(() => api.addArxiv(query.trim()))}
-              className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-sm hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
+              className="flex w-full items-center gap-3 px-2.5 py-2 text-left hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
             >
-              <ArrowRight className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+              <Go className="shrink-0 text-accent" />
               <span className="flex-1">
                 {busy ? "Adding…" : "Explain"} <span className="font-mono text-[0.8125rem]">arXiv:{arxiv}</span>
               </span>
-              <CornerDownLeft className="h-3.5 w-3.5 text-muted" aria-hidden />
+              <kbd className="font-mono text-[0.6875rem] text-muted">Enter</kbd>
             </button>
           </div>
         )}
 
         {!arxiv && (
           <div className="border-b border-line p-1.5">
-            <p className="px-2.5 pt-1.5 pb-1 text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase">
+            <p className="smallcaps px-2.5 pt-1.5 pb-1 font-serif text-[0.9375rem] text-muted italic">
               {words ? "Matching papers" : "Jump to a paper"}
             </p>
             {papers === null ? (
-              <p className="px-2.5 py-2 text-sm text-muted">Loading the library…</p>
+              <p className="px-2.5 py-2 text-[0.9375rem] text-muted">Loading the library…</p>
             ) : matches.length === 0 ? (
-              <p className="px-2.5 py-2 text-sm text-muted">No paper in your library matches &ldquo;{query.trim()}&rdquo;.</p>
+              <p className="px-2.5 py-2 text-[0.9375rem] text-muted">No paper in your library matches &ldquo;{query.trim()}&rdquo;.</p>
             ) : (
               <ul>
                 {matches.map((paper) => (
                   <li key={paper.id}>
                     <Link
                       href={`/papers/${paper.id}`}
-                      className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-sunken"
+                      className="flex items-baseline gap-3 px-2.5 py-2 hover:bg-sunken"
                     >
-                      <FileText className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+                      <Mark className="shrink-0 text-accent">¶</Mark>
                       <span className="min-w-0 flex-1 truncate font-serif text-[0.9375rem] font-medium">
                         {paper.title ?? paper.filename ?? "Untitled paper"}
                       </span>
-                      <span className="shrink-0 text-xs text-muted">{byline(paper)}</span>
+                      <span className="shrink-0 font-mono text-[0.6875rem] text-muted">{byline(paper)}</span>
                     </Link>
                   </li>
                 ))}
@@ -249,10 +250,9 @@ export function CommandBar() {
 
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <FileUp className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
-            <p className="text-[0.8125rem] leading-snug text-muted">
+            <p className="text-[0.9375rem] leading-snug text-muted">
               <span className="font-medium text-foreground">Upload a PDF</span>, or drop one on this bar.
-              <span className="block text-xs">
+              <span className="mt-0.5 block font-mono text-[0.6875rem]">
                 Up to {config?.max_upload_mb ?? 20} MB and {config?.max_pages ?? 60} pages. Or paste an arXiv link above.
               </span>
             </p>
@@ -280,12 +280,12 @@ export function CommandBar() {
         </div>
 
         {error && (
-          <p role="alert" className="mx-4 mb-3 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+          <p role="alert" className="mx-4 mb-3 border-l-2 border-rose-700 bg-rose-50 px-3 py-2 text-[0.9375rem] text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
             {error}
           </p>
         )}
 
-        <p className="hidden items-center gap-4 border-t border-line px-4 py-2 text-[0.6875rem] text-muted sm:flex">
+        <p className="hidden items-center gap-4 border-t border-line px-4 py-2 font-mono text-[0.6875rem] text-muted sm:flex">
           <span>
             <kbd className="font-mono">/</kbd> or <kbd className="font-mono">Ctrl K</kbd> to open
           </span>

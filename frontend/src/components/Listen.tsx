@@ -1,6 +1,5 @@
 "use client";
 
-import { Pause, Play, SkipBack, SkipForward, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import type { Level, Reading } from "@/lib/api";
@@ -118,7 +117,6 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
           speak({ part: 0, line: 0 }, speed);
         }}
       >
-        <Volume2 className="h-4 w-4" aria-hidden />
         Listen
       </button>
     );
@@ -128,7 +126,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
     <div
       role="region"
       aria-label="Listening"
-      className="fixed bottom-20 left-4 z-30 flex sm:bottom-4 max-w-[calc(100vw-2rem)] items-center gap-1 rounded-lg border border-line bg-surface py-1.5 pr-2 pl-1.5 shadow-[0_4px_16px_rgb(0_0_0/0.12)] sm:left-1/2 sm:-translate-x-1/2 print:hidden"
+      className="paper-lift fixed bottom-20 left-4 z-30 flex max-w-[calc(100vw-2rem)] items-center gap-1 border border-rule bg-surface py-1.5 pr-2 pl-1.5 sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2 print:hidden"
     >
       <button
         type="button"
@@ -137,19 +135,15 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
         disabled={part === 0}
         onClick={() => speak({ part: Math.max(part - 1, 0), line: 0 }, speed)}
       >
-        <SkipBack className="h-4 w-4" aria-hidden />
+        <span aria-hidden>Prev</span>
       </button>
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-claret-700 text-white hover:bg-claret-800"
+        className="btn btn-primary btn-sm w-16 px-0"
         aria-label={playing ? "Pause" : "Play"}
         onClick={() => (playing ? stop() : speak({ part: position.current.part, line: position.current.line }, speed))}
       >
-        {playing ? (
-          <Pause className="h-4 w-4" aria-hidden />
-        ) : (
-          <Play className="h-4 w-4" aria-hidden />
-        )}
+        <span aria-hidden>{playing ? "Pause" : "Play"}</span>
       </button>
       <button
         type="button"
@@ -158,21 +152,21 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
         disabled={part >= parts.length - 1}
         onClick={() => speak({ part: Math.min(part + 1, parts.length - 1), line: 0 }, speed)}
       >
-        <SkipForward className="h-4 w-4" aria-hidden />
+        <span aria-hidden>Next</span>
       </button>
       <a
         href={`#${current.id}`}
-        className="mx-2 min-w-0 flex-1 text-xs leading-tight sm:w-56 sm:flex-none"
+        className="mx-2 min-w-0 flex-1 leading-tight sm:w-56 sm:flex-none"
         aria-live="polite"
       >
-        <span className="block truncate font-semibold">{current.title}</span>
-        <span className="block text-muted">
+        <span className="block truncate font-serif text-[0.9375rem] italic">{current.title}</span>
+        <span className="block font-mono text-[0.625rem] text-muted">
           {part + 1} of {parts.length} · {levelLabel} level
         </span>
       </a>
       <button
         type="button"
-        className="rounded-md px-2 py-1 text-xs font-semibold text-muted tabular-nums hover:bg-sunken hover:text-foreground"
+        className="border border-transparent px-2 py-1 font-mono text-[0.75rem] text-muted hover:border-line hover:text-foreground"
         aria-label={`Speed ${speed} times. Change speed`}
         onClick={() => {
           const faster = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
@@ -193,7 +187,7 @@ export function Listen({ reading, level }: { reading: Reading; level: Level }) {
           setOpen(false);
         }}
       >
-        <X className="h-4 w-4" aria-hidden />
+        <span aria-hidden>Stop</span>
       </button>
     </div>
   );

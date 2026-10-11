@@ -97,7 +97,7 @@ function Slider(props: {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <label htmlFor={id} className="font-semibold">
+        <label htmlFor={id} className="font-mono text-[0.75rem]">
           {props.label}
         </label>
         <span className="font-mono text-muted">{props.value}</span>
@@ -111,7 +111,7 @@ function Slider(props: {
         value={props.index}
         onChange={(event) => props.onChange(Number(event.target.value))}
         aria-valuetext={props.value}
-        className="level-range mt-2"
+        className="level-range with-track mt-2"
       />
     </div>
   );
@@ -172,7 +172,7 @@ export function AdamDemo() {
         width="100%"
         role="img"
         aria-label={`Loss contours of a narrow tilted valley, with the paths of SGD and Adam after ${step} of ${STEPS} steps.`}
-        className="block rounded-md border border-line bg-sunken"
+        className="block border border-rule bg-background"
       >
         <g fill="none" className="text-muted" stroke="currentColor" strokeWidth={0.75} opacity={0.5}>
           {CONTOURS.map((points, i) => (
@@ -201,20 +201,20 @@ export function AdamDemo() {
 
       <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm" aria-label="Legend and current loss">
         <li className="flex items-center gap-2">
-          <span className="h-1 w-5 rounded-full bg-rose-700 dark:bg-rose-300" aria-hidden />
+          <span className="h-0.5 w-5 bg-rose-700 dark:bg-rose-300" aria-hidden />
           SGD, loss <span className="font-mono tabular-nums">{show(sgdLoss)}</span>
         </li>
         <li className="flex items-center gap-2">
-          <span className="h-1 w-5 rounded-full bg-claret-700 dark:bg-claret-300" aria-hidden />
+          <span className="h-0.5 w-5 bg-claret-700 dark:bg-claret-300" aria-hidden />
           Adam, loss <span className="font-mono tabular-nums">{show(adamLoss)}</span>
         </li>
         <li className="flex items-center gap-2 text-muted">
-          <span className="h-2 w-2 rounded-full bg-muted" aria-hidden /> start
-          <span className="ml-2 h-2 w-2 rounded-full bg-foreground" aria-hidden /> minimum
+          <span className="h-2 w-2 bg-muted" aria-hidden /> start
+          <span className="ml-2 h-2 w-2 bg-foreground" aria-hidden /> minimum
         </li>
       </ul>
 
-      <p className="rounded-md bg-accent-soft px-4 py-3 text-sm leading-relaxed" aria-live="polite">
+      <p className="border-l-2 border-accent bg-accent-soft px-4 py-3 font-serif text-[1rem] leading-relaxed italic" aria-live="polite">
         {message}
       </p>
 
@@ -258,7 +258,7 @@ export function AdamDemo() {
           onChange={(event) => setCorrect(event.target.checked)}
           className="h-4 w-4 accent-claret-700 dark:accent-claret-300"
         />
-        <label htmlFor={`${id}-correct`} className="font-semibold">
+        <label htmlFor={`${id}-correct`} className="font-mono text-[0.75rem]">
           Bias correction (m̂ = m / (1 − β₁ᵗ), v̂ = v / (1 − β₂ᵗ))
         </label>
       </div>

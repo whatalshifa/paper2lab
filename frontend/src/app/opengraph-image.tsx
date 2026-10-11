@@ -1,13 +1,39 @@
 import { ImageResponse } from "next/og";
 
-// The picture shown when a link to Paper2Lab is shared (LinkedIn, Slack, WhatsApp, …).
+// The picture shown when a link to Paper2Lab is shared (LinkedIn, Slack, WhatsApp, …): the journal's
+// title page. The masthead centred over a double rule, the promise in the serif, the levels in the typewriter.
 export const alt = "Paper2Lab: read any research paper at your level";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const LEVELS = ["New to this", "Student", "Expert"];
+const PAPER = "#f6f1e7";
+const INK = "#1c1814";
+const CLARET = "#7d2230";
+const MUTED = "#5b5349";
 
-export default function Image() {
+/** Fetches one cut of a Google font as TrueType, which is what the image renderer reads. */
+async function font(family: string, axes: string): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${family}:${axes}`, { headers: { "User-Agent": "curl" } })).text();
+    const url = /src: url\((https:[^)]+\.ttf)\)/.exec(css)?.[1];
+    return url ? await (await fetch(url)).arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function Image() {
+  const [roman, italic, mono] = await Promise.all([
+    font("Newsreader", "opsz,wght@72,500"),
+    font("Newsreader", "ital,opsz,wght@1,72,500"),
+    font("IBM+Plex+Mono", "wght@400"),
+  ]);
+  const fonts = [
+    roman && { name: "Newsreader", data: roman, style: "normal" as const, weight: 500 as const },
+    italic && { name: "Newsreader", data: italic, style: "italic" as const, weight: 500 as const },
+    mono && { name: "Plex Mono", data: mono, style: "normal" as const, weight: 400 as const },
+  ].filter((f) => !!f);
+
   return new ImageResponse(
     (
       <div
@@ -16,55 +42,39 @@ export default function Image() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
-          padding: 72,
-          background: "#fbfaf6",
-          color: "#1b1a17",
-          fontFamily: "serif",
+          alignItems: "center",
+          padding: "56px 80px",
+          background: PAPER,
+          color: INK,
+          fontFamily: "Newsreader",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <svg width="72" height="72" viewBox="0 0 32 32">
-            <rect width="32" height="32" rx="5" fill="#7d2230" />
-            <path d="M9 6.5h9.5L23 11v6.5H9Z" fill="#fff" />
-            <path d="M11.5 10h4.5M11.5 13h7" stroke="#b0444f" strokeWidth="1.4" strokeLinecap="round" />
-            <path d="M13.5 17.5v3l-4 5.2a.8.8 0 0 0 .6 1.3h11.8a.8.8 0 0 0 .6-1.3l-4-5.2v-3" fill="#fff" />
-            <path d="M11.3 24h9.4l1.3 1.9H10Z" fill="#dd9ca1" />
-          </svg>
-          <div style={{ display: "flex", fontSize: 44, fontWeight: 700 }}>Paper2Lab</div>
+        <div style={{ display: "flex", width: "100%", justifyContent: "space-between", fontFamily: "Plex Mono", fontSize: 20, color: MUTED }}>
+          <span>A reader for research papers</span>
+          <span>paper2lab</span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", height: 5, background: "#1b1a17" }} />
-          <div style={{ display: "flex", height: 1.5, background: "#1b1a17" }} />
+        <div style={{ display: "flex", alignItems: "flex-start", marginTop: 28, fontSize: 112, letterSpacing: -3, lineHeight: 1 }}>
+          <span>Paper</span>
+          <span style={{ fontSize: 56, color: CLARET, marginTop: 6, marginLeft: 2 }}>2</span>
+          <span style={{ fontStyle: "italic", marginLeft: 4 }}>Lab</span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
-            Read any research paper at your level.
-          </div>
-          <div style={{ fontSize: 32, color: "#625d55" }}>
-            Every section explained, every equation decoded, every claim backed by the paper&apos;s own words.
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", gap: 5, marginTop: 30 }}>
+          <div style={{ display: "flex", height: 2, background: INK }} />
+          <div style={{ display: "flex", height: 1, background: INK }} />
         </div>
-        <div style={{ display: "flex", gap: 16 }}>
-          {LEVELS.map((level, i) => (
-            <div
-              key={level}
-              style={{
-                display: "flex",
-                padding: "12px 28px",
-                borderRadius: 4,
-                fontSize: 28,
-                fontWeight: 600,
-                background: i === 1 ? "#7d2230" : "#f7e9ea",
-                color: i === 1 ? "#fff" : "#7d2230",
-              }}
-            >
-              {level}
-            </div>
-          ))}
+        <div style={{ display: "flex", marginTop: 40, fontSize: 58, fontStyle: "italic", lineHeight: 1.1, textAlign: "center" }}>
+          Read any research paper at your level.
+        </div>
+        <div style={{ display: "flex", marginTop: 18, fontSize: 28, lineHeight: 1.35, color: MUTED, textAlign: "center", maxWidth: 900 }}>
+          Every section explained three ways, and every explanation pinned to the paper&apos;s own words.
+        </div>
+        <div style={{ display: "flex", marginTop: "auto", gap: 40, fontFamily: "Plex Mono", fontSize: 24 }}>
+          <span style={{ color: MUTED }}>i. new to this</span>
+          <span style={{ color: CLARET, borderBottom: `2px solid ${CLARET}`, paddingBottom: 4 }}>ii. student</span>
+          <span style={{ color: MUTED }}>iii. expert</span>
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: fonts.length ? fonts : undefined },
   );
 }

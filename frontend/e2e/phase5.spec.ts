@@ -4,7 +4,7 @@ const ATTENTION = "/papers/00000000-0000-4000-8000-000000001706";
 const ADAM = "/papers/00000000-0000-4000-8000-000000001412";
 
 test("the accuracy page shows how many quotes were found, and lists the samples", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/library");
   // On phones the header's links sit behind the menu button.
   const menu = page.getByRole("button", { name: "Menu" });
   if (await menu.isVisible()) await menu.click();
@@ -16,26 +16,30 @@ test("the accuracy page shows how many quotes were found, and lists the samples"
 });
 
 test("check-yourself questions show the answer with the paper's own words, and are remembered", async ({ page }) => {
-  await page.goto(ATTENTION);
+  // The reader shows one section at a time, with its questions folded under "Check yourself".
+  await page.goto(`${ATTENTION}#s1`);
   const quiz = page.locator("section", { has: page.getByRole("heading", { name: "Check yourself" }) }).first();
-  await quiz.scrollIntoViewIfNeeded();
+  await quiz.getByRole("heading", { name: "Check yourself" }).click();
   const first = quiz.locator("fieldset").first();
   await first.getByRole("button").first().click();
   await expect(first.getByText(/^(Right|Not quite)\./)).toBeVisible();
   await expect(first.getByText("The paper says:")).toBeVisible();
   await expect(first.getByRole("button").first()).toBeDisabled();
 
+  // Once answered, the questions open by themselves.
   await page.reload();
-  const again = page.locator("fieldset").first();
+  const again = page.locator("#s1 fieldset").first();
   await expect(again.getByText(/^(Right|Not quite)\./)).toBeVisible();
   await again.getByRole("button", { name: "Try again" }).click();
   await expect(again.getByRole("button").first()).toBeEnabled();
 });
 
 test("the attention demo shows why the paper scales by the square root of d_k", async ({ page }) => {
-  await page.goto(ATTENTION);
+  // The demo sits under equation 1, in section 3, folded shut until opened.
+  await page.goto(`${ATTENTION}#eq-e1`);
+  await page.locator("summary", { hasText: "Play with it" }).click();
   const demo = page.getByRole("region", { name: /Play with it/ });
-  await demo.scrollIntoViewIfNeeded();
+  await expect(demo).toBeVisible();
   const message = demo.locator("[aria-live=polite]");
   const slider = demo.getByRole("slider", { name: /Key size/ });
   await slider.focus();
@@ -48,9 +52,10 @@ test("the attention demo shows why the paper scales by the square root of d_k", 
 });
 
 test("the Adam demo runs both optimisers", async ({ page }) => {
-  await page.goto(ADAM);
+  await page.goto(`${ADAM}#eq-e3`);
+  await page.locator("summary", { hasText: "Play with it" }).click();
   const demo = page.getByRole("region", { name: /Play with it/ });
-  await demo.scrollIntoViewIfNeeded();
+  await expect(demo).toBeVisible();
   const message = demo.locator("[aria-live=polite]");
   await demo.getByRole("button", { name: "Reset" }).click();
   await expect(message).toContainText("Both start at the same point");
@@ -91,6 +96,11 @@ test("references and code links appear when the paper has them", async ({ page }
     "href",
     "https://github.com/tensorflow/tensor2tensor",
   );
+  // What the paper connects to is a page of the reader of its own, listed in the contents.
+  const contents = page.getByRole("button", { name: "Contents" });
+  if (await contents.isVisible()) await contents.click();
+  await page.getByRole("link", { name: "What it connects to" }).click();
+  await expect(page).toHaveURL(/#builds-on$/);
   const section = page.locator("#builds-on");
   await expect(section.getByRole("heading", { name: "What this paper connects to" })).toBeVisible();
   await expect(section.getByText("Key reference")).toBeVisible();
@@ -98,17 +108,18 @@ test("references and code links appear when the paper has them", async ({ page }
 });
 
 test("the site is ready to share: paper titles, a sitemap and a preview image", async ({ page, request }) => {
+  // The old pitch page now leads to the home page.
   await page.goto("/about");
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Read any research paper at your level." })).toBeVisible();
-  await page.getByRole("link", { name: "Try a sample paper" }).click();
-  await expect(page.getByRole("heading", { name: "Library", level: 1 })).toBeInViewport();
 
   await page.goto(ATTENTION);
   await expect(page).toHaveTitle("Attention Is All You Need · Paper2Lab");
 
   const sitemap = await (await request.get("/sitemap.xml")).text();
   expect(sitemap).toContain("/accuracy</loc>");
-  expect(sitemap).toContain("/about</loc>");
+  expect(sitemap).toContain("/library</loc>");
+  expect(sitemap).not.toContain("/about</loc>");
   expect(sitemap).toContain("/papers/00000000-0000-4000-8000-000000001706</loc>");
   expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /api/");
   const image = await request.get("/opengraph-image");

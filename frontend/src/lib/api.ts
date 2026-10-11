@@ -30,7 +30,7 @@ export interface Section {
   quiz?: Record<Level, QuizQuestion[]>;
 }
 
-export interface Symbol {
+export interface EquationSymbol {
   latex: string;
   meaning: string;
 }
@@ -41,7 +41,7 @@ export interface Equation {
   name: string;
   latex: string;
   in_words: Leveled;
-  symbols: Symbol[];
+  symbols: EquationSymbol[];
   section_id: string | null;
   page: number;
   /** A hands-on demo drawn under the equation (see components/demos). */
@@ -219,18 +219,46 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
       const body = await response.json();
       if (typeof body.detail === "string") message = body.detail;
     } catch {}
-    if (response.status >= 502 && response.status <= 504) {
-      message = "The server is waking up. Please try again in a few seconds.";
+    if (isWaking(response.status)) {
+      message = "The server is still waking up. Please try again in a few seconds.";
     }
     throw new ApiError(message, response.status);
   }
   return response.status === 204 ? (undefined as T) : response.json();
 }
 
+/** The API's free server sleeps when idle and takes about 50 seconds to wake. Until it does, the
+ * website's forward to it fails with a gateway error (or the request doesn't get through at all). */
+function isWaking(status: number) {
+  return status === 0 || (status >= 502 && status <= 504);
+}
+
+/** How long a page keeps trying while the server wakes, before it shows "try again". */
+const WAKE_WAIT_MS = 75_000;
+
+/**
+ * Reads that a page needs to show anything: tried again, with growing pauses, while the server is
+ * waking, so a visitor sees "waking up" (see useSlow) and then the page, not an error. Writes are
+ * never repeated, and other errors (a 404, a refusal) come back at once.
+ */
+async function patiently<T>(path: string): Promise<T> {
+  const deadline = Date.now() + WAKE_WAIT_MS;
+  for (let pause = 1500; ; pause = Math.min(pause * 2, 10_000)) {
+    try {
+      return await call<T>(path);
+    } catch (err) {
+      if (!(err instanceof ApiError) || !isWaking(err.status) || Date.now() + pause > deadline) throw err;
+      await new Promise((resolve) => setTimeout(resolve, pause));
+    }
+  }
+}
+
 export const api = {
-  config: () => call<SiteConfig>("/api/config"),
-  papers: () => call<{ samples: PaperSummary[]; mine: PaperSummary[] }>("/api/papers"),
-  paper: (id: string) => call<PaperDetail>(`/api/papers/${encodeURIComponent(id)}`),
+  config: () => patiently<SiteConfig>("/api/config"),
+  papers: () => patiently<{ samples: PaperSummary[]; mine: PaperSummary[] }>("/api/papers"),
+  paper: (id: string) => patiently<PaperDetail>(`/api/papers/${encodeURIComponent(id)}`),
+  /** The paper's latest state, asked for once: for checking every few seconds while it's being read. */
+  paperNow: (id: string) => call<PaperDetail>(`/api/papers/${encodeURIComponent(id)}`),
   upload: (file: File) => {
     const form = new FormData();
     form.append("file", file);
@@ -254,6 +282,6 @@ export const api = {
   figureUrl: (paperId: string, figureId: string) =>
     `/api/papers/${encodeURIComponent(paperId)}/figures/${encodeURIComponent(figureId)}.png`,
   connections: (paperId: string) => call<Connections>(`/api/papers/${encodeURIComponent(paperId)}/connections`),
-  accuracy: () => call<AccuracyReport>("/api/accuracy"),
+  accuracy: () => patiently<AccuracyReport>("/api/accuracy"),
   remove: (id: string) => call<void>(`/api/papers/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

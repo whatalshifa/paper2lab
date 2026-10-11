@@ -1,6 +1,5 @@
 "use client";
 
-import { Check, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -22,22 +21,21 @@ function Working({ paper }: { paper: PaperDetail }) {
     <div className="mx-auto max-w-xl px-4 py-12 sm:py-16">
       <div className="card p-6 sm:p-8" role="status" aria-live="polite">
         <p className="eyebrow">Explaining your paper</p>
-        <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
+        <h1 className="mt-2 font-serif text-[2rem] leading-tight font-normal text-balance">
           {paper.title ?? "Your paper"}
         </h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-[0.9375rem] text-muted">
           This usually takes one to three minutes. You can leave this page; the paper will be in your library.
         </p>
         <ol className="mt-6 space-y-4">
           {STEPS.map((step, i) => (
-            <li key={step.label} className="flex items-start gap-3 text-sm">
+            <li key={step.label} className="flex items-start gap-3 text-[0.9375rem]">
               <span
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                  i < current ? "bg-claret-700 text-white" : i === current ? "border-2 border-claret-600" : "border-2 border-line"
-                }`}
+                className={`w-6 shrink-0 font-serif italic ${i <= current ? "text-accent" : "text-muted"}`}
                 aria-hidden
               >
-                {i < current ? <Check className="h-3 w-3" strokeWidth={3} /> : i === current ? <span className="h-2 w-2 animate-pulse rounded-full bg-claret-600" /> : null}
+                {["i.", "ii.", "iii."][i]}
+                {i === current && <span className="ml-0.5 inline-block animate-pulse not-italic">…</span>}
               </span>
               <span className={i > current ? "text-muted" : ""}>{step.label}</span>
             </li>
@@ -53,7 +51,7 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
     <div className="mx-auto max-w-xl px-4 py-12 sm:py-16">
       <div className="card p-6 sm:p-8" role="alert">
         <p className="eyebrow text-rose-700 dark:text-rose-300">Couldn&apos;t explain this paper</p>
-        <h1 className="mt-2 font-serif text-[1.75rem] leading-tight font-semibold text-balance">
+        <h1 className="mt-2 font-serif text-[2rem] leading-tight font-normal text-balance">
           {paper.title ?? "Your paper"}
         </h1>
         <p className="mt-3">{paper.error}</p>
@@ -61,11 +59,10 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
           <button type="button" onClick={onRetry} className="btn btn-primary">
             Try again
           </button>
-          <Link href="/" className="btn btn-secondary">
+          <Link href="/library" className="btn btn-secondary">
             Back to the library
           </Link>
           <button type="button" onClick={onDelete} className="btn btn-danger-quiet sm:ml-auto">
-            <Trash2 className="h-4 w-4" aria-hidden />
             Delete
           </button>
         </div>
@@ -91,14 +88,17 @@ export function PaperPage({ id }: { id: string }) {
   const [paper, setPaper] = useState<PaperDetail | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const load = useCallback(async () => {
+  const show = useCallback(async (request: Promise<PaperDetail>) => {
     try {
-      setPaper(await api.paper(id));
+      setPaper(await request);
       setError(null);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError("Something went wrong.", 0));
     }
-  }, [id]);
+  }, []);
+  // Opening the page waits for a sleeping server to wake; the checks while a paper is read are one quick look each.
+  const load = useCallback(() => show(api.paper(id)), [id, show]);
+  const check = useCallback(() => show(api.paperNow(id)), [id, show]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading data when the page opens
@@ -116,9 +116,9 @@ export function PaperPage({ id }: { id: string }) {
   const working = paper?.status === "queued" || paper?.status === "reading";
   useEffect(() => {
     if (!working) return;
-    const timer = window.setInterval(load, 3000);
+    const timer = window.setInterval(check, 3000);
     return () => window.clearInterval(timer);
-  }, [working, load]);
+  }, [working, check]);
 
   async function retry() {
     try {
@@ -133,7 +133,7 @@ export function PaperPage({ id }: { id: string }) {
     if (!confirm("Delete this paper and its explanation? This can't be undone.")) return;
     try {
       await api.remove(id);
-      router.push("/");
+      router.push("/library");
     } catch (err) {
       if (err instanceof ApiError) alert(err.message);
     }
@@ -142,7 +142,7 @@ export function PaperPage({ id }: { id: string }) {
   if (error && !paper) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center sm:py-24">
-        <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">
+        <h1 className="font-serif text-[2.25rem] leading-tight font-normal italic">
           {error.status === 404 ? "Paper not found" : "Couldn't load this paper"}
         </h1>
         <p className="mt-3 text-muted">
@@ -156,7 +156,7 @@ export function PaperPage({ id }: { id: string }) {
               Try again
             </button>
           )}
-          <Link href="/" className="btn btn-secondary">
+          <Link href="/library" className="btn btn-secondary">
             Back to the library
           </Link>
         </div>
@@ -167,7 +167,7 @@ export function PaperPage({ id }: { id: string }) {
     return (
       <>
         {slow && (
-          <p role="status" className="mx-auto max-w-[42rem] px-4 pt-6 text-sm text-muted sm:px-8">
+          <p role="status" className="mx-auto max-w-[42rem] px-4 pt-6 text-[0.9375rem] text-muted sm:px-8">
             {WAKING_UP}
           </p>
         )}

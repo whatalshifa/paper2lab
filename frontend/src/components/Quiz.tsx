@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, ExternalLink, X } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import type { Level, QuizQuestion, Quote, Section } from "@/lib/api";
 
+import { Mark, Out } from "./Glyphs";
 import { RichText } from "./RichText";
 
 /** Answers are kept in this browser only: { questionId: chosen choice }. */
@@ -51,7 +51,8 @@ export function quizScore(sections: Section[], level: Level, answers: Answers) {
   };
 }
 
-function Question({
+/** One check-yourself question. Exported so the home page can show a real one. */
+export function Question({
   question,
   number,
   quote,
@@ -71,19 +72,20 @@ function Question({
   const href = quote && pdfUrl ? `${pdfUrl}#page=${quote.page}` : null;
   return (
     <fieldset className="space-y-3">
-      <legend className="text-[0.9375rem] leading-relaxed font-medium">
-        <span className="mr-1.5 text-muted tabular-nums">{number}.</span>
+      <legend className="font-serif text-[1.0625rem] leading-relaxed font-medium">
+        <span className="mr-2 text-accent italic">{number}.</span>
         <RichText text={question.question} inline />
       </legend>
-      <div className="grid gap-2">
+      {/* Short choices sit side by side on wider screens, so a question takes one row of cards. */}
+      <div className={`grid gap-2 ${question.choices.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {question.choices.map((choice, index) => {
           const isAnswer = index === question.answer;
           const isChosen = index === chosen;
-          let tone = "border-line bg-surface hover:border-claret-300 dark:hover:border-claret-800";
+          let tone = "border-line bg-surface hover:border-rule";
           if (answered && isAnswer)
-            tone = "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200";
+            tone = "border-emerald-700 bg-emerald-50 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-200";
           else if (answered && isChosen)
-            tone = "border-rose-400 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:text-rose-200";
+            tone = "border-rose-700 bg-rose-50 text-rose-900 dark:border-rose-400 dark:bg-rose-950/40 dark:text-rose-200";
           else if (answered) tone = "border-line bg-surface text-muted";
           return (
             <button
@@ -92,13 +94,13 @@ function Question({
               disabled={answered}
               aria-pressed={isChosen}
               onClick={() => onChoose(index)}
-              className={`flex min-h-10 items-start gap-2.5 rounded-md border px-3 py-2 text-left text-[0.9375rem] transition-colors disabled:cursor-default ${tone}`}
+              className={`flex min-h-10 items-start gap-3 border px-3 py-2 text-left text-[1rem] transition-colors disabled:cursor-default ${tone}`}
             >
-              <span className="flex h-6 w-4 shrink-0 items-center text-[0.8125rem] font-semibold" aria-hidden>
+              <span className="flex h-6 w-4 shrink-0 items-center font-mono text-[0.8125rem]" aria-hidden>
                 {answered && isAnswer ? (
-                  <Check className="h-4 w-4" />
+                  "✓"
                 ) : answered && isChosen ? (
-                  <X className="h-4 w-4" />
+                  "✗"
                 ) : (
                   String.fromCharCode(65 + index)
                 )}
@@ -116,7 +118,7 @@ function Question({
       </div>
       <div aria-live="polite">
         {answered && (
-          <div className="space-y-2 rounded-md bg-sunken px-4 py-3 text-sm leading-relaxed">
+          <div className="space-y-2 border-l-2 border-accent bg-sunken px-4 py-3 text-[0.9375rem] leading-relaxed">
             <p>
               <span className="font-semibold">{right ? "Right. " : "Not quite. "}</span>
               <RichText text={question.why} inline />
@@ -132,7 +134,7 @@ function Question({
                     className="link inline-flex items-center gap-1 whitespace-nowrap"
                   >
                     Page {quote.page}
-                    <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                    <Out />
                   </a>
                 ) : (
                   <span className="whitespace-nowrap">(page {quote.page})</span>
@@ -166,34 +168,41 @@ export function Quiz({
   onChoose: (questionId: string, choice: number | null) => void;
 }) {
   const questions = section.quiz?.[level] ?? [];
+  const started = questions.some((q) => q.id in answers);
+  // Folded shut until the reader opens it, unless they have already answered here.
+  const [open, setOpen] = useState(started);
   if (questions.length === 0) return null;
   const right = questions.filter((q) => answers[q.id] === q.answer).length;
   const done = questions.every((q) => q.id in answers);
   return (
-    <section className="card mt-8 p-5 sm:p-6" aria-labelledby={`${section.id}-quiz`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 id={`${section.id}-quiz`} className="text-[0.9375rem] font-semibold">
-          Check yourself
-        </h3>
-        {done && (
-          <span className="text-[0.8125rem] text-muted">
-            {right} of {questions.length} right
+    <section className="card mt-8" aria-labelledby={`${section.id}-quiz`}>
+      <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group">
+        <summary className="flex cursor-pointer list-none items-baseline justify-between gap-3 px-5 py-4 select-none hover:bg-sunken sm:px-6 [&::-webkit-details-marker]:hidden">
+          <h3 id={`${section.id}-quiz`} className="eyebrow">
+            Check yourself
+          </h3>
+          <span className="font-mono text-[0.6875rem] text-muted">
+            {done
+              ? `${right} of ${questions.length} right`
+              : `${questions.length} ${questions.length === 1 ? "question" : "questions"}`}
+            <Mark className="ml-2 text-[0.875rem] text-accent group-open:hidden">+</Mark>
+            <Mark className="ml-2 hidden text-[0.875rem] text-accent group-open:inline">−</Mark>
           </span>
-        )}
-      </div>
-      <div className="mt-5 space-y-6">
-        {questions.map((question, index) => (
-          <Question
-            key={question.id}
-            question={question}
-            number={index + 1}
-            quote={question.quote === null ? null : (section.quotes[question.quote] ?? null)}
-            pdfUrl={pdfUrl}
-            chosen={answers[question.id]}
-            onChoose={(choice) => onChoose(question.id, choice)}
-          />
-        ))}
-      </div>
+        </summary>
+        <div className="space-y-6 px-5 pt-1 pb-5 sm:px-6 sm:pb-6">
+          {questions.map((question, index) => (
+            <Question
+              key={question.id}
+              question={question}
+              number={index + 1}
+              quote={question.quote === null ? null : (section.quotes[question.quote] ?? null)}
+              pdfUrl={pdfUrl}
+              chosen={answers[question.id]}
+              onChoose={(choice) => onChoose(question.id, choice)}
+            />
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

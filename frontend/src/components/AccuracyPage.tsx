@@ -12,10 +12,10 @@ function percent(found: number, total: number) {
 
 function Stat({ value, label, detail }: { value: string; label: string; detail: string }) {
   return (
-    <div className="border-t border-line pt-5">
-      <p className="text-[2.25rem] leading-none font-semibold tracking-tight text-accent tabular-nums">{value}</p>
-      <p className="mt-3 font-medium">{label}</p>
-      <p className="mt-1 text-sm text-muted">{detail}</p>
+    <div className="border-t-[3px] border-double border-rule pt-5">
+      <p className="font-serif text-[3.25rem] leading-none font-normal tracking-[-0.02em] text-accent [font-variant-numeric:lining-nums]">{value}</p>
+      <p className="mt-3 font-serif text-[1.125rem] italic">{label}</p>
+      <p className="mt-1 font-mono text-[0.6875rem] text-muted">{detail}</p>
     </div>
   );
 }
@@ -58,10 +58,10 @@ export function AccuracyPage() {
   return (
     <div className="max-w-4xl space-y-16">
       <header>
-        <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.02em] text-balance sm:text-[2.25rem]">
+        <h1 className="font-serif text-[2.5rem] leading-[1.05] font-normal tracking-[-0.025em] text-balance sm:text-[3.5rem]">
           How accurate is Paper2Lab?
         </h1>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-pretty text-muted">
+        <p className="mt-5 max-w-2xl text-[1.1875rem] leading-relaxed text-pretty text-muted">
           Any AI can sound sure of itself. Paper2Lab backs every explanation with the paper&apos;s own words and checks
           each quote against the PDF. These are the results, across every paper it has explained.
         </p>
@@ -95,7 +95,7 @@ export function AccuracyPage() {
               detail="Including the sample papers"
             />
           </div>
-          <p className="text-[0.8125rem] text-muted">
+          <p className="font-mono text-[0.6875rem] text-muted">
             Updated {new Date(report.updated_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.
             {report.scanned_papers > 0 &&
               ` ${report.scanned_papers} scanned ${report.scanned_papers === 1 ? "paper has" : "papers have"} no text to check against, so ${
@@ -107,7 +107,7 @@ export function AccuracyPage() {
         !error && (
           <div className="space-y-3">
             {slow && (
-              <p role="status" className="text-sm text-muted">
+              <p role="status" className="text-[0.9375rem] text-muted">
                 {WAKING_UP}
               </p>
             )}
@@ -117,14 +117,14 @@ export function AccuracyPage() {
       )}
 
       <section aria-labelledby="how" className="space-y-6">
-        <h2 id="how" className="text-2xl font-semibold tracking-tight">
+        <h2 id="how" className="border-t border-rule pt-6 font-serif text-[2rem] font-normal tracking-[-0.01em]">
           How the check works
         </h2>
-        <ol className="grid gap-8 pt-2 sm:grid-cols-3">
+        <ol className="grid gap-8 pt-2 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-line">
           {STEPS.map((step, i) => (
-            <li key={step.title}>
-              <span className="text-[0.8125rem] font-semibold text-accent tabular-nums">Step {i + 1}</span>
-              <p className="mt-1 font-semibold">{step.title}</p>
+            <li key={step.title} className="sm:px-6 sm:first:pl-0 sm:last:pr-0">
+              <span className="font-serif text-[1.5rem] text-accent italic">{["i", "ii", "iii"][i]}.</span>
+              <p className="mt-1 font-serif text-[1.125rem] font-medium">{step.title}</p>
               <p className="mt-1 text-[0.9375rem] leading-relaxed text-muted">{step.text}</p>
             </li>
           ))}
@@ -138,23 +138,23 @@ export function AccuracyPage() {
 
       {report && report.samples.length > 0 && (
         <section aria-labelledby="samples" className="space-y-4">
-          <h2 id="samples" className="text-2xl font-semibold tracking-tight">
+          <h2 id="samples" className="border-t border-rule pt-6 font-serif text-[2rem] font-normal tracking-[-0.01em]">
             The sample papers
           </h2>
           <p className="text-[0.9375rem] text-muted">
             Other people&apos;s papers are counted above but never listed. The samples are public, so here they are.
           </p>
-          <div className="overflow-x-auto rounded-lg border border-line">
+          <div className="overflow-x-auto border-y border-rule">
             <table className="w-full text-left text-[0.9375rem]">
-              <thead className="border-b border-line bg-sunken text-[0.8125rem] text-muted">
+              <thead className="border-b border-rule font-mono text-[0.6875rem] text-muted">
                 <tr>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
+                  <th scope="col" className="px-4 py-2.5 font-normal">
                     Paper
                   </th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
+                  <th scope="col" className="px-4 py-2.5 font-normal">
                     Quotes found
                   </th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
+                  <th scope="col" className="px-4 py-2.5 font-normal">
                     Captions found
                   </th>
                 </tr>
@@ -162,15 +162,15 @@ export function AccuracyPage() {
               <tbody className="divide-y divide-line">
                 {report.samples.map((sample) => (
                   <tr key={sample.id}>
-                    <th scope="row" className="px-4 py-3 font-serif font-semibold">
+                    <th scope="row" className="px-4 py-3 font-serif font-medium italic">
                       <Link href={`/papers/${sample.id}`} className="hover:text-accent hover:underline">
                         {sample.title}
                       </Link>
                     </th>
-                    <td className="px-4 py-3 tabular-nums">
+                    <td className="px-4 py-3 font-mono text-[0.8125rem]">
                       {sample.quotes_found} of {sample.quotes}
                     </td>
-                    <td className="px-4 py-3 tabular-nums">
+                    <td className="px-4 py-3 font-mono text-[0.8125rem]">
                       {sample.captions_found} of {sample.captions}
                     </td>
                   </tr>

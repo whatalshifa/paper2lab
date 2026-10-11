@@ -118,7 +118,7 @@ export function Hovercard({
             id={id}
             role="dialog"
             aria-label={label}
-            className="card absolute z-50 p-4 text-left text-sm shadow-xl shadow-black/10 dark:shadow-black/40"
+            className="absolute z-50 border border-rule bg-surface p-4 text-left text-[0.9375rem] outline outline-4 outline-background"
             style={{ top: position.top, left: position.left, width: position.width }}
             onPointerEnter={(event) => event.pointerType === "mouse" && show()}
             onPointerLeave={(event) => event.pointerType === "mouse" && hideSoon()}

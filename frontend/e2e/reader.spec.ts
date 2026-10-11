@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("the home page is the library, and the command bar explains that the demo can't read new ones", async ({ page }) => {
-  await page.goto("/");
+test("the library lists the samples, and the command bar explains that the demo can't read new ones", async ({ page }) => {
+  await page.goto("/library");
   await expect(page.getByRole("heading", { name: "Library", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: /Attention Is All You Need/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ })).toBeVisible();
@@ -17,9 +17,9 @@ test("the home page is the library, and the command bar explains that the demo c
 
 test("on a wide screen the library shows the selected paper's first page and its margin notes", async ({ page, isMobile }) => {
   test.skip(isMobile, "Phones show the library list alone; a tap opens the reader");
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
-  await expect(page).toHaveURL(/\?paper=00000000-0000-4000-8000-000000001412/);
+  await expect(page).toHaveURL(/\/library\?paper=00000000-0000-4000-8000-000000001412/);
   await expect(page.getByRole("heading", { name: "Adam: A Method for Stochastic Optimization", level: 2 })).toBeVisible();
   const notes = page.getByRole("complementary", { name: "Margin notes" });
   await notes.getByRole("tab", { name: /Ask/ }).click();
@@ -31,7 +31,7 @@ test("on a wide screen the library shows the selected paper's first page and its
 
 test("on a phone, tapping a paper in the library opens the reader", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Wide screens show the paper beside the list instead");
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Adam: A Method for Stochastic Optimization/ }).click();
   await expect(page).toHaveURL(/\/papers\/00000000-0000-4000-8000-000000001412$/);
   await page.getByRole("button", { name: "Notes", exact: true }).click();
@@ -39,7 +39,7 @@ test("on a phone, tapping a paper in the library opens the reader", async ({ pag
 });
 
 test("the reading-level slider rewrites the explanations", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/library");
   await page.getByRole("link", { name: /Attention Is All You Need/ }).click();
   const nutshell = page.locator("section", { has: page.getByRole("heading", { name: "In a nutshell" }) });
   await expect(nutshell).toContainText("sequence-to-sequence model");
@@ -57,9 +57,10 @@ test("the reading-level slider rewrites the explanations", async ({ page }) => {
 });
 
 test("an equation explains itself, symbol by symbol", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  // A link to the equation opens the section it is in.
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706#eq-e1");
   const equation = page.getByRole("button", { name: /Eq\. 1, Scaled dot-product attention: what it means/ });
-  await equation.scrollIntoViewIfNeeded();
+  await expect(equation).toBeInViewport();
   await equation.click();
   const card = page.getByRole("dialog", { name: /Scaled dot-product attention/ });
   await expect(card).toBeVisible();
@@ -69,7 +70,7 @@ test("an equation explains itself, symbol by symbol", async ({ page }) => {
 });
 
 test("each section shows the quote it is based on, with its page", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001412");
+  await page.goto("/papers/00000000-0000-4000-8000-000000001412#s1");
   const section = page.locator("#s1");
   await expect(section.getByText(/The name Adam is derived from adaptive moment estimation/)).toBeVisible();
   await expect(section.getByRole("link", { name: /Page 1 of the paper/ }).first()).toHaveAttribute(
@@ -123,9 +124,9 @@ test("the prerequisite map opens a primer for each idea", async ({ page }) => {
 });
 
 test("a figure is explained at the chosen level", async ({ page }) => {
-  await page.goto("/papers/00000000-0000-4000-8000-000000001706");
+  await page.goto("/papers/00000000-0000-4000-8000-000000001706#fig-f1");
   const figure = page.locator("#fig-f1");
-  await figure.scrollIntoViewIfNeeded();
+  await expect(figure).toBeInViewport();
   await expect(figure).toContainText("The Transformer - model architecture.");
   await expect(figure).toContainText("How to read it");
   await expect(figure).toContainText("The whole model is built from attention");

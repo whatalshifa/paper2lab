@@ -25,16 +25,20 @@ for (const scheme of ["light", "dark"] as const) {
   test.describe(`${scheme} mode`, () => {
     test.use({ colorScheme: scheme });
 
-    test("the home page is accessible", async ({ page }) => {
+    test("the home page is accessible, with its live demo, notes and numbers loaded", async ({ page }) => {
       const errors = watch(page);
       await page.goto("/");
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByTestId("hero-explanation")).toBeVisible();
+      await expect(page.getByText("quotes found word for word")).toBeVisible();
+      await expect(page.getByRole("link", { name: "Read Attention Is All You Need" })).toBeVisible();
+      await expect(page.getByText("What can separate heads do that one attention cannot?")).toBeVisible();
       await check(page, errors);
     });
 
-    test("the about page, and the command bar open, are accessible", async ({ page }) => {
+    test("the library, and the command bar open, are accessible", async ({ page }) => {
       const errors = watch(page);
-      await page.goto("/about");
+      await page.goto("/library");
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await check(page, errors);
       await page.getByRole("textbox", { name: /arXiv link/ }).click();
@@ -77,9 +81,16 @@ for (const scheme of ["light", "dark"] as const) {
           },
         }),
       );
-      await page.goto("/papers/00000000-0000-4000-8000-000000001412");
+      // The reader shows one page at a time: check the references' page, then the section with the demo,
+      // with the demo and the questions opened and one answered.
+      await page.goto("/papers/00000000-0000-4000-8000-000000001412#builds-on");
       await expect(page.getByText("What this paper connects to")).toBeVisible();
-      const first = page.locator("fieldset").first();
+      await check(page, errors);
+      await page.goto("/papers/00000000-0000-4000-8000-000000001412#s2");
+      await page.locator("summary", { hasText: "Play with it" }).click();
+      await expect(page.getByRole("region", { name: /Play with it/ })).toBeVisible();
+      await page.locator("#s2").getByRole("heading", { name: "Check yourself" }).click();
+      const first = page.locator("#s2 fieldset").first();
       await first.getByRole("button").nth(1).click();
       await expect(first.getByText(/^(Right|Not quite)\./)).toBeVisible();
       await check(page, errors);

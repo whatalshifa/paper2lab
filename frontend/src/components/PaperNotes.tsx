@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronRight, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { type KeyboardEvent, useId, useMemo, useRef, useState } from "react";
 
@@ -9,6 +8,7 @@ import { useLevel } from "@/lib/level";
 
 import { AnswerView } from "./AskPanel";
 import { equationLabel } from "./Equations";
+import { Go, Mark } from "./Glyphs";
 import { ReadingContext, RichText } from "./RichText";
 import { Tex } from "./Tex";
 
@@ -57,8 +57,8 @@ export function PaperNotes({
   return (
     <ReadingContext.Provider value={context}>
       <div className="sticky top-0 z-10 border-b border-line bg-background px-5 pt-4">
-        <p className="text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase">Margin notes</p>
-        <div role="tablist" aria-label="Margin notes" className="mt-2 flex gap-5">
+        <p className="eyebrow">Margin notes</p>
+        <div role="tablist" aria-label="Margin notes" className="mt-1.5 flex gap-5 font-mono text-[0.75rem]">
           {items.map((item, i) => (
             <button
               key={item.id}
@@ -73,14 +73,14 @@ export function PaperNotes({
               tabIndex={tab === item.id ? 0 : -1}
               onClick={() => setTab(item.id)}
               onKeyDown={(event) => onKey(event, i)}
-              className={`-mb-px border-b-2 pb-2 text-[0.8125rem] font-medium transition-colors ${
+              className={`-mb-px border-b-2 pb-2 transition-colors ${
                 tab === item.id
-                  ? "border-claret-700 text-foreground dark:border-claret-300"
+                  ? "border-accent text-foreground"
                   : "border-transparent text-muted hover:text-foreground"
               }`}
             >
               {item.label}
-              {item.count !== undefined && <span className="ml-1 text-muted tabular-nums">{item.count}</span>}
+              {item.count !== undefined && <sup className="ml-0.5 text-[0.625rem] text-muted">{item.count}</sup>}
             </button>
           ))}
         </div>
@@ -101,13 +101,13 @@ export function PaperNotes({
             <dl className="divide-y divide-line">
               {reading.concepts.map((concept) => (
                 <div key={concept.term} className="py-3 first:pt-1">
-                  <dt className="font-serif text-[0.9375rem] font-semibold">
+                  <dt className="font-serif text-[1.0625rem] font-medium italic">
                     {concept.term.charAt(0).toUpperCase() + concept.term.slice(1)}
                   </dt>
-                  <dd className="mt-0.5 text-[0.8125rem] leading-relaxed text-muted">{concept.meaning}</dd>
+                  <dd className="mt-0.5 text-[0.9375rem] leading-relaxed text-muted">{concept.meaning}</dd>
                 </div>
               ))}
-              {reading.concepts.length === 0 && <p className="text-sm text-muted">No glossary for this paper.</p>}
+              {reading.concepts.length === 0 && <p className="text-[0.9375rem] text-muted">No glossary for this paper.</p>}
             </dl>
           )}
 
@@ -115,45 +115,45 @@ export function PaperNotes({
             <ol className="space-y-5">
               {reading.equations.map((equation, index) => (
                 <li key={equation.id}>
-                  <p className="flex items-baseline justify-between gap-3 text-xs">
-                    <span className="font-semibold text-accent">{equationLabel(equation, index)}</span>
+                  <p className="flex items-baseline justify-between gap-3 font-mono text-[0.6875rem]">
+                    <span className="text-accent">{equationLabel(equation, index)}</span>
                     <span className="text-muted">p. {equation.page}</span>
                   </p>
-                  <p className="mt-0.5 font-serif text-[0.9375rem] font-semibold">{equation.name}</p>
+                  <p className="mt-0.5 font-serif text-[1.0625rem] font-medium">{equation.name}</p>
                   <div
-                    className="tex-scroll mt-2 overflow-x-auto rounded-md border border-line bg-surface px-3 py-2 text-[0.875rem]"
+                    className="tex-scroll mt-2 overflow-x-auto border-y border-line px-1 py-2 text-[0.875rem]"
                     tabIndex={0}
                     role="group"
                     aria-label={`${equationLabel(equation, index)} formula`}
                   >
                     <Tex latex={equation.latex} display />
                   </div>
-                  <p className="mt-2 text-[0.8125rem] leading-relaxed text-muted">
+                  <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted">
                     <RichText text={equation.in_words[level]} inline />
                   </p>
                   <Link
                     href={`/papers/${paper.id}#eq-${equation.id}`}
-                    className="mt-1 inline-flex items-center gap-0.5 text-xs font-medium text-accent hover:underline"
+                    className="mt-1 inline-flex items-center gap-1 font-mono text-[0.6875rem] text-accent underline underline-offset-4 hover:decoration-2"
                   >
                     In the reader
-                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                    <Go className="text-[0.875rem]" />
                   </Link>
                 </li>
               ))}
-              {reading.equations.length === 0 && <p className="text-sm text-muted">This paper has no key equations.</p>}
+              {reading.equations.length === 0 && <p className="text-[0.9375rem] text-muted">This paper has no key equations.</p>}
             </ol>
           )}
 
           {item.id === "ask" && (
             <div>
-              <p className="text-[0.8125rem] leading-relaxed text-muted">
+              <p className="text-[0.9375rem] leading-relaxed text-muted">
                 Questions are answered from this paper alone, each sentence marked with the passage it rests on.
               </p>
-              <ul className="mt-3 space-y-1.5">
+              <ul className="mt-3 border-t border-line">
                 {(reading.suggested_questions ?? []).map((question) => {
                   const ready = prepared.some((p) => p.question === question);
                   const className =
-                    "flex w-full items-start gap-2 rounded-md border px-3 py-2 text-left text-[0.8125rem] font-medium transition-colors";
+                    "flex w-full items-baseline gap-2.5 border-b px-1 py-2.5 text-left font-serif text-[1rem] italic transition-colors";
                   return (
                     <li key={question}>
                       {ready && !aiEnabled ? (
@@ -163,19 +163,19 @@ export function PaperNotes({
                           onClick={() => setAsked(question)}
                           className={`${className} ${
                             asked === question
-                              ? "border-claret-300 bg-accent-soft dark:border-claret-800"
-                              : "border-line bg-surface hover:border-claret-300"
+                              ? "border-line bg-accent-soft"
+                              : "border-line hover:bg-sunken"
                           }`}
                         >
-                          <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+                          <Mark className="shrink-0 text-accent not-italic">?</Mark>
                           {question}
                         </button>
                       ) : (
                         <Link
                           href={`/papers/${paper.id}?ask=${encodeURIComponent(question)}`}
-                          className={`${className} border-line bg-surface hover:border-claret-300`}
+                          className={`${className} border-line hover:bg-sunken`}
                         >
-                          <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+                          <Mark className="shrink-0 text-accent not-italic">?</Mark>
                           {question}
                         </Link>
                       )}
@@ -184,16 +184,16 @@ export function PaperNotes({
                 })}
               </ul>
               {answer && (
-                <div className="mt-4 rounded-md border border-line bg-surface px-3.5 py-3" aria-live="polite">
+                <div className="mt-4 border-l-2 border-accent bg-surface px-3.5 py-3" aria-live="polite">
                   <AnswerView id={`notes-${paper.id}`} parts={answer.parts} pdfUrl={paper.pdf_url} prepared />
                 </div>
               )}
               <Link
                 href={`/papers/${paper.id}?ask=`}
-                className="mt-4 inline-flex items-center gap-0.5 text-xs font-medium text-accent hover:underline"
+                className="mt-4 inline-flex items-center gap-1 font-mono text-[0.6875rem] text-accent underline underline-offset-4 hover:decoration-2"
               >
                 {aiEnabled ? "Ask your own question in the reader" : "Open the ask panel in the reader"}
-                <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                <Go className="text-[0.875rem]" />
               </Link>
             </div>
           )}

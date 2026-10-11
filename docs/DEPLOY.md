@@ -9,7 +9,10 @@ Three pieces, each on a free plan, all in your own accounts:
 | Database and PDF bucket | Neon | A Postgres database and a private bucket named `papers` |
 
 Render's free API sleeps after 15 quiet minutes, so the first visit after a quiet spell takes about a
-minute.
+minute. Pages say so and keep trying, and the home page is built with the sample papers in it, so it
+never waits. [`keep-warm.yml`](../.github/workflows/keep-warm.yml) pings `/api/health` every 10 minutes
+on weekdays, 09:30 to 18:30 IST, to keep the API awake during working hours (about 200 of the free
+plan's 750 monthly hours).
 
 ## Settings for the API
 
