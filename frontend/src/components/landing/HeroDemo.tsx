@@ -28,7 +28,7 @@ function opening(text: string) {
 
 function Skeleton() {
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Loading the demo">
+    <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading the demo">
       <div className="skeleton h-4 w-11/12" />
       <div className="skeleton h-4 w-full" />
       <div className="skeleton h-4 w-4/5" />

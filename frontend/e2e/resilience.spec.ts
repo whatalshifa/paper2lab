@@ -53,3 +53,28 @@ test("every page is ready to share: title, canonical address, preview image, ico
   expect((await request.get("/apple-icon")).headers()["content-type"]).toBe("image/png");
   expect(await (await request.get("/sitemap.xml")).text()).toContain("/library</loc>");
 });
+
+test("a figure keeps trying while the server wakes up, instead of giving up at once", async ({ page }) => {
+  // No shipped copy, and the API's first two answers are the gateway errors of a sleeping server.
+  const shipped = await (await page.request.get(`/figures/${ATTENTION}/f1.png`)).body();
+  await page.route(`**/figures/${ATTENTION}/f1.png`, (route) => route.fulfill({ status: 404 }));
+  let asked = 0;
+  await page.route(`**/api/papers/${ATTENTION}/figures/f1.png*`, (route) =>
+    ++asked <= 2 ? route.fulfill({ status: 502 }) : route.fulfill({ contentType: "image/png", body: shipped }),
+  );
+  await page.goto(`/papers/${ATTENTION}#fig-f1`);
+  const picture = page.locator("#fig-f1").getByRole("img", { name: /Figure 1/ });
+  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 15_000 }).toBeGreaterThan(0);
+  await expect(picture).toBeVisible();
+  expect(asked).toBeGreaterThan(2);
+  await expect(page.getByText("This picture couldn't be loaded just now.")).toBeHidden();
+});
+
+test("a figure that is truly missing says so at once, with the page of the PDF to see it on", async ({ page }) => {
+  await page.route(`**/figures/${ATTENTION}/f1.png`, (route) => route.fulfill({ status: 404 }));
+  await page.route(`**/api/papers/${ATTENTION}/figures/f1.png*`, (route) => route.fulfill({ status: 404 }));
+  await page.goto(`/papers/${ATTENTION}#fig-f1`);
+  const figure = page.locator("#fig-f1");
+  await expect(figure.getByText("This picture couldn't be loaded just now.")).toBeVisible({ timeout: 5_000 });
+  await expect(figure.getByRole("link", { name: /See it on page 3 of the PDF/ })).toBeVisible();
+});

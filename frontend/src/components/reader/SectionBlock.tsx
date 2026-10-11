@@ -100,7 +100,7 @@ export function SectionBlock({
         {figures.length > 0 && (
           <div className="mt-8 space-y-6">
             {figures.map((figure) => (
-              <FigureCard key={figure.id} figure={figure} paperId={paper.id} pdfUrl={paper.pdf_url} level={level} />
+              <FigureCard key={figure.id} figure={figure} paperId={paper.id} pdfUrl={paper.pdf_url} level={level} isSample={paper.is_sample} />
             ))}
           </div>
         )}

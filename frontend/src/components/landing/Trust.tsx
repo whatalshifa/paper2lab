@@ -92,7 +92,7 @@ export function Trust() {
           ) : failed ? (
             <p className="text-claret-100">The numbers couldn&apos;t load just now.</p>
           ) : (
-            <div className="grid gap-10 sm:grid-cols-2" aria-busy="true" aria-label="Loading the numbers">
+            <div className="grid gap-10 sm:grid-cols-2" role="status" aria-busy="true" aria-label="Loading the numbers">
               <div className="h-32 animate-pulse bg-white/10" />
               <div className="h-32 animate-pulse bg-white/10" />
             </div>

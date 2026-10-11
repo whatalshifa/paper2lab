@@ -271,7 +271,7 @@ export function AnnotatedPage() {
   }
   if (!paper?.reading) {
     return (
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,40rem)_minmax(0,1fr)]" aria-busy="true" aria-label="Loading the page">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,40rem)_minmax(0,1fr)]" role="status" aria-busy="true" aria-label="Loading the page">
         <div className="skeleton h-[34rem]" />
         <div className="space-y-6">
           <div className="skeleton h-28" />

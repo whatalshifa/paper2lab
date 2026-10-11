@@ -73,7 +73,7 @@ function Failed({ paper, onRetry, onDelete }: { paper: PaperDetail; onRetry: () 
 
 function Skeleton() {
   return (
-    <div className="mx-auto max-w-[42rem] space-y-4 px-4 py-10 sm:px-8 lg:py-14" aria-busy="true" aria-label="Loading the paper">
+    <div className="mx-auto max-w-[42rem] space-y-4 px-4 py-10 sm:px-8 lg:py-14" role="status" aria-busy="true" aria-label="Loading the paper">
       <div className="skeleton h-4 w-24" />
       <div className="skeleton h-10 w-4/5" />
       <div className="skeleton h-4 w-1/2" />

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { api, type Figure, type Level } from "@/lib/api";
+import { useRetryingImage } from "@/lib/useRetryingImage";
+import { WAKING_UP } from "@/lib/useSlow";
 
 import { Out } from "./Glyphs";
 import { RichText } from "./RichText";
@@ -15,20 +17,27 @@ export function FigureCard({
   paperId,
   pdfUrl,
   level,
+  isSample = false,
 }: {
   figure: Figure;
   paperId: string;
   pdfUrl: string | null;
   level: Level;
+  isSample?: boolean;
 }) {
-  const src = api.figureUrl(paperId, figure.id);
+  const fromApi = api.figureUrl(paperId, figure.id);
+  // The sample papers' figures ship with the website, so they show at once even while the API
+  // sleeps. Anything else, or a sample whose copy is missing, comes from the API.
+  const sources = isSample ? [api.sampleFigureUrl(paperId, figure.id), fromApi] : [fromApi];
+  const { src, state, onLoad, onError } = useRetryingImage(sources);
   const image = useRef<HTMLImageElement>(null);
-  const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
 
   // The picture may finish loading before React is listening for it.
   useEffect(() => {
     const element = image.current;
-    if (element?.complete) setState(element.naturalWidth > 0 ? "ready" : "failed");
+    if (element?.complete) (element.naturalWidth > 0 ? onLoad : onError)();
+    // Only the first picture can beat React; later tries are always heard.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pageHref = pdfUrl ? `${pdfUrl}#page=${figure.page}` : null;
@@ -49,8 +58,13 @@ export function FigureCard({
           </div>
         ) : (
           <a href={src} target="_blank" rel="noopener noreferrer" className="relative block" aria-label={`Open ${figure.label} full size`}>
-            {state === "loading" && (
-              <span className="block max-h-[24rem] w-full animate-pulse bg-sunken" style={{ aspectRatio: ratio }} aria-hidden />
+            {state !== "ready" && (
+              <span
+                className="flex max-h-[24rem] w-full animate-pulse items-center justify-center bg-sunken px-6 text-center text-[0.875rem] text-muted"
+                style={{ aspectRatio: ratio }}
+              >
+                {state === "waiting" && WAKING_UP}
+              </span>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element -- drawn by our API, already sized */}
             <img
@@ -58,8 +72,8 @@ export function FigureCard({
               src={src}
               alt={`${figure.label}: ${figure.caption}`}
               loading="lazy"
-              onLoad={() => setState("ready")}
-              onError={() => setState("failed")}
+              onLoad={onLoad}
+              onError={onError}
               className={state === "ready" ? "mx-auto block max-h-[24rem] w-auto max-w-full" : "absolute h-px w-px opacity-0"}
             />
           </a>

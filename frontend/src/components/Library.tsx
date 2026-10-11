@@ -187,7 +187,7 @@ function Rail({
         </p>
       )}
       {!lists && !error && (
-        <div className="space-y-3 px-4 py-4 lg:px-5" aria-busy="true" aria-label="Loading the library">
+        <div className="space-y-3 px-4 py-4 lg:px-5" role="status" aria-busy="true" aria-label="Loading the library">
           {[0, 1, 2].map((i) => (
             <div key={i} className="skeleton h-16" />
           ))}
@@ -250,7 +250,7 @@ function Rail({
 
 function PreviewSkeleton() {
   return (
-    <div className="mx-auto max-w-[40rem] space-y-4 px-8 pt-16" aria-busy="true" aria-label="Loading the paper">
+    <div className="mx-auto max-w-[40rem] space-y-4 px-8 pt-16" role="status" aria-busy="true" aria-label="Loading the paper">
       <div className="skeleton h-3 w-1/3" />
       <div className="skeleton h-9 w-4/5" />
       <div className="skeleton h-4 w-2/3" />
